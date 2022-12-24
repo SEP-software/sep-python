@@ -3,18 +3,12 @@ import Hypercube
 import numpy 
 import numba
 from sys import version_info
+import numpy
+import sepConverter
+import sepProto
 
+converter=sepConverter.converter
 
-dtypeToSepVecType={
- "float32":"dataFloat",
- "int32":"dataInt",
- "float64":"dataDouble",
- "uint8":"dataByte",
- "complex64":"dataComplex",
- "complex128":"dataComplexDouble"
-
- }
-SepVecTypeToDtype= {v: k for k, v in dtypeToSepVecType.items()}
 
 @numnba.njit(parallel=True)
 def clipIt(vec,bclip,eclip):
@@ -64,19 +58,19 @@ def calcHisto(outV,vec,mn,mx):
 
         
 
-class vector(pyVector.vectorIC):
+class vector(pyVector.vectorIC,sepProto.memReg):
     """Generic sepVector class"""
 
-    def __init__(self, hyper:Hypercube.hypercube, storageType:str):
+    def __init__(self, hyper:Hypercube.hypercube, dataFormat:str):
         """Initialize a vector object"""
-        self._hyper=hyper
-        self._storage=storage
+        self.setHyper(hyper)
+        self.setDataFormat(dataFormat)
         super().__init__()
 
 
-    def getStorageType(self)->str:
-        """Return type of storage"""
-        return self._storage
+    def getdataFormatType(self)->str:
+        """Return type of dataFormat"""
+        return self._dataFormat
 
     def zero(self)->vector:
         """Function to zero out a vector"""
@@ -88,10 +82,7 @@ class vector(pyVector.vectorIC):
         self.fill(val)
         return self
 
-    def getHyper(self)->Hypercube.hypercube:
-        """Return the hypercube associated with the vector"""
-        return self._hyper
-
+    
     def getNdArray(self)->np.ndarray:
         """Return a numpy version of the array (same memory"""
         return self._arr
@@ -160,25 +151,23 @@ class vector(pyVector.vectorIC):
 
     def checkSame(self, vec2:vector)->bool:
         """Function to check if two vectors belong to the same vector space"""
-        if vec2.storageType() != self.checkStorage():
+        if vec2.dataFormatType() != self.checkdataFormat():
             return False
-        return self._hyper.checkSame(vec2.getHyper())
+        return self.getHyper().checkSame(vec2.getHyper())
     
-    def getStorage(self)->str:
-        """Return storage type"""
-        return self._storage 
+
 
 class nonInteger(vector):
     """A class for non-integers"""
-    def __init__(self,hyper:Hypercube:hypercube, storage:str):
+    def __init__(self,hyper:Hypercube:hypercube, dataFormat:str):
         """Initialize a non-integer"""
-        super().__init__(hyper,storage)
+        super().__init__(hyper,dataFormat)
 
 class realNumber(nonInteger):
     """A class for real numbers"""
-    def __init__(self,hyper:Hypercube.hypercube,storage:str):
+    def __init__(self,hyper:Hypercube.hypercube,dataFormat:str):
         """Initialize a real number vector"""
-        super().__init__(hyper,storage)
+        super().__init__(hyper,dataFormat)
 
 
     def clip(self, bclip eclip):
@@ -207,7 +196,7 @@ class realNumber(nonInteger):
 
     def scaleAdd(self, vec2:vector, sc1=1., sc2=1.)->vector:
         """self = self * sc1 + sc2 * vec2"""
-        if not self.checkSame(vec2) or self.getStorage()!=vec2.getStorage():
+        if not self.checkSame(vec2) or self.getDataFormat()!=vec2.getDataFormat():
             raise SEPException("must be of the same space and type")
         scaleAdd(self.get1DArray(),vec.get1DArray(),sc1,sc2)
         return self
@@ -227,19 +216,19 @@ class realNumber(nonInteger):
         ar=self.get1DArray()
         #CHANGE
         histo=self.getSepVector()
-        histo = getSepVector(ns=[nelem], storage="dataInt")
+        histo = getSepVector(ns=[nelem], dataFormat="int32")
         self.cppMode.calcHisto(histo.getCpp(), mn, mx)
         return histo
     def copy(self, vec2:vector)->vector:
         """Copy vec2 into self"""
-        if not self.checkSame(vec2) or self.getStorage()!=vec2.getStorage():
+        if not self.checkSame(vec2) or self.getdataFormat()!=vec2.getdataFormat():
             raise SEPException("must be of the same space and type")
         scaleAdd(self.get1DArray(),vec.get1DArray(),0.,1.)
         return self
 
     def dot(self, vec2:vector)->vector:
         """Compute dot product of two vectors"""
-        if not self.checkSame(vec2) or self.getStorage()!=vec2.getStorage():
+        if not self.checkSame(vec2) or self.getdataFormat()!=vec2.getdataFormat():
             raise SEPException("must be of the same space and type")
         return dotIt(self.get1DArray(),vec2.get1DArray())
     
@@ -255,7 +244,7 @@ class realNumber(nonInteger):
     
     def multiply(self, vec2:vector)->vector:
         """self = vec2 * self"""
-        if not self.checkSame(vec2) or self.getStorage()!=vec2.getStorage():
+        if not self.checkSame(vec2) or self.getdataFormat()!=vec2.getdataFormat():
             raise SEPException("must be of the same space and type")
         multiplyIt(self.get1DArray(),vec2.get1DArray())
         return self
@@ -282,12 +271,12 @@ class floatVector(vector):
         return self
     def clone(self):
         """Function to clone (deep copy) a vector"""
-        return floatVector(self.getHyper().self.getStorage())
+        return floatVector(self.getHyper().self.getdataFormat())
 
 
     def cloneSpace(self):
         """Funtion tor return the space of a vector"""
-        return floatVector(self.getHyper().self.getStorage(),spaceOnly=True)
+        return floatVector(self.getHyper().self.getdataFormat(),spaceOnly=True)
 
 class doubleVector(vector):
     """Generic double vector class"""
@@ -295,7 +284,7 @@ class doubleVector(vector):
 
     def __init__(self, hyper:Hypercube:hypercube,spaceOnly=False, arr=None):
         self.kw = kw
-        super().__init__(hyper,"dataDouble")
+        super().__init__(hyper,"double64")
         if not spaceOnly:
             self._arr=np.ndarray(tuple(hyper.getNs().reverse()),dtype=np.float64)
 
@@ -313,12 +302,12 @@ class doubleVector(vector):
 
     def clone(self):
         """Function to clone (deep copy) a vector"""
-        return doubleVector(self.getHyper().self.getStorage())
+        return doubleVector(self.getHyper().self.getdataFormat())
 
 
     def cloneSpace(self):
         """Funtion tor return the space of a vector"""
-        return doubleVector(self.getHyper().self.getStorage(),spaceOnly=True)
+        return doubleVector(self.getHyper().self.getdataFormat(),spaceOnly=True)
 
 
 class intVector(vector):
@@ -338,14 +327,14 @@ class intVector(vector):
 
     def clone(self):
         """Function to clone (deep copy) a vector"""
-        return intVector(self.getHyper().self.getStorage())
+        return intVector(self.getHyper().self.getdataFormat())
 class complexVector(vector):
     """Generic complex vector class"""
 
 
     def __init__(self, hyper:Hypercube:hypercube,spaceOnly=False, arr=None):
         self.kw = kw
-        super().__init__(hyper,"dataFloat")
+        super().__init__(hyper,"float32")
         if not spaceOnly:
             self._arr=np.ndarray(tuple(hyper.getNs().reverse()),dtype=np.float64)
 
@@ -353,7 +342,7 @@ class complexVector(vector):
 
     def cloneSpace(self):
         """Funtion tor return the space of a vector"""
-        return complexVector(self.getHyper().self.getStorage(),spaceOnly=True)
+        return complexVector(self.getHyper().self.getdataFormat(),spaceOnly=True)
 
     def __repr__(self):
         """Override print method"""
@@ -361,7 +350,7 @@ class complexVector(vector):
 
     def clone(self):
         """clone a vector"""
-        return complexVector(self.getHyper().self.getStorage())
+        return complexVector(self.getHyper().self.getdataFormat())
 
     def rand(self)->vector:
         """Function to fill with random numbers"""
@@ -374,15 +363,14 @@ class complexDoubleVector(vector):
 
     def __init__(self, hyper:Hypercube:hypercube,spaceOnly=False, arr=None):
         self.kw = kw
-        super().__init__(hyper,"dataComplexDouble")
+        super().__init__(hyper,"complex128")
         if not spaceOnly:
             self._arr=np.ndarray(tuple(hyper.getNs().reverse()),dtype=np.complex128)
 
-    
 
     def cloneSpace(self):
         """Funtion tor return the space of a vector"""
-        return complexDoubleVector(self.getHyper().self.getStorage(),spaceOnly=True)
+        return complexDoubleVector(self.getHyper().self.getdataFormat(),spaceOnly=True)
 
     def norm(self, N=2):
         """Function to compute vector N-norm"""
@@ -398,7 +386,7 @@ class complexDoubleVector(vector):
 
     def clone(self):
         """clone a vector"""
-        return complexDoubleVector(self.getHyper().self.getStorage())
+        return complexDoubleVector(self.getHyper().self.getdataFormat())
 
     def clipVector(self, low, high):
         """Clip vector element by element vec=min(high,max(low,vec))"""
@@ -424,12 +412,12 @@ class byteVector(vector):
            nelem - Return number of elements in histogram
 
            @return Histogram """
-        histo = getSepVector(ns=[nelem], storage="dataInt")
+        histo = getSepVector(ns=[nelem], dataFormat="dataInt")
         self.cppMode.calcHisto(histo.getCpp(), mn, mx)
         return histo
     def clone(self):
         """Function to clone (deep copy) a vector"""
-        return byteVector(fself.getHyper().self.getStorage()s)
+        return byteVector(fself.getHyper().self.getdataFormat()s)
     def __repr__(self):
         """Override print method"""
         return "byteVector\n%s"%str(self.getHyper())
@@ -445,18 +433,19 @@ def getSepVector(*args, **keys):
                     labels = [] list of labels
                     axes = [] list of axes
 
-            storage = StorageType(dataFloat[default], dataComplex,dataComplexDouble,
-                        dataDouble,dataInt,dataByte)
+            dataFormat = dataFormatType(float32[default], float64,double64,int32,complex64,complex128)
 
             Option 4 (numpy)
                 Provide hyper, ns, os, or ds,label,s axes
 
 
     """
-    myt = "dataFloat"
+    myt = "float32"
     haveHyper=False
     haveNumpy=False
     array=None
+    if "dataFormat" in keys:
+        keyps["dataFormat"]=keys["dataFormat"]
     if len(args) == 1:
         if isinstance(args[0],Hypercube.hypercube):
             haveHyper=True
@@ -489,25 +478,25 @@ def getSepVector(*args, **keys):
 
 
     if haveNumpy:
-        if not str(array.dtype) in dtypeToSepVecType:
-            raise Exception("Numpy array not supported",str(array.dtype))
-        myt=dtypeToSepVecType[str(array.dtype)]
+        if not converter.validType(array.dtype):
+            raise Exception(f"Numpy array type {array.dtype} not supported")
+        myt=converter.getName(array.dtype)
     else:
-        myt="dataFloat"
-        if "storage" in keys:
-            myt = keys["storage"]
+        myt="float32"
+        if "dataFormat" in keys:
+            myt = converter.getName(keys["dataFromat"])
 
-    if myt == "dataFloat":
+    if myt == "float32":
         y= floatVector(hyper)
-    elif myt == "dataComplexDouble":
+    elif myt == "complex128":
         y=complexDoubleVector(hyper)
-    elif myt == "dataComplex":
+    elif myt == "complex64":
         y=complexVector(hyper)
-    elif myt == "dataDouble":
+    elif myt == "double64":
         y= doubleVector(hyper)
-    elif myt == "dataInt":
+    elif myt == "int32":
         y= intVector(hyper)
-    elif myt == "dataByte":
+    elif myt == "uint8":
         y= byteVector(hyper)
     else:
         raise Exception("Unknown type %s" % myt)

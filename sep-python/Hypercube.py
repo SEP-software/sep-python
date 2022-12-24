@@ -1,3 +1,4 @@
+import copy
 class axis:
 
     def __init__(self, **kw):
@@ -9,15 +10,15 @@ class axis:
         self.label = ""
         self.unit = ""
         if "n" in kw:
-            self.n = kw["n"]
+            self.n =int( kw["n"])
         if "o" in kw:
-            self.o = kw["o"]
+            self.o = float(kw["o"])
         if "d" in kw:
-            self.d = kw["d"]
+            self.d = float(kw["d"])
         if "label" in kw:
-            self.label = kw["label"]
+            self.label = str(kw["label"])
         if "unit" in kw:
-            self.unit = kw["unit"]
+            self.unit = str(kw["unit"])
         if "axis" in kw:
             self.n = kw["axis"].n
             self.o = kw["axis"].o
@@ -77,12 +78,10 @@ class hypercube:
             for i in range(kw["hypercube"].getNdim()):
                 a = axis(axis=kw["hypercube"].getAxis(i + 1))
                 self.axes.append(a)
-        self.buildCpp()
 
     def clone(self):
         """Clone hypercube"""
-        x=hypercube(hypercube=self.getCpp().clone())
-        return x
+        return hypercube(axes=self.axes)
     
     def subCube(self,nw,fw,jw):
         """Return a sub-cube"""
@@ -142,3 +141,49 @@ class hypercube:
         """Add an axis to the hypercube"""
         self.axes.append(axis)
 
+    def getWindowParams(self, **kw):
+        """Return window parameters
+                must supply n,f,or j"""
+        ndim = len(self.axes)
+        for a in ["f", "j", "n"]:
+            if a in kw:
+                if not isinstance(kw[a], list):
+                    raise Exception(
+                        "Expecting %s to be a list the dimensions of your Path" %
+                        a)
+                if len(kw[a]) != ndim:
+                    raise Exception(
+                        "Expecting %s to be a list the dimensions of your Path" %
+                        a)
+        if "j" in kw:
+            js = kw["j"]
+        else:
+            js = [1] * ndim
+        if "f" in kw:
+            fs = kw["f"]
+            for i in range(len(fs)):
+                if fs[i] >= self.axes[i].n:
+                    raise Exception(
+                        "Invalid f parameter f(%d)>=ndata(%d) for axis %d" %
+                        (fs[i], self.axes[i].n, i + 1))
+
+        else:
+            fs = [0] * ndim
+        if "n" in kw:
+            ns = kw["n"]
+            for i in range(len(fs)):
+                if ns[i] > axes[i].n:
+                    raise Exception(
+                        "Invalid n parameter n(%d) > ndata(%d) for axes %d" %
+                        (ns[i], self.axes[i].n, i + 1))
+        else:
+            ns = []
+            for i in range(ndim):
+                ns.append(int((self.axes[i].n - 1 - fs[i]) / js[i] + 1))
+        for i in range(ndim):
+            if self.axes[i].n < (1 + fs[i] + js[i] * (ns[i] - 1)):
+                raise Exception(
+                    "Invalid window parameter (outside axis range) f=%d j=%d n=%d iax=%d ndata=%d" %
+                    (fs[i], js[i], ns[i], i + 1, self.axes[i].n))
+        return ns, fs, js
+  

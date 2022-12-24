@@ -1,4 +1,4 @@
-import io
+import ioBase
 import re
 import string
 import pwd
@@ -9,10 +9,9 @@ import copy
 import time
 import types
 import Hypercube
-import datapath
 import numpy as np 
 import sepConverter
-import io
+import ioBase
 import sepProto
 from google.cloud import storage 
 import re
@@ -22,7 +21,7 @@ from math import *
 __author__ = "Robert G. Clapp"
 __email__ = "bob@sep.stanford.edu"
 __version = "2022.12.13"
-class io(io.io):
+class io(ioBase.io):
 
     def __init__(self,createMem):
         """
@@ -30,7 +29,7 @@ class io(io.io):
 
           createMem - Function to create memory
         """
-        super().__init__(self,createMem)
+        super().__init__(createMem)
     
 
     def getRegStorage(self,**kw):
@@ -38,7 +37,7 @@ class io(io.io):
 
             Return a regular sampled file pointer 
         """
-        if "path" not kw:
+        if "path" not in kw:
             raise Exception("path must be specified")
         
         path=kw["path"]
@@ -98,14 +97,14 @@ def checkValid(kw:dict,args:dict):
       if not isinstance(kw[arg],typ):
         raise Exception(f"Expecting {arg} to be of type {typ}")
 
-class reg(io.regFile):
+class reg(ioBase.regFile):
   """A class to """
   def __init__(self,**kw):
 
     checkValid(kw,{"hyper":Hypercube.hypercube,"path":str,"vec":sepProto.memReg,
       "array":np.ndarray,"os":list,"ds":list,"labels":list,"units":list})
 
-    super().__init__(self)
+    super().__init__()
 
     self._xdr=False
     self._parPut=[]
@@ -115,13 +114,15 @@ class reg(io.regFile):
     self._esize=None
     self._dataOut=False
     self._ioType="SEP"
-
+    self._intent="OUTPUT"
     if "array" in kw or "vec" in kw:
+      
       if "array" in kw:
         array=kw["array"]
         if "hyper" in kw:
           self._hyper=copy.deepcopy(kw["hyper"])
         else:
+          ns=list(array.shape)[::-1]
           os=[0.] * len(ns)
           ds=[1.] * len(ns)
           labels=[""] * len(ns)
@@ -130,31 +131,36 @@ class reg(io.regFile):
           if "ds" in kw: ds=kw["ds"]
           if "labels" in kw: labels=kw["labels"]
           if "units" in kw: units=kw["units"]
-          self._hyper=Hypercube.hypercube(ns=ns,os=os,ds=ds,labels=labels,units=units)
-      else "vec" in kw:
+          if "hyper" in kw:
+            if str(ns)!=str(kw["hyper"].getNs()):
+                raise Exception("Shape of hypercube and array are different")
+          else:
+            self._hyper=Hypercube.hypercube(ns=ns,os=os,ds=ds,labels=labels,units=units)
+      elif "vec" in kw:
         array=kw["vec"].getNdArray()
         self._hyper=array.getHyper()
-
-      self.setDataType(array.dtype)
-      ns=list(array.shape)[::-1]
-      if str(ns)!=str(self._hyper.getNs()):
-        raise Exception("Shape of hypercube and array are different")
+      self.setDataType(str(array.dtype))
+      self._params=self.buildParamsFromHyper(self._hyper)
 
       if "path" not in kw: raise Exception("Must specify path")
       self._path=kw["path"]
+      self.setBinaryPath(datafile(self._path))
+
     elif "hyper" in kw:
       self._params=self.buildParamsFromHyper(kw["hyper"])
       if "path" not in kw: raise Exception("Must specify path in creation")
       self._path=kw["path"]
+      self.setBinaryPath(datafile(self._path))
       if "type" not in kw: raise Exception("Musty specify type when creating from hypercube")
       self.setDataType(converter.getNumpy(kw["type"]))
     elif "path" in kw:
       if not isinstance(kw["path"],str): raise Exception("path must be a string")
       self._params=self.buildParamsFromPath(kw["path"],**kw)
       self._path=kw["path"]
+      self.setBinaryPath(datafile(self._path))
+      self._intent="INPUT"
     else:
       raise Exception("Did not provide a valid way to create a dataset")
-    self._esize=converter.getEsize(self.getDataType())
 
   def buildParamsFromHyper(self,hyper:Hypercube.hypercube):
     """Build parameters from hypercube"""
@@ -174,7 +180,7 @@ class reg(io.regFile):
   def buildParamsFromPath(self,fle:str,**kw):
     """Build parameters from Path"""
 
-    mystr=getHistoryDict()
+    pars=self.getHistoryDict(fle)
 
     ndim=1
     found=False
@@ -207,12 +213,15 @@ class reg(io.regFile):
         if kw["ndims"] > len(axes):
           axes.append(n=1)
     self._hyper=Hypercube.hypercube(axes=axes)
+    
+    if "in" in pars:
+        self.setBinaryPath(pars["in"])
 
     if "data_format" in pars:
       if pars["data_format"][:3]=="xdr":
         self._xdr=True
         pars["data_format"]="native"+pars["data_format"][3:]
-      sself.setDataType(converter.sepNameToNumpy(pars["data_format"]))
+      self.setDataType(converter.sepNameToNumpy(pars["data_format"]))
       self._esize=converter.getEsize(converter.fromSepName(pars["data_format"]))
     elif "esize" in pars:
       self._esize=int(pars["esize"])
@@ -228,10 +237,6 @@ class reg(io.regFile):
 
 
     return pars
-
-  def remove(self):
-    """Remove data """
-    raise Exception("Must override remove")
 
   def getPar(self,param:str,default=None):
     """Return parameter of any type
@@ -325,12 +330,17 @@ class reg(io.regFile):
     self._parPut.append(param)
     self._params[param]=pout
 
+  def getProgName(self)->str:
+    """
+    Return get program name
+    """
+    return self._progName
 
-  def __del__(self):
+  def close(self):
     """
     Delete function. Write descrption if data has been written
     """
-    if not self._wroteHistory and self._dataOut:
+    if not self._wroteHistory and self._intent=="OUTPUT":
       self.writeDescription()
      
 class sFile(reg):
@@ -368,13 +378,13 @@ class sFile(reg):
     if "path" not in kw:
       raise Exception("Must specify path")
       if "//" not in kw["path"]:
-        raise Exception(f"When creating a file object path must begin with / ({kw["path"]})")
-    super().__init__(self,**kw)
+        raise Exception(f"When creating a file object path must not have a web address {kw['path']}")
+    super().__init__(**kw)
 
     
-    if not "in" in self._params:
-      raise Exception("Binary path must be specified")
-    self.setBinaryPath(self._params["in"])
+    if self.getBinaryPath() ==None:
+        raise Exception("Binary path is not")
+
     
     
 
@@ -403,9 +413,9 @@ class sFile(reg):
     #byteA=str.encode(buf)
     pars={}
     pars=databaseFromStr(mystr,pars)
-    return parts
+    return pars
     
-  def read(self,mem:sepProto:memReg,**kw):
+  def read(self,mem,**kw):
     """
       read a block of data
 
@@ -415,9 +425,14 @@ class sFile(reg):
       nw,fw,jw - Standard window parameters
 
     """
+    if isinstance(mem,sepProto.memReg):
+      array=mem.getNdArray()
+    elif isinstance(mem,np.ndarray):
+      array=mem
+    else:
+      raise Exception(f"Do not how to read into type {type(mem)}")
 
-    array=mem.getNdArray()
-    seeks,blk,many=self.loopIt(*self.condense(*self.getHyper().getWindowParam(**kw)))
+    seeks,blk,many,contin=self.loopIt(*self.condense(*self.getHyper().getWindowParams(**kw)))
     arUse=array.ravel()
 
     if self.getBinaryPath()=="stdin" or self.getBinaryPath()=="follow_hdr":
@@ -436,7 +451,7 @@ class sFile(reg):
       new=new+many
     fl.close()
   
-  def write(self,mem:sepProto.memReg,**kw):
+  def write(self,mem,**kw):
     """
       write a block of data
 
@@ -446,8 +461,13 @@ class sFile(reg):
       nw,fw,jw - Standard window parameters
 
     """
-    array=mem.getNdArray()
-    seeks,blk,many=self.loopIt(*self.condense(*self.getHyper().getWindowParam(**kw)))
+    if isinstance(mem,sepProto.memReg):
+      array=mem.getNdArray()
+    elif isinstance(mem,np.ndarray):
+      array=mem
+    else:
+      raise Exception(f"Do not how to read into type {type(mem)}")    
+    seeks,blk,many,contin=self.loopIt(*self.condense(*self.getHyper().getWindowParams(**kw)))
     arUse=array.ravel()
     self._dataOut=True
     fl=open(self.getBinaryPath(),"wb+")
@@ -462,149 +482,281 @@ class sFile(reg):
 
   def writeDescription(self):
     """Write description to path"""
+
+
     fl=open(self._path,"w")
     fl.write(f"{self._history}\n{self.getProgName()}\n")
     for par in self._parPut:
       fl.write(f"{par}={self._params[par]}")
     fl.write(self.hyperToStr())
-    self.setBinaryPath(datapath.datafile(self._path))
+    self.setBinaryPath(datafile(self._path))
     fl.write(f"in={self.getBinaryPath()}\n")
     fl.write(f"esize={self._esize} data_format={converter.getSEPName(self.getDataType())}")
     self._wroteHistory=True
   
     fl.close()
 
+  def remove(self):
+    """Remove data """
+    os.remove(self._path)
+    if self._binaryPath!="stdin":
+      if os.path.isfile(self._binaryPath):
+        os.remove(self._binaryPath)
 
-class sGsObj(reg):
+class sGcsObj(reg):
   """Class when SEP data is stored in an object"""
 
-  def __init_(self,**kw):
-        """"Initialize a sepFile object
-  
+  def __init__(self,**kw):
+      """"Initialize a sepFile object
+
       
       Method 1:
-        hyper - Hypercube 
-        path  (str) - path for Path
-        type (str) - SEP Data type 
+      hyper - Hypercube 
+      path  (str) - path for Path
+      type (str) - SEP Data type 
 
 
       Method 2:
-        Path  - Path to file
+      Path  - Path to file
 
-        Optional:
-        ndims - Minimum dimensions for the data
+      Optional:
+      ndims - Minimum dimensions for the data
 
       Method 3:
-        path (str) - path for history file
-        array (np.ndarray) - Array or memReg storage
-            or
-        vec ()
-        
-        Optional:
-            hyper - Hypercube describing data
-            os,ds,labels,units - Lists describing array
-        
-  """
-  if "path" not in kw:
-    raise Exception("path must be specified when creating object")
-  
-  reS=re.compile("gs://(\S+)\/(.+)")
-  x=reS.search(kw["path"])
-  if x:
-    self._bucket=x.group(1)
-    self._oject=x.group(2)
-  else:
-    raie Exception(f"Invalid path for google storage object {kw["path"]}")
-  super().__init__(self,**kw)
+      path (str) - path for history file
+      array (np.ndarray) - Array or memReg storage
+          or
+      vec ()
+      
+      Optional:
+          hyper - Hypercube describing data
+          os,ds,labels,units - Lists describing array
+      
+      """
+      if "path" not in kw:
+          raise Exception("path must be specified when creating object")
 
+      reS=re.compile("gs://(\S+)\/(.+)")
+      x=reS.search(kw["path"])
 
-  def getHistoryDict(self):
+      self._blobs=[]
+      if x:
+          self._bucket=x.group(1)
+          self._object=x.group(2)
+      else:
+          raise Exception(f"Invalid path for google storage object {kw['path']}")
+      super().__init__(**kw)
 
-    client = storage.Client()
-    bucket = client.bucket(self._bucket)
-    blob = bucket.get_blob(self._object)
-    pars = blob.metadata
-    newS=""
-    for k,v in pars:
-      newS+=f"{k}={v}"
-    if "history" in pars:
-      pars=databaseFromStr(pars["history"],pars)
-      self._history=pars["history"]
-      if "progName" in pars:
-        self._history+=f"\n{pars["progName"]}\n"
-      del pars["history"]
-    self._history+=f"\n{newS}"
-    return pars
+  def getHistoryDict(self,path):
+      client = storage.Client()
+      bucket = client.bucket(self._bucket)
+      if not bucket.exists():
+          raise Exception(f"bucket {self._bucket} does not exist")
+      blob = bucket.get_blob(self._object)
+      if not blob.exists():
+          raise Exception(f"blob {self._blob} does not exist in bucket {self._bucket}")
+      pars = blob.metadata
+      newS=""
+      for k,v in pars.items():
+          newS+=f"{k}={v}"
+      if "history" in pars:
+          pars=databaseFromStr(pars["history"],pars)
+          self._history=pars["history"]
+          if "progName" in pars:
+              self._history+=f"\n{pars['progName']}\n"
+              del pars["history"]
+      self._history+=f"\n{newS}"
+      return pars
 
   def writeDescription(self):
-  """Write description to path"""
-    tmp=copy.deepCopy(self._params)
-    tmp["history"]=self._history
-    tmp["progName"]=self.getProgName()
-    self.hyperToDict(tmp)
-    
-    storage_client = storage.Client()
-    bucket = storage_client.bucket(self._bucket)
-    blob = bucket.get_blob(self._object)
-    blob.metadata = tmp
-    blob.patch()
-    self._wroteHistory=True
+      """Write description to path"""
+      pass;
 
-  def read(self,mem:sepProto:memReg,**kw):
-    """
-      read a block of data
+  def writeDescriptionFinal(self):
+      """
+        Write description when closing file
 
-      mem - Array to be read into
+      """
+      tmp=copy.deepcopy(self._params)
+      tmp["history"]=self._history
+      tmp["progName"]=self.getProgName()
+      tmp["esize"]=self._esize 
+      tmp["data_format"]=converter.getSEPName(self.getDataType())
 
-      Optional
-      nw,fw,jw - Standard window parameters
+      self.hyperToDict(tmp)
+      
+      storage_client = storage.Client()
+      bucket = storage_client.bucket(self._bucket)
+      if not bucket.exists():
+          raise Exception(f"bucket {self._bucket} does not exist")
 
-    """
+      blob = bucket.blob(self._object)
 
-    array=mem.getNdArray()
-    seeks,blk,many=self.loopIt(*self.condense(*self.getHyper().getWindowParam(**kw)))
-    arUse=array.ravel()
-
-    storage_client = storage.Client()
-    bucket = storage_client.bucket(self._bucket)
-    blob = bucket.get_blob(self._object)
-
-    with blob.open("rb") as fl:
-      old=0
-      new=old+many
-      for sk in seeks:
-        fl.seek(sk+self._head)
-        bytes=fl.read(blk)
-        if self._xdr:
-          bytes=bytearray(bytes).reverse()
-        arUse[old:new]=np.frombuffer(bytes, dtype=arUse.dtype).copy()
-        old=new
-        new=new+many
+      blob.metadata = tmp
+      blob.patch()
   
-  def write(self,mem:sepProto.memReg,**kw):
-    """
-      write a block of data
+  def close(self):
+    """Close (and) pottentially combine GCS objects"""
+    if self._intent=="OUTPUT":
+      storage_client = storage.Client()
+      bucket = storage_client.bucket(self._bucket)
+      if len(self._blobs)==0:
+        blob = bucket.blob(self._object)
+        blob.upload_from_string('', content_type='application/x-www-form-urlencoded;charset=UTF-8')
+      else:
+        destination = bucket.blob(self._object)
+        destination.compose(self._blobs)
+      self.writeDescriptionFinal()
+      #for a in self._blobs:
+      #   a.delete()
+  
+  def remove(self):
+      """Remove data """
+      storage_client = storage.Client()
+      bucket = storage_client.bucket(self._bucket)
+      blob = bucket.get_blob(self._object)
+      blob.delete()
 
-      mem - Array to be read into
+  def read(self,mem,**kw):
+      """
+          read a block of data
 
-      Optional
-      nw,fw,jw - Standard window parameters
+          mem - Array to be read into
 
-    """
-    array=mem.getNdArray()
-    seeks,blk,many=self.loopIt(*self.condense(*self.getHyper().getWindowParam(**kw)))
-    arUse=array.ravel()
-    self._dataOut=True
+          Optional
+          nw,fw,jw - Standard window parameters
 
-    storage_client = storage.Client()
-    bucket = storage_client.bucket(self._bucket)
-    blob = bucket.get_blob(self._object)
-    with blob.open("wb") as fl:
-      old=0
-      new=old+many
-      for sk in seeks:
-        fl.seek(sk)
-        fl.write(arUse[old:new].tobytes())
-        old=new
-        new=new+many
-      fl.close()
+      """
+
+      if isinstance(mem,sepProto.memReg):
+        array=mem.getNdArray()
+      elif isinstance(mem,np.ndarray):
+        array=mem
+      else:
+        raise Exception(f"Do not how to read into type {type(mem)}")
+      seeks,blk,many,contin=self.loopIt(*self.condense(*self.getHyper().getWindowParams(**kw)))
+      arUse=array.ravel()
+
+      storage_client = storage.Client()
+      bucket = storage_client.bucket(self._bucket)
+      blob = bucket.get_blob(self._object)
+
+      with blob.open("rb") as fl:
+          old=0
+          new=old+many
+          for sk in seeks:
+              fl.seek(sk+self._head)
+              bytes=fl.read(blk)
+              if self._xdr:
+                  bytes=bytearray(bytes).reverse()
+              arUse[old:new]=np.frombuffer(bytes, dtype=arUse.dtype).copy()
+              old=new
+              new=new+many
+
+  def write(self,mem,**kw):
+      """
+          write a block of data
+
+          mem - Array to be read into
+
+          Optional
+          nw,fw,jw - Standard window parameters
+
+      """
+
+
+      if isinstance(mem,sepProto.memReg):
+        array=mem.getNdArray()
+      elif isinstance(mem,np.ndarray):
+        array=mem
+      else:
+        raise Exception(f"Do not how to read into type {type(mem)}")
+      
+      seeks,blk,many,contin=self.loopIt(*self.condense(*self.getHyper().getWindowParams(**kw)))
+
+      if not contin:
+        raise Exception("Can only write continuously to GCS storage")
+      arUse=array.ravel()
+      self._dataOut=True
+
+      storage_client = storage.Client()
+      bucket = storage_client.bucket(self._bucket)
+      blob = bucket.blob(f"{self._object}{len(self._blobs)}")
+      self._blobs.append(blob)
+
+      with blob.open("wb") as fl:
+        old=0
+        new=old+many
+        for sk in seeks:
+            fl.write(arUse[old:new].tobytes())
+            old=new
+            new=new+many
+
+      
+
+
+def datapath(host=None,all=None):
+    """Return the datapath
+
+        If host is not specified  defaults to the local machine
+        If all is specifed returns the list of a ; list of directories
+
+    """    
+
+    if host == None: hst=os.uname()[1]
+    else: hst=host
+
+    path = os.environ.get('DATAPATH')
+    if not path:
+        try:
+            file = open('.datapath','r')
+        except:
+            try:
+                file = open(os.path.join(os.environ.get('HOME'),'.datapath'),'r')
+            except:
+                file = None
+    if file:
+        for line in file.readlines():
+            check = re.match("(?:%s\s+)?datapath=(\S+)" % hst,line)
+            if check:
+                path = check.group(1)
+            else:
+                check = re.match("datapath=(\S+)",line)
+                if check:
+                    path = check.group(1)
+        file.close()
+    if not path:
+        path = "/tmp/"
+    if  all:  return path.split(":")
+    return path
+
+
+def datafile(name,host=None,all=None,nfiles=1):
+  """ Returns the datafile name(s) using SEP datafile conventions
+
+      if host is not specified defaults to local machine
+      if all is specified and datapath is a ; seperated 
+          list returns list of paths
+      if nfiles is specified returns multi-file names
+
+   """
+
+  f=datapath(host,all)
+  if all:
+    list=[]
+    for i in range(nfiles):
+      for dir in f:
+         if i ==0: end="@"
+         else: end="@"+str(i)
+         list.append(dir+os.path.basename(name)+end)
+    return list
+  else:
+    return f+ os.path.basename(name)+"@"
+  return f
+  
+  
+  def remove(self):
+    """Remove data """
+    os.remove(self._path)
+    if self._binaryPath!="stdin":
+        os.remove(self._binaryPath)

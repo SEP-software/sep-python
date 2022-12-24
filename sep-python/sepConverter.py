@@ -45,7 +45,13 @@ class dtypeConvert:
         raise Exception(f"Unknown name {nm}")
       return nm
     else:
-      raise Exception(f"Do not know how to deal with type={type(nm)} val={nm}")
+      try:
+        conv=str(nm)
+        if nm  not in self._numpyToName:
+          raise Exception(f"Unkown type {nm}")
+        return self._numpyToName[nm] 
+      except:
+        raise Exception(f"Do not know how to deal with type={type(nm)} val={nm}")
   def sepNameToNumpy(self,sepName:str)->type:
     """
     Return Numpy type given sepName

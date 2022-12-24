@@ -45,9 +45,3 @@ class memReg:
         if self._storage==None:
             raise Exception("Storage is not set")
         return self._storage
-
-    def getStorage(self,hyper:Hypercube.hypercube,storage)->memReg:
-        """
-        Return memory to store data
-        """
-        raise Exception("Must override get Storage")
