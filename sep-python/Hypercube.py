@@ -1,4 +1,5 @@
 import copy
+import logging
 class axis:
 
     def __init__(self, **kw):
@@ -43,7 +44,10 @@ class hypercube:
         """initialize with
           - axes=[] A list of Hypercube.axis
           - ns=[] An list of integers (optionally lists of os,ds,labels)
-          - hypercube From another hypercube"""
+          - hypercube From another hypercube
+          - logger - Logger object for hypercube
+          
+          """
         isSet = False
         self.axes = []
         if "axes" in kw:
@@ -78,6 +82,16 @@ class hypercube:
             for i in range(kw["hypercube"].getNdim()):
                 a = axis(axis=kw["hypercube"].getAxis(i + 1))
                 self.axes.append(a)
+
+        self._logger=logging.getLogger(None)
+        if "logger" in kw:         
+            self.setLogger(kw["logger"])
+
+    def setLogger(self,logger:logging.Logger):
+        """
+          Set the logger for the hypercube
+        """
+        self._logger=logging.logger
 
     def clone(self):
         """Clone hypercube"""
@@ -148,13 +162,11 @@ class hypercube:
         for a in ["f", "j", "n"]:
             if a in kw:
                 if not isinstance(kw[a], list):
-                    raise Exception(
-                        "Expecting %s to be a list the dimensions of your Path" %
-                        a)
+                    self._logger.fatal( f"Expecting {a} to be a list the dimensions of your Path" )
+                    raise Exception("")
                 if len(kw[a]) != ndim:
-                    raise Exception(
-                        "Expecting %s to be a list the dimensions of your Path" %
-                        a)
+                    self._logger.fatal(f"Expecting {a} to be a list the dimensions of your Path")
+                    raise Exception("") 
         if "j" in kw:
             js = kw["j"]
         else:
@@ -163,9 +175,8 @@ class hypercube:
             fs = kw["f"]
             for i in range(len(fs)):
                 if fs[i] >= self.axes[i].n:
-                    raise Exception(
-                        "Invalid f parameter f(%d)>=ndata(%d) for axis %d" %
-                        (fs[i], self.axes[i].n, i + 1))
+                    self._logger.fatal(f"Invalid f parameter f({fs[i]})>=ndata({self.axes[i].n}) for axis {i+1}")
+                    raise Exception("")
 
         else:
             fs = [0] * ndim
@@ -173,17 +184,15 @@ class hypercube:
             ns = kw["n"]
             for i in range(len(fs)):
                 if ns[i] > axes[i].n:
-                    raise Exception(
-                        "Invalid n parameter n(%d) > ndata(%d) for axes %d" %
-                        (ns[i], self.axes[i].n, i + 1))
+                    self._logger.fatal(f"Invalid n parameter n({ns[i]}) > ndata({self.axes[i].n}) for axes {i+1}")
+                    raise Exception("")
         else:
             ns = []
             for i in range(ndim):
                 ns.append(int((self.axes[i].n - 1 - fs[i]) / js[i] + 1))
         for i in range(ndim):
             if self.axes[i].n < (1 + fs[i] + js[i] * (ns[i] - 1)):
-                raise Exception(
-                    "Invalid window parameter (outside axis range) f=%d j=%d n=%d iax=%d ndata=%d" %
-                    (fs[i], js[i], ns[i], i + 1, self.axes[i].n))
+                self._logger.fatail(f"Invalid window parameter (outside axis range) f={fs[i]} j={js[i]} n={ns[i]} iax={i+1} ndata={self.axes[i].n}" )
+                raise Exception("")
         return ns, fs, js
   

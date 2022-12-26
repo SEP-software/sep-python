@@ -15,7 +15,10 @@ import ioBase
 import sepProto
 from google.cloud import storage 
 import re
-
+import gcpHelper
+from  concurrent import futures 
+from typing import List
+import logging
 
 from math import *
 __author__ = "Robert G. Clapp"
@@ -38,7 +41,8 @@ class io(ioBase.io):
             Return a regular sampled file pointer 
         """
         if "path" not in kw:
-            raise Exception("path must be specified")
+            self._logger.fatai("path must be specified")
+            raise Exception("")
         
         path=kw["path"]
         if "//" not in path:
@@ -76,7 +80,8 @@ def databaseFromStr(strIn:str,dataB:dict):
           try:
             f2=open(res.group(2))
           except:
-            raise Exception(f"Trouble opening {res.group(2)}")
+            self._logger.fatal(f"Trouble opening {res.group(2)}")
+            raise Exception("") 
           databaseFromStr(f2.read(),dataB)
           f2.close()
         else:
@@ -95,14 +100,15 @@ def checkValid(kw:dict,args:dict):
   for arg,typ in args.items():
     if arg in kw:
       if not isinstance(kw[arg],typ):
-        raise Exception(f"Expecting {arg} to be of type {typ}")
+        self._logger.fatal(f"Expecting {arg} to be of type {typ}")
+        raise Exception("")
 
 class reg(ioBase.regFile):
   """A class to """
   def __init__(self,**kw):
 
     checkValid(kw,{"hyper":Hypercube.hypercube,"path":str,"vec":sepProto.memReg,
-      "array":np.ndarray,"os":list,"ds":list,"labels":list,"units":list})
+      "array":np.ndarray,"os":list,"ds":list,"labels":list,"units":list,"logger":logging.Logger})
 
     super().__init__()
 
@@ -110,11 +116,17 @@ class reg(ioBase.regFile):
     self._parPut=[]
     self._firstWrite=True
     self._wroteHistory=False
-    self._head=0
+    self._head=0 
     self._esize=None
     self._dataOut=False
     self._ioType="SEP"
     self._intent="OUTPUT"
+    self._closed=False
+    if "logger" in kw:
+      self.setLogger(kw["logger"])
+    else:
+      self.setLogger(logging.getLogger(None))
+    
     if "array" in kw or "vec" in kw:
       
       if "array" in kw:
@@ -133,7 +145,8 @@ class reg(ioBase.regFile):
           if "units" in kw: units=kw["units"]
           if "hyper" in kw:
             if str(ns)!=str(kw["hyper"].getNs()):
-                raise Exception("Shape of hypercube and array are different")
+              self._logger.fatal("Shape of hypercube and array are different")
+              raise Exception("")
           else:
             self._hyper=Hypercube.hypercube(ns=ns,os=os,ds=ds,labels=labels,units=units)
       elif "vec" in kw:
@@ -142,25 +155,36 @@ class reg(ioBase.regFile):
       self.setDataType(str(array.dtype))
       self._params=self.buildParamsFromHyper(self._hyper)
 
-      if "path" not in kw: raise Exception("Must specify path")
+      if "path" not in kw: 
+        self._logger.fatal("Must specify path")
+        raise Exception("")
       self._path=kw["path"]
       self.setBinaryPath(datafile(self._path))
 
     elif "hyper" in kw:
       self._params=self.buildParamsFromHyper(kw["hyper"])
-      if "path" not in kw: raise Exception("Must specify path in creation")
+      if "path" not in kw: 
+        self._logger.fatal("Must specify path in creation")
+        raise Exception("")
       self._path=kw["path"]
       self.setBinaryPath(datafile(self._path))
-      if "type" not in kw: raise Exception("Musty specify type when creating from hypercube")
+      if "type" not in kw: 
+        self._logger.fatal("Musty specify type when creating from hypercube")
+        raise Exception("")
       self.setDataType(converter.getNumpy(kw["type"]))
     elif "path" in kw:
-      if not isinstance(kw["path"],str): raise Exception("path must be a string")
+      if not isinstance(kw["path"],str):
+        self._logger.fatal("path must be a string")
+        raise Exception("")
       self._params=self.buildParamsFromPath(kw["path"],**kw)
       self._path=kw["path"]
       self.setBinaryPath(datafile(self._path))
       self._intent="INPUT"
     else:
-      raise Exception("Did not provide a valid way to create a dataset")
+      self._logger.fatal("Did not provide a valid way to create a dataset")
+      raise Exception("")
+    
+
 
   def buildParamsFromHyper(self,hyper:Hypercube.hypercube):
     """Build parameters from hypercube"""
@@ -247,7 +271,7 @@ class reg(ioBase.regFile):
       return self._params[param]
     if default != None:
       return default
-    raise Exception(f"Can't find {param}")
+    self._logger.fatal(f"Can't find {param}")
   
   def getInt(self,param:str,default=None)->int:
     """Return parameter of int
@@ -258,7 +282,8 @@ class reg(ioBase.regFile):
     try:
       return int(v) 
     except ValueError:
-      raise Exception(f"Can convert {param}={v} to int")
+      self._logger.fatal(f"Can convert {param}={v} to int")
+      raise Exception("")
 
   def getFloat(self,param:str,default=None)->float:
     """Return parameter of type float
@@ -269,7 +294,8 @@ class reg(ioBase.regFile):
     try:
       return float(v) 
     except ValueError:
-      raise Exception(f"Can convert {param}={v} to float")
+      self._loger(f"Can convert {param}={v} to float")
+      raise Exception("")
 
   def getString(self,param:str,default=None)->str:
     """Return parameter of type string
@@ -290,7 +316,8 @@ class reg(ioBase.regFile):
       try:
         vout.append(int(v))
       except:
-        raise Exception(f"Can not convert {param}={v} to ints")   
+        self._logger.fatal(f"Can not convert {param}={v} to ints")   
+        raise Exception("")
   
   def getFloats(self,param:str,default=None)->float:
     """Return parameter of float arry
@@ -304,7 +331,8 @@ class reg(ioBase.regFile):
       try:
         vout.append(float(v))
       except:
-        raise Exception(f"Can not convert {param}={v} to floats")
+        self._logger.fatal(f"Can not convert {param}={v} to floats")
+        raise Exception("")
 
   def putPar(self,param:str,val):
     """Store a parameter
@@ -316,17 +344,20 @@ class reg(ioBase.regFile):
       try: 
         pout=str(val[0])
       except:
-        raise Exception(f"trouble converting {val} to a string")
+        self._logger.fatal(f"trouble converting {val} to a string")
+        raise Exception("")
       for v in val[1:]:
         try:
           pout+=","+str(v)
         except:
-          raise Exception(f"Trouble converting {v} to a string")
+          self._logger.fatal(f"Trouble converting {v} to a string")
+          raise Exception("")
     else:
       try:
         pout=str(val[0])
       except:
-        raise Exception(f"Trouble converting {v} to a string")
+        self._logger.fatal(f"Trouble converting {v} to a string")
+        raise Exception("")
     self._parPut.append(param)
     self._params[param]=pout
 
@@ -350,6 +381,9 @@ class sFile(reg):
 
     """"Initialize a sepFile object
     
+       Optional:
+
+         logger-logger object 
        
         Method 1:
          hyper - Hypercube 
@@ -374,16 +408,22 @@ class sFile(reg):
              os,ds,labels,units - Lists describing array
          
     """
-    
+    if "logger" in kw:
+      self.setLogger(kw["logger"])
+    else:
+      self.setLogger(logging.getLogger(None))
     if "path" not in kw:
-      raise Exception("Must specify path")
-      if "//" not in kw["path"]:
-        raise Exception(f"When creating a file object path must not have a web address {kw['path']}")
+      self._logger.fatal("Must specify path")
+      raise Exception("")
+    if "//"  in kw["path"]:
+      self._logger.fatal(f"When creating a file object path must not have a web address {kw['path']}")
+      raise Exception("")
     super().__init__(**kw)
 
     
     if self.getBinaryPath() ==None:
-        raise Exception("Binary path is not")
+       self._logger.fatal("Binary path is not")
+       readlines
 
     
     
@@ -393,7 +433,8 @@ class sFile(reg):
     try:
       fl=open(path)
     except:
-      raise Exception(f"Trouble opening {path}")
+      self._logger.fatal(f"Trouble opening {path}")
+      raise Exception("")
 
 
     mystr=fl.read(1000*1000)
@@ -430,7 +471,8 @@ class sFile(reg):
     elif isinstance(mem,np.ndarray):
       array=mem
     else:
-      raise Exception(f"Do not how to read into type {type(mem)}")
+      self._logger.fatal(f"Do not how to read into type {type(mem)}")
+      raise Exception("")
 
     seeks,blk,many,contin=self.loopIt(*self.condense(*self.getHyper().getWindowParams(**kw)))
     arUse=array.ravel()
@@ -466,7 +508,8 @@ class sFile(reg):
     elif isinstance(mem,np.ndarray):
       array=mem
     else:
-      raise Exception(f"Do not how to read into type {type(mem)}")    
+      self._logger.fatal(f"Do not how to read into type {type(mem)}")    
+      raise Exception("")
     seeks,blk,many,contin=self.loopIt(*self.condense(*self.getHyper().getWindowParams(**kw)))
     arUse=array.ravel()
     self._dataOut=True
@@ -496,12 +539,20 @@ class sFile(reg):
   
     fl.close()
 
-  def remove(self):
-    """Remove data """
-    os.remove(self._path)
-    if self._binaryPath!="stdin":
-      if os.path.isfile(self._binaryPath):
-        os.remove(self._binaryPath)
+  def remove(self,errorIfNotExists=True):
+    """Remove data 
+    
+      errorIfNotExist- Return an error if file does not exist
+    
+    """
+    if os.path.isfile(self._path):
+      os.remove(self._path)
+      if self._binaryPath!="stdin":
+        if os.path.isfile(self._binaryPath):
+          os.remove(self._binaryPath)
+    elif errorIfNotExists:
+      self._logger.fatal(f"Tried to remove file {self._path}")
+      raise Exception("")
 
 class sGcsObj(reg):
   """Class when SEP data is stored in an object"""
@@ -510,6 +561,10 @@ class sGcsObj(reg):
       """"Initialize a sepFile object
 
       
+      Optional
+
+        logger - Logger for object
+
       Method 1:
       hyper - Hypercube 
       path  (str) - path for Path
@@ -533,8 +588,15 @@ class sGcsObj(reg):
           os,ds,labels,units - Lists describing array
       
       """
+
+      if "logger" in kw:
+        self.setLogger(kw["logger"])
+      else:
+        self.setLogger(logging.getLogger(None))
+
       if "path" not in kw:
-          raise Exception("path must be specified when creating object")
+          self._logger.fatal("path must be specified when creating object")
+          raise Exception("")
 
       reS=re.compile("gs://(\S+)\/(.+)")
       x=reS.search(kw["path"])
@@ -544,17 +606,22 @@ class sGcsObj(reg):
           self._bucket=x.group(1)
           self._object=x.group(2)
       else:
-          raise Exception(f"Invalid path for google storage object {kw['path']}")
+          self._logger.fatal(f"Invalid path for google storage object {kw['path']}")
+          raise Exception("")
       super().__init__(**kw)
 
   def getHistoryDict(self,path):
       client = storage.Client()
       bucket = client.bucket(self._bucket)
       if not bucket.exists():
-          raise Exception(f"bucket {self._bucket} does not exist")
+          self._logger.fatal(f"bucket {self._bucket} does not exist")
+          raise Exception("")
+
       blob = bucket.get_blob(self._object)
       if not blob.exists():
-          raise Exception(f"blob {self._blob} does not exist in bucket {self._bucket}")
+          self._logger.fatal(f"blob {self._blob} does not exist in bucket {self._bucket}")
+          raise Exception("")
+
       pars = blob.metadata
       newS=""
       for k,v in pars.items():
@@ -576,7 +643,10 @@ class sGcsObj(reg):
       """
         Write description when closing file
 
+        blob - Blob to set metadata (history)
+
       """
+      print("IN write descrption")
       tmp=copy.deepcopy(self._params)
       tmp["history"]=self._history
       tmp["progName"]=self.getProgName()
@@ -584,39 +654,49 @@ class sGcsObj(reg):
       tmp["data_format"]=converter.getSEPName(self.getDataType())
 
       self.hyperToDict(tmp)
-      
       storage_client = storage.Client()
       bucket = storage_client.bucket(self._bucket)
-      if not bucket.exists():
-          raise Exception(f"bucket {self._bucket} does not exist")
-
       blob = bucket.blob(self._object)
-
       blob.metadata = tmp
       blob.patch()
   
   def close(self):
     """Close (and) pottentially combine GCS objects"""
-    if self._intent=="OUTPUT":
+    if self._closed==True:
+      self._logger.info(f"Closed called multiple times {self._object}")
+
+    elif self._intent=="OUTPUT":
+      self._closed=True
       storage_client = storage.Client()
       bucket = storage_client.bucket(self._bucket)
       if len(self._blobs)==0:
         blob = bucket.blob(self._object)
         blob.upload_from_string('', content_type='application/x-www-form-urlencoded;charset=UTF-8')
+      elif len(self._blobs)==1:
+          self._logger.info(f"Renaming {self._blobs[0].name} to {self._object}")
+          new_blob = bucket.rename_blob(self._blobs[0], self._object)
       else:
-        destination = bucket.blob(self._object)
-        destination.compose(self._blobs)
+        with futures.ThreadPoolExecutor(max_workers=60) as executor:
+          destination=gcpHelper.compose(f"gs://{self._bucket}/{self._object}",self._blobs,storage_client,executor,
+          self._logger)
       self.writeDescriptionFinal()
       #for a in self._blobs:
       #   a.delete()
   
-  def remove(self):
-      """Remove data """
+  def remove(self,errorIfNotExists:bool=True):
+      """Remove data 
+       
+         errorIfNotExists - Return an error if blob does not exist
+      
+      """
       storage_client = storage.Client()
       bucket = storage_client.bucket(self._bucket)
       blob = bucket.get_blob(self._object)
-      blob.delete()
-
+      if blob.exists():
+        blob.delete()
+      elif errorIfNotExists:
+        self._logger.fatal(f"Attempted to remove blob={self._object} which does not exist")
+        raise Exception("")
   def read(self,mem,**kw):
       """
           read a block of data
@@ -633,7 +713,8 @@ class sGcsObj(reg):
       elif isinstance(mem,np.ndarray):
         array=mem
       else:
-        raise Exception(f"Do not how to read into type {type(mem)}")
+        self._logger.fatal(f"Do not how to read into type {type(mem)}")
+        raise Exception("")
       seeks,blk,many,contin=self.loopIt(*self.condense(*self.getHyper().getWindowParams(**kw)))
       arUse=array.ravel()
 
@@ -670,12 +751,14 @@ class sGcsObj(reg):
       elif isinstance(mem,np.ndarray):
         array=mem
       else:
-        raise Exception(f"Do not how to read into type {type(mem)}")
+        self._logger.fatal(f"Do not how to read into type {type(mem)}")
+        raise Exception("")
       
       seeks,blk,many,contin=self.loopIt(*self.condense(*self.getHyper().getWindowParams(**kw)))
 
       if not contin:
-        raise Exception("Can only write continuously to GCS storage")
+        self._logger("Can only write continuously to GCS storage")
+        raise Exception("")
       arUse=array.ravel()
       self._dataOut=True
 
@@ -760,3 +843,4 @@ def datafile(name,host=None,all=None,nfiles=1):
     os.remove(self._path)
     if self._binaryPath!="stdin":
         os.remove(self._binaryPath)
+

@@ -1,0 +1,3 @@
+[submodule "python-solver"]
+	path = python-solver
+	url = http://cees-gitlab.Stanford.EDU/ettore88/python-solver.git

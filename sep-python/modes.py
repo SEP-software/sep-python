@@ -1,11 +1,25 @@
 import sepIO
-import sepVector
+import SepVector
+import logging
 
 
 class modes:
     """Class for selecting modes"""
     def __init__(self):
        self._modes=[]
+       self._logger=logger.getLogger(None)
+
+
+    def setLogger(self,logger:logger.Logging):
+        """
+
+        Set the logger for mode
+
+        logger 
+
+        """
+        self._logger(logger)
+
 
     def addMode(self,name,ioP,memC):
         """
@@ -20,7 +34,8 @@ class modes:
     def getMode(self,typ):
         """Get a specific io mode"""
         if typ not in self._modes:
-            raise Exception(f"Unknown mode {typ}")
+            self._logger.fatal(f"Unknown mode {typ}")
+            raise Exception("")
         return self._modes[typ]
     
     def getModes(self):
@@ -29,5 +44,5 @@ class modes:
 
 
 ioModes=modes()
-ioModes.addMode("sepDefault",sepIO,sepVector.getSepVector)
+ioModes.addMode("sepDefault",sepIO,sepTensor.getSepTensor)
 defaultIO=ioMode("sepDefault")

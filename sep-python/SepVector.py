@@ -1,4 +1,4 @@
-
+import genericSolver
 import Hypercube
 import numpy 
 import numba
@@ -6,16 +6,16 @@ from sys import version_info
 import numpy
 import sepConverter
 import sepProto
+import logging 
 
 converter=sepConverter.converter
 
-
-@numnba.njit(parallel=True)
+@numba.njit(parallel=True)
 def clipIt(vec,bclip,eclip):
     for i in numba.prange(vec.shape[0]):
         vec[i]=min(eclip,max(bclip,vec[i]))
 
-@numnba.njit(parallel=True)
+@numba.njit(parallel=True)
 def clipArray(vec,bclip,eclip):
     for i in numba.prange(vec.shape[0]):
         vec[i]=min(eclip[i],max(bclip[i],vec[i]))
@@ -27,18 +27,17 @@ def norm1(vec):
         tot+=np.abs(vec[i])
     return tot
 
-@numnba.njit(parallel=True)
+@numba.njit(parallel=True)
 def scaleAdd(vec1,vec2,sc1,sc2):
     for i in numba.prange(vec1.shape[0]):
         vec1[i]=vec1[i]*sc1+vec2[i]*sc2
 
-
-@numnba.njit(parallel=True)
-def scale(vec,scale)):
+@numba.njit(parallel=True)
+def scale(vec,scale):
     for i in numba.prange(vec.shape[0]):
         vec[i]=vec[i]*sc
 
-@numba.njit(parallel=True):
+@numba.njit(parallel=True)
 def dotIt(vec1,vec2):
     val=0
     for i in numba.prange(vec1.shape[0]):
@@ -49,6 +48,7 @@ def dotIt(vec1,vec2):
 def multiplyIt(vec1,vec2):
     for i in numba.prange(vec1.shape[0]):
         vec1[i]=vec1[i]*vec2[i]
+
 @numba.njit()
 def calcHisto(outV,vec,mn,mx):
     delta=(mx-mn)/vec.shape[0]
@@ -56,9 +56,7 @@ def calcHisto(outV,vec,mn,mx):
         ind=max(0,min(vec.shape[0]-1,int((vec[i]-mn)/delta)))
         outV[ind]+=1
 
-        
-
-class vector(pyVector.vectorIC,sepProto.memReg):
+class vector(sepProto.memReg,genericSolver.vector):
     """Generic sepVector class"""
 
     def __init__(self, hyper:Hypercube.hypercube, dataFormat:str):
@@ -66,7 +64,14 @@ class vector(pyVector.vectorIC,sepProto.memReg):
         self.setHyper(hyper)
         self.setDataFormat(dataFormat)
         super().__init__()
+        self._logger=logging.getLogger(None)
 
+    def setLogger(self,logger):
+        """Set the logger for the vector
+
+        logger - Set the vector for logger
+        """
+        self._logger=logger
 
     def getdataFormatType(self)->str:
         """Return type of dataFormat"""
@@ -82,7 +87,6 @@ class vector(pyVector.vectorIC,sepProto.memReg):
         self.fill(val)
         return self
 
-    
     def getNdArray(self)->np.ndarray:
         """Return a numpy version of the array (same memory"""
         return self._arr
@@ -138,6 +142,7 @@ class vector(pyVector.vectorIC,sepProto.memReg):
         arO=vecO.getNdArray()
         arO=outA.reshape(tuple(nout.reverse()))   
         return vecO
+
     def get1DArray(self)->np.ndarray:
         return np.ravel(self._arr)
 
@@ -145,7 +150,9 @@ class vector(pyVector.vectorIC,sepProto.memReg):
         """Adjust the hypercube associated with vector. Does not reallocate. Must be same dims/size"""
         hyperOld=self.getHyper()
         if hyperOld.getN123() != hyper.getN123():
-            raise Exception("Trying to reset with a different sized hyper")
+            self._logger.fatal("Trying to reset with a different sized hyper")
+            raise Exception("")
+
         self._arr=np.reshape(tuple(np.flip(hyper.getNs())))
         self._hyprer=hyper
 
@@ -155,22 +162,20 @@ class vector(pyVector.vectorIC,sepProto.memReg):
             return False
         return self.getHyper().checkSame(vec2.getHyper())
     
-
-
 class nonInteger(vector):
     """A class for non-integers"""
-    def __init__(self,hyper:Hypercube:hypercube, dataFormat:str):
+    def __init__(self,hyper:Hypercube.hypercube, dataFormat:str):
         """Initialize a non-integer"""
         super().__init__(hyper,dataFormat)
 
 class realNumber(nonInteger):
     """A class for real numbers"""
+
     def __init__(self,hyper:Hypercube.hypercube,dataFormat:str):
         """Initialize a real number vector"""
         super().__init__(hyper,dataFormat)
 
-
-    def clip(self, bclip eclip):
+    def clip(self, bclip, eclip):
         """Clip dataset
                 bclip - Minimum value to clip to
                 eclip - Maximum value to clip to"""
@@ -190,14 +195,16 @@ class realNumber(nonInteger):
     def clipVector(self, low:vector, high:vector)->vector:
         """Clip vector element by element vec=min(high,max(low,vec))"""
         if not self.checkSame(low) or self.checksame(high):
-            raise SEPException("low,high, and vector must all be the same space")
-        clipArray(self.get1DArray(),low.get1DArray() high.get1DArray())
+            self._logger.fatal("low,high, and vector must all be the same space")
+            raise Exception("")
+        clipArray(self.get1DArray(),low.get1DArray(), high.get1DArray())
         return self
 
     def scaleAdd(self, vec2:vector, sc1=1., sc2=1.)->vector:
         """self = self * sc1 + sc2 * vec2"""
         if not self.checkSame(vec2) or self.getDataFormat()!=vec2.getDataFormat():
-            raise SEPException("must be of the same space and type")
+            self._logger.fatal("must be of the same space and type")
+            raise Exception("")
         scaleAdd(self.get1DArray(),vec.get1DArray(),sc1,sc2)
         return self
 
@@ -219,60 +226,62 @@ class realNumber(nonInteger):
         histo = getSepVector(ns=[nelem], dataFormat="int32")
         self.cppMode.calcHisto(histo.getCpp(), mn, mx)
         return histo
+
     def copy(self, vec2:vector)->vector:
         """Copy vec2 into self"""
         if not self.checkSame(vec2) or self.getdataFormat()!=vec2.getdataFormat():
-            raise SEPException("must be of the same space and type")
+            self._logger.fatal("must be of the same space and type")
+            raise Exception("")
         scaleAdd(self.get1DArray(),vec.get1DArray(),0.,1.)
         return self
 
     def dot(self, vec2:vector)->vector:
         """Compute dot product of two vectors"""
         if not self.checkSame(vec2) or self.getdataFormat()!=vec2.getdataFormat():
-            raise SEPException("must be of the same space and type")
+            self._logger.fatal("must be of the same space and type")
+            raise Exception("")
         return dotIt(self.get1DArray(),vec2.get1DArray())
     
     def norm(self, N=2):
         """Function to compute vector N-norm"""
-        if N=1:
+        if N==1:
            return  norm1(self.get1Darray())
-        elif N=2:
+        elif N==2:
             return self.dot(self)/2
         else:
-            raise SEPException("Only can do norm 1 and 2")
+            self._logger.fatal("Only can do norm 1 and 2")
+            raise Exception("")
    
-    
     def multiply(self, vec2:vector)->vector:
         """self = vec2 * self"""
         if not self.checkSame(vec2) or self.getdataFormat()!=vec2.getdataFormat():
-            raise SEPException("must be of the same space and type")
+            self._logger.fatal("must be of the same space and type")
+            raise Exception("")
         multiplyIt(self.get1DArray(),vec2.get1DArray())
         return self
+
 
 class floatVector(vector):
     """Generic float vector class"""
 
-    def __init__(self, hyper:Hypercube:hypercube,spaceOnly=False, arr=None):
+    def __init__(self, hyper:Hypercube.hypercube,spaceOnly:bool=False, arr=None):
         self.kw = kw
         super().__init__(hyper,"dataFloat")
         if not spaceOnly:
             self._arr=np.ndarray(tuple(hyper.getNs().reverse()),dtype=np.float32)
-
-    
+ 
     def __repr__(self):
         """Override print method"""
         return "floatVector\n%s"%str(self.getHyper())
-
-
 
     def rand(self)->vector:
         """Function to fill with random numbers"""
         self._arr=np.random.random(self._arr.shape).astype("f4")
         return self
+
     def clone(self):
         """Function to clone (deep copy) a vector"""
         return floatVector(self.getHyper().self.getdataFormat())
-
 
     def cloneSpace(self):
         """Funtion tor return the space of a vector"""
@@ -281,14 +290,12 @@ class floatVector(vector):
 class doubleVector(vector):
     """Generic double vector class"""
 
-
-    def __init__(self, hyper:Hypercube:hypercube,spaceOnly=False, arr=None):
+    def __init__(self, hyper:Hypercube.hypercube,spaceOnly=False, arr=None):
         self.kw = kw
         super().__init__(hyper,"double64")
         if not spaceOnly:
             self._arr=np.ndarray(tuple(hyper.getNs().reverse()),dtype=np.float64)
 
-    
     def rand(self)->vector:
         """Function to fill with random numbers"""
         self._arr=np.random.random(self._arr.shape)
@@ -298,12 +305,9 @@ class doubleVector(vector):
         """Override print method"""
         return "doubleVector\n%s"%str(self.getHyper())
     
-
-
     def clone(self):
         """Function to clone (deep copy) a vector"""
         return doubleVector(self.getHyper().self.getdataFormat())
-
 
     def cloneSpace(self):
         """Funtion tor return the space of a vector"""
@@ -313,13 +317,11 @@ class doubleVector(vector):
 class intVector(vector):
     """Generic int vector class"""
 
-    def __init__(self, hyper:Hypercube:hypercube,spaceOnly=False, arr=None):
+    def __init__(self, hyper:Hypercube.hypercube,spaceOnly=False, arr=None):
         self.kw = kw
         super().__init__(hyper,"dataInt")
         if not spaceOnly:
             self._arr=np.ndarray(tuple(hyper.getNs().reverse()),dtype=np.int32)
-
-    
 
     def __repr__(self):
         """Override print method"""
@@ -328,17 +330,16 @@ class intVector(vector):
     def clone(self):
         """Function to clone (deep copy) a vector"""
         return intVector(self.getHyper().self.getdataFormat())
+
+
 class complexVector(vector):
     """Generic complex vector class"""
 
-
-    def __init__(self, hyper:Hypercube:hypercube,spaceOnly=False, arr=None):
+    def __init__(self, hyper:Hypercube.hypercube,spaceOnly=False, arr=None):
         self.kw = kw
         super().__init__(hyper,"float32")
         if not spaceOnly:
             self._arr=np.ndarray(tuple(hyper.getNs().reverse()),dtype=np.float64)
-
-    
 
     def cloneSpace(self):
         """Funtion tor return the space of a vector"""
@@ -361,12 +362,11 @@ class complexVector(vector):
 class complexDoubleVector(vector):
     """Generic complex vector class"""
 
-    def __init__(self, hyper:Hypercube:hypercube,spaceOnly=False, arr=None):
+    def __init__(self, hyper:Hypercube.hypercube,spaceOnly=False, arr=None):
         self.kw = kw
         super().__init__(hyper,"complex128")
         if not spaceOnly:
             self._arr=np.ndarray(tuple(hyper.getNs().reverse()),dtype=np.complex128)
-
 
     def cloneSpace(self):
         """Funtion tor return the space of a vector"""
@@ -375,6 +375,7 @@ class complexDoubleVector(vector):
     def norm(self, N=2):
         """Function to compute vector N-norm"""
         return self.cppMode.norm(N)
+
     def __repr__(self):
         """Override print method"""
         return "complexDoubleVector\n%s"%str(self.getHyper())
@@ -396,14 +397,11 @@ class complexDoubleVector(vector):
 class byteVector(vector):
     """Generic byte vector class"""
 
-
-    def __init__(self, hyper:Hypercube:hypercube,spaceOnly=False, arr=None):
+    def __init__(self, hyper:Hypercube.hypercube,spaceOnly=False, arr=None):
         self.kw = kw
         super().__init__(hyper,"dataByte")
         if not spaceOnly:
             self._arr=np.ndarray(tuple(hyper.getNs().reverse()),dtype=np.uint8)
-
-    
 
     def calcHisto(self, nelem, mn, mx):
         """Calculate histogram
@@ -415,9 +413,11 @@ class byteVector(vector):
         histo = getSepVector(ns=[nelem], dataFormat="dataInt")
         self.cppMode.calcHisto(histo.getCpp(), mn, mx)
         return histo
+    
     def clone(self):
         """Function to clone (deep copy) a vector"""
-        return byteVector(fself.getHyper().self.getdataFormat()s)
+        return byteVector(self.getHyper(),dataFormat=self.getdataFormat())
+    
     def __repr__(self):
         """Override print method"""
         return "byteVector\n%s"%str(self.getHyper())
@@ -464,22 +464,24 @@ def getSepVector(*args, **keys):
                     ns.append(nt[len(nt)-1-i])
                 hyper =Hypercube.hypercube(ns=ns)
         else:
-            raise Exception("First argument must by a hypercube or numpy array")
+            self._logger.fatal("First argument must by a hypercube or numpy array")
+            raise Exception("")
     elif len(args) == 0:
         if "axes" in keys or "ns" in keys:
             hyper = Hypercube.hypercube(**keys)
        
         else:
-            raise Exception("Must supply Hypercube,vector  or ns/axes")
+            self._loger.fatal("Must supply Hypercube,vector  or ns/axes")
+            raise Exception("")
     else:
-        raise Exception(
-            "Only understand 0 or 1 (hypercube) non-keyword arguments")
-
+        self._logger.fatal("Only understand 0 or 1 (hypercube) non-keyword arguments")
+        raise Exception("")
 
 
     if haveNumpy:
         if not converter.validType(array.dtype):
-            raise Exception(f"Numpy array type {array.dtype} not supported")
+            seelf._logger.fatal(f"Numpy array type {array.dtype} not supported")
+            raise Exception("")
         myt=converter.getName(array.dtype)
     else:
         myt="float32"
@@ -499,11 +501,11 @@ def getSepVector(*args, **keys):
     elif myt == "uint8":
         y= byteVector(hyper)
     else:
-        raise Exception("Unknown type %s" % myt)
+        self._logger(f"Unknown type {myt}")
+        raise Exception("")
     if haveNumpy:
         numpy.copyto(y.getNdArray(),array)
     return y
-
 
 def readColTextFile(file):
     f = open(file)
@@ -526,6 +528,7 @@ def readColTextFile(file):
             lst.append(array[j][i])
         array2.append(lst)
     return array2
+
 def fixWindow(axes,**kw):
     """Create full window parameters 
 
@@ -577,18 +580,15 @@ def fixWindow(axes,**kw):
             eiSet = True
         if fset:
             if axes[i - 1].n <= f:
-                raise Exception(
-                    "invalid f%d=%d parameter n%d of data=%d" %
-                    (i, f, i, axes[
-                        i - 1].n))
+                self._logger.fatal("invalid f{i}={f} parameter n{i} of data={axes[i-1].n")
+                raise Exception("")
         if nset:
             if axes[i - 1].n < n:
-                raise Exception(
-                    "invalid n%d=%d parameter n%d of data=%d" %
-                    (i, n, i, axes[
-                        i - 1].n))
+                self._logger.fatal(f"invalid n{i}={n} parameter n{i} of data={axes[i-1].n}")
+                raise Exception("") 
         if jset and j <= 0:
-            raise Exception("invalid j%d=%d " % (i, j))
+            self._logger.fatal(f"invalid j{i}={j}")
+            raise Exception("")
         if not jset:
             j = 1
         if not nset:
@@ -596,14 +596,14 @@ def fixWindow(axes,**kw):
                 if not biSet:
                     f = 0
                 elif bi < 0 or bi >= axes[i - 1].n:
-                    raise Exception("Invalid min%d=%f" %
-                                    (i, kw["min%d" % i]))
+                    self._logger.fatal(f"Invalid min{i}={kw['min%d'%i]}")
+                    raise Exception("")
                 else:
                     f = bi
             if eiSet:
                 if ei <= f or ei >= axes[i - 1].n:
-                    raise Exception("Invalid max%d=%f" %
-                                    (i, kw["max%d" % i]))
+                    self._logger.fatal(f"Invalid max{i}={kw['min%d'%i]}")
+
                 else:
                     n = (ei - f - 1) / j + 1
             else:
@@ -617,11 +617,13 @@ def fixWindow(axes,**kw):
             if not biSet:
                 f = 0
             elif bi < 0 or bi >= axes[i - 1].n:
-                raise Exception("Invalid min%d=%f" % (i, kw["min%d" % i]))
+                self._logger.fatal(f"Invalid min{i}={kw['min%d'%i]}")
+                raise Exception("")
             else:
                 f = fi
         if axes[i - 1].n < (1 + f + j * (n - 1)):
-            raise Exception("Invalid window parameter")
+            self._logger.fatal("Invalid window parameter")
+            raise Exception("")
         nw.append(int(n))
         fw.append(int(f))
         jw.append(int(j))

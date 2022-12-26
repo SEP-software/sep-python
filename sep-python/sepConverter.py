@@ -1,4 +1,5 @@
 import numpy as np 
+import logging
 
 class dtypeConvert:
   def __init__(self):
@@ -8,6 +9,15 @@ class dtypeConvert:
     self._nameToSEP={}
     self._sepToName={}
     self._oldStyle={}
+    self._logger=logging.getLogger("None")
+
+  
+  def setLogger(self,logger:logging.Logger):
+    """
+    Set the logger for the converter module
+
+    """
+    self._logger=logger
 
 
 
@@ -34,24 +44,29 @@ class dtypeConvert:
     """
     if isinstance(nm,type):
       if nm  not in self._numpyToName:
-        raise Exception(f"Unkown type {nm}")
+        self._logger.fatal(f"Unkown type {nm}")
+        raise Exception("")
       return self._numpyToName[nm]
     elif isinstance(nm,str):
       if nm[:4]=="data":
         if nm not in self._oldStyle:
-            raise Exception(f"Unkwown type {nm}")
+            self._logger.fatal(f"Unkwown type {nm}")
+            raise Exception("")
         nm=self._oldStyle[nm]
       if nm not in self._nameToEsize:
-        raise Exception(f"Unknown name {nm}")
+        self._logger.fatal(f"Unknown name {nm}")
+        raise Exception("")
       return nm
     else:
       try:
         conv=str(nm)
         if nm  not in self._numpyToName:
-          raise Exception(f"Unkown type {nm}")
+          self._logger.fatal(f"Unkown type {nm}")
+          raise Exception("")
         return self._numpyToName[nm] 
       except:
-        raise Exception(f"Do not know how to deal with type={type(nm)} val={nm}")
+        self._logger.fatal(f"Do not know how to deal with type={type(nm)} val={nm}")
+        raise Exception("")
   def sepNameToNumpy(self,sepName:str)->type:
     """
     Return Numpy type given sepName
@@ -59,7 +74,8 @@ class dtypeConvert:
     sepName -SEP Name
     """
     if sepName not in self._sepToName:
-      raise Exception(f"Invalid type {sepName}")
+      self._logger.fatal(f"Invalid type {sepName}")
+      raise Exception("")
     return self._nameToNumpy[self._sepToName[sepName]]
 
   def fromSepName(self,sepName:str)->str:
@@ -69,7 +85,8 @@ class dtypeConvert:
     sepName -SEP Name
     """
     if sepName not in self._sepToName:
-      raise Exception(f"Invalid type {sepName}")
+      self._logger.fatal(f"Invalid type {sepName}")
+      raise Exception("")
     return self._sepToName[sepName]
    
   def getNumpy(self,name)->type:

@@ -3,10 +3,11 @@ import sepIO
 import os
 import Hypercube
 import numpy as np
+import logging
 
 
 
-def test_simpleArgs_1Line():
+def eest_simpleArgs_1Line():
     f=open("/tmp/junk.H","w")
     f.write("n1=10 o1=1. d1=2. label='test' in='/tmp/junk.H@'\n")
     f.close()
@@ -29,13 +30,12 @@ def test_simpleWriteHistory():
 def test_simpleWriteHistoryGCS():
     hyper=Hypercube.hypercube(ns=[10,12],os=[2.,1.])
     fle=sepIO.sGcsObj(hyper=hyper,path="gs://scratch-sep/junk.H",type="float64")
-    fle.writeDescription()
     fle.close()
     fin=sepIO.sGcsObj(path="gs://scratch-sep/junk.H")
     assert 10==fin.getInt("n1")
     assert 12==fin.getInt("n2")
     assert .01 > abs(fin.getFloat("o1")-2.)
-   # fin.remove()
+    fin.remove()
 
 def test_simpleWriteRead():
     ar=np.ndarray((20,10))
@@ -54,6 +54,13 @@ def test_simpleWriteRead():
     fl2.remove()
 
 def test_simpleWriteReadGCP():
+    # create logger with 'spam_application'
+    #logger = logging.getLogger(None)
+    #logger.setLevel(logging.INFO)
+    # create file handler which logs even debug messages
+    #fh = logging.FileHandler('spam.log')
+    #fh.setLevel(logging.DEBUG)
+    #logger.addHandler(fh)
     ar=np.ndarray((20,10))
     for j in range(ar.shape[0]):
         for i in range(ar.shape[1]):

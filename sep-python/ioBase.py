@@ -1,6 +1,7 @@
 import sepConverter
 import sepProto
 import Hypercube 
+import logging
 
 converter=sepConverter.converter
 
@@ -18,6 +19,15 @@ class regFile:
         self._progName="Generic Python Program"
         self._IOtype="Unknown"
         self._binaryPath=None
+        self._logger=logging.getLogger(None)
+
+    def setLogger(self,logger:logging.Logger):
+        """
+        Set the logger
+
+        logger - logger to use
+        """
+        self._logger=logger
 
     def setHyper(self,hyper:Hypercube.hypercube):
         """
@@ -32,7 +42,7 @@ class regFile:
         """
         Get the hypercube associated with the regular dataset"""
         if self._hyper==None:
-            raise Exception("Hypercube has not been set")
+            self._logger.fatal("Hypercube has not been set")
         return self._hyper
     
     def setHistory(self,hist:str):
@@ -69,9 +79,9 @@ class regFile:
         """Return the data type assoicated with the file
 
         """
-        print("IN GET",self._dataType)
         if type(self._dataType)==None:
-            raise Exception("Datatype has not been set")
+            self._logger.fatal("Datatype has not been set")
+            raise Exception("")
         return self._dataType
 
     def getBinaryPath(self):
@@ -92,51 +102,63 @@ class regFile:
         x+=str(self.getHyper())
         return x
 
-    def remove(self):
-        """Remove data"""
-        raise Exception("Must override remove")
+    def remove(self,errorIfNotExists:bool=True):
+        """Remove data
+        
+            errorIfNotExists : Return an error if the blob does not exist
+        
+        
+        """
+        self._logger.fatal("Must override remove")
+        raise Exception("")
 
     def getInt(self,param:str,default=None)->int:
         """Return parameter of int
             param - Parameter to retrieve
             default - Default value 
         """
-        raise Exception("Must override getInt")
+        self._logger.fatal("Must override getInt")
+        raise Exception("")
 
     def getFloat(self,param:str,default=None)->float:
         """Return parameter of type float
             param - Parameter to retrieve
             default - Default value 
         """
-        raise Exception("Must override getFloat")
+        self._logger.fatal("Must override getFloat")
+        raise Exception("")
 
     def getString(self,param:str,default=None)->str:
         """Return parameter of type string
             param - Parameter to retrieve
             default - Default value 
         """
-        raise Exception("Must override getString")
+        self._logger.fatal("Must override getString")
+        raise Exception("")
 
     def getInts(self,param:str,default=None)->list:
         """Return parameter of type int arrau
             param - Parameter to retrieve
             default - Default value 
         """
-        raise Exception("Must override getInts")
+        self._logger.fatal("Must override getInts")
+        raise Exception("")
 
     def getFloats(self,param:str,default=None)->float:
         """Return parameter of float arry
             param - Parameter to retrieve
             default - Default value 
         """
-        raise Exception("Must override getFloats")
+        self._logger.fatal("Must override getFloats")
+        raise Exception("")
 
     def putPar(self,param:str,val):
         """Store a parameter
 
             param - Parameter to store
             val  - Value"""
-        raise Exception("Must override putPar")
+        self._logger.fatal("Must override putPar")
+        raise Exception("")
 
     def read(self,vec:sepProto.memReg,**kw):
         """
@@ -147,7 +169,8 @@ class regFile:
         Optional:
             nw,fw,jw - Windowing parameters
         """
-        raise Exception("Must override read")
+        self._logger.fatal("Must override read")
+        raise Exception("")
 
     def write(self,vec:sepProto.memReg,**kw):
         """
@@ -158,7 +181,8 @@ class regFile:
         Optional:
             nw,fw,jw - Windowing parameters
         """
-        raise Exception("Must override read")
+        self._logger.fatal("Must override read")
+        raise Exception("")
 
     def hyperToDict(self,myd:dict):
         idim=1
@@ -282,8 +306,6 @@ class io:
         self._objs={}
         self.appendFiles={}
         self._memCreate=memCreate
-
-
     
     def getRegStorage(self,  **kw):
         """Get object to deal with storage
@@ -292,7 +314,8 @@ class io:
                 Optional:
                         
         """
-        raise Exception("must ovveride getRegFile")
+        self._logger.fatal("must ovveride getRegFile")
+        raise Exception("")
 
     def addStorage(self,path, storageObj):
         """Add regFile to list of files
@@ -308,7 +331,8 @@ class io:
             path - Tag associated with file
         """
         if path not in self._objs:
-            raise Exception("Requested path not loaded into this IO")
+            self._logger.fatal("Requested path not loaded into this IO")
+            raise Exception("")
         return self._objs[path]
  
     def getVector(self, path, **kw):
@@ -377,7 +401,8 @@ class io:
     def closeAppendFile(self, path):
         """Close an append file and fix the description to the right number of frames"""
         if path not in self.appendFiles:
-            raise Exception("No record of appended file")
+            self._logger.fatal("No record of appended file")
+            raise Exception("")
         vs = self.appendFiles[path].flushVectors()
         self.writeVectors(
             self.appendFiles[path].file,
