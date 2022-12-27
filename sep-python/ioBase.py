@@ -72,7 +72,6 @@ class regFile:
 
             typ - Data type for dataset
         """
-        print("IN SET DATA DATTYPE")
         self._dataType=typ
 
     def getDataType(self)->str:
@@ -227,7 +226,6 @@ class regFile:
         jwOut=[jwIn[0]]
         iout=0
         bl=ngOut[0]
-        print(fwIn,jwIn,nwIn,ngIn)
         for i in range(1,len(nwIn)):
             #We have the whole axis
             if nwIn[i]==ngIn[i]:
@@ -262,7 +260,6 @@ class regFile:
         bl=[1]
         for i in range(8):
             bl.append(ngOut[i]*bl[i])
-        print(ngOut,fwOut,jwOut,"LLLOOP")
         return ngOut,nwOut,fwOut,jwOut,bl
 
     def close(self):
@@ -293,7 +290,6 @@ class regFile:
                                         for ig0 in range(ng[0]):
                                             seeks.append(pos1+(fw[0]+jw[0]*bl[0])*ig0)
         if jw[0]==1:
-            print("nw",nw)
             return seeks,esize*nw[0],nw[0],len(seeks)==1
         else:
             return seeks,esize,1,False
@@ -306,7 +302,19 @@ class io:
         self._objs={}
         self.appendFiles={}
         self._memCreate=memCreate
+        self._logger=logging.getLogger(None)
     
+    def setLogger(self,log:logging.Logger):
+        """
+
+        Set logging for io base
+
+        log - Logging for io
+
+        """
+        self._logger=log
+
+
     def getRegStorage(self,  **kw):
         """Get object to deal with storage
                 Requiered:
@@ -317,13 +325,33 @@ class io:
         self._logger.fatal("must ovveride getRegFile")
         raise Exception("")
 
+    def getRegVector(self,*arg,**kw):
+        """
+            Option 1 (supply hypercube):
+                    hyper, kw args
+            Option 2 (build hypercube):
+                    ns = [] - list of sizes
+                    os = [] - list of origins
+                    ds = [] - list os sampling
+                    labels = [] list of labels
+                    axes = [] list of axes
+
+            dataFormat = dataFormatType(float32[default], float64,double64,int32,complex64,complex128)
+
+            Option 4 (numpy)
+                Provide hyper, ns, os, or ds,label,s axes
+
+        """
+        x= self._memCreate(*arg,**kw)
+        return x
+
     def addStorage(self,path, storageObj):
         """Add regFile to list of files
 
            path - Path to storage
             storageObj - Object to add to list
         """
-        self._objs[path]=file
+        self._objs[path]=storageObj
        
     def getStorage(self, path):
         """Return object to interact with storage
@@ -335,16 +363,25 @@ class io:
             raise Exception("")
         return self._objs[path]
  
-    def getVector(self, path, **kw):
+    def vectorFromStorage(self, path,  **kw):
         """Get vector from a file and read its contents
 
-           path - Path to file
+           path -Path for vector
 
-           Optional
-             ndims - Force the hypercube to at least ndim axes"""
+           Optional:
+           
+           args, kw - arguments fo create vector
+
+            
+
+        """
+        
+
+        kw["path"]=path
         file = self.getRegStorage(path, **kw)
         self.addStorage(path,file)
         self._objs[tag] = file
+    
         nw,fw,jw=file.getHyper().getWindowParams(**kw)
         aout=[]
         ain=file.getHyper().axes

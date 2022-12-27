@@ -24,16 +24,24 @@ from math import *
 __author__ = "Robert G. Clapp"
 __email__ = "bob@sep.stanford.edu"
 __version = "2022.12.13"
+
 class io(ioBase.io):
 
-    def __init__(self,createMem):
+    def __init__(self,createMem,**kw):
         """
           SEPlib IO 
 
           createMem - Function to create memory
+
+          Optional:
+
+            logger - Logger to use for IO
+
         """
         super().__init__(createMem)
     
+        if "logger" in kw:
+          self.setLogging(kw["logger"])
 
     def getRegStorage(self,**kw):
         """
@@ -41,18 +49,19 @@ class io(ioBase.io):
             Return a regular sampled file pointer 
         """
         if "path" not in kw:
-            self._logger.fatai("path must be specified")
+            self._logger.fatal("path must be specified")
             raise Exception("")
         
         path=kw["path"]
         if "//" not in path:
-            self.addStorage(sFile(**kw))
+          stor=sFile(**kw)
         elif path[:5]=="gs://":
-            self.addStorage(sGsObj(**kw))
-
-
-
+          stor=sGcsObj(**kw)
+        self.addStorage(path,stor)
+        return stor
+        
 converter=sepConverter.converter
+
 
 def databaseFromStr(strIn:str,dataB:dict):
   lines=strIn.split("\n")
@@ -100,7 +109,7 @@ def checkValid(kw:dict,args:dict):
   for arg,typ in args.items():
     if arg in kw:
       if not isinstance(kw[arg],typ):
-        self._logger.fatal(f"Expecting {arg} to be of type {typ}")
+        logging.getLogger().fatal(f"Expecting {arg} to be of type {typ} but is type {type(arg)}")
         raise Exception("")
 
 class reg(ioBase.regFile):
@@ -151,7 +160,7 @@ class reg(ioBase.regFile):
             self._hyper=Hypercube.hypercube(ns=ns,os=os,ds=ds,labels=labels,units=units)
       elif "vec" in kw:
         array=kw["vec"].getNdArray()
-        self._hyper=array.getHyper()
+        self._hyper=kw["vec"].getHyper()
       self.setDataType(str(array.dtype))
       self._params=self.buildParamsFromHyper(self._hyper)
 
@@ -646,7 +655,6 @@ class sGcsObj(reg):
         blob - Blob to set metadata (history)
 
       """
-      print("IN write descrption")
       tmp=copy.deepcopy(self._params)
       tmp["history"]=self._history
       tmp["progName"]=self.getProgName()
@@ -775,9 +783,6 @@ class sGcsObj(reg):
             old=new
             new=new+many
 
-      
-
-
 def datapath(host=None,all=None):
     """Return the datapath
 
@@ -812,7 +817,6 @@ def datapath(host=None,all=None):
         path = "/tmp/"
     if  all:  return path.split(":")
     return path
-
 
 def datafile(name,host=None,all=None,nfiles=1):
   """ Returns the datafile name(s) using SEP datafile conventions

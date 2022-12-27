@@ -111,7 +111,12 @@ class dtypeConvert:
     """
     return self._nameToSEP[self.getName(localN)]
 
-
+  def validType(self,typ:str):
+    """
+    Check to see if specified type is valid """
+    if typ not in self._nameToNumpy.keys():
+      return False
+    return True
 
 converter=dtypeConvert()
 converter.addDataType("float32","native_float","dataFloat",np.float32,4)

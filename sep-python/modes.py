@@ -6,11 +6,11 @@ import logging
 class modes:
     """Class for selecting modes"""
     def __init__(self):
-       self._modes=[]
-       self._logger=logger.getLogger(None)
+       self._modes={}
+       self._logger=logging.getLogger(None)
 
 
-    def setLogger(self,logger:logger.Logging):
+    def setLogger(self,logger:logging.Logger):
         """
 
         Set the logger for mode
@@ -44,5 +44,5 @@ class modes:
 
 
 ioModes=modes()
-ioModes.addMode("sepDefault",sepIO,sepTensor.getSepTensor)
-defaultIO=ioMode("sepDefault")
+ioModes.addMode("sepDefault",sepIO.io,SepVector.getSepVector)
+defaultIO=ioModes.getMode("sepDefault")
