@@ -19,6 +19,7 @@ import gcpHelper
 from  concurrent import futures 
 from typing import List
 import logging
+import binascii
 
 from math import *
 __author__ = "Robert G. Clapp"
@@ -65,7 +66,7 @@ converter=sepConverter.converter
 
 def databaseFromStr(strIn:str,dataB:dict):
   lines=strIn.split("\n")
-  parq1=re.compile("(\S+)='(.+)'")
+  parq1=re.compile('(\S+)="(.+)"')
   parq2=re.compile("(\S+)='(.+)'")
   parS=re.compile('(\S+)=(\S+)')
   commaS=re.compile(',')
@@ -78,12 +79,17 @@ def databaseFromStr(strIn:str,dataB:dict):
       if comment!=1:
         q=0
         res=parq1.search(arg)
-        if  res: q=1
+        if res: 
+          q=1
+          meth=0
         else:
           res=parq2.search(arg)
-          if res: q=1
+          if res: 
+            q=1
+            meth=1
           else:
             res=parS.search(arg)
+            meth=2
       if res:
         if res.group(1)=="par":
           try:
@@ -193,8 +199,6 @@ class reg(ioBase.regFile):
       self._logger.fatal("Did not provide a valid way to create a dataset")
       raise Exception("")
     
-
-
   def buildParamsFromHyper(self,hyper:Hypercube.hypercube):
     """Build parameters from hypercube"""
     pars={}
@@ -434,35 +438,28 @@ class sFile(reg):
        self._logger.fatal("Binary path is not")
        readlines
 
-    
-    
-
   def getHistoryDict(self,path):
     """Build parameters from Path"""
     try:
-      fl=open(path)
+      fl=open(path,"rb")
     except:
       self._logger.fatal(f"Trouble opening {path}")
       raise Exception("")
 
 
-    mystr=fl.read(1000*1000)
-    buf=bytes(mystr,'utf-8')
-    self._head=buf.find(4)
+    mystr=fl.read(1024*1024)
     fl.close()
-    buf=bytes(mystr,'utf-8')
-    self._head=buf.find(4)
-    if self._head!=-1:
-      self._history=mystr[:self_head]
-    else:
-      self._history=mystr
+    ic=mystr.find(4)
+    if ic==-1:
       self._head=0
-    
+      self._history=str(mystr)
+    else:
+      self._head=ic
+      self._history=str(mystr[:self._head])
+    self._history=self._history.replace("\\n","\n").replace("\\t","\t")
 
-    #eol = bytearray([4])
-    #byteA=str.encode(buf)
     pars={}
-    pars=databaseFromStr(mystr,pars)
+    pars=databaseFromStr(self._history,pars)
     return pars
     
   def read(self,mem,**kw):

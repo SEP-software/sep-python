@@ -74,7 +74,7 @@ class dtypeConvert:
     sepName -SEP Name
     """
     if sepName not in self._sepToName:
-      self._logger.fatal(f"Invalid type {sepName}")
+      self._logger.fatal(f"Invalid sep type {sepName} {self._nameToNumpy}")
       raise Exception("")
     return self._nameToNumpy[self._sepToName[sepName]]
 
@@ -122,6 +122,6 @@ converter=dtypeConvert()
 converter.addDataType("float32","native_float","dataFloat",np.float32,4)
 converter.addDataType("float64","native_double","dataDouble",np.float64,8)
 converter.addDataType("int32","native_int","dataInt",np.int32,4)
-converter.addDataType("uint8","xdr_byte","dataByte",np.uint8,1)
+converter.addDataType("uint8","native_byte","dataByte",np.uint8,1)
 converter.addDataType("complex64","dataComplex","native_complex",np.complex64,8)
 converter.addDataType("complex128","dataComplexDouble","native_complex_double",np.complex128,16)
