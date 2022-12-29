@@ -1,10 +1,11 @@
 import sepPython.modes
-import sepPthon.Hypercube
+import sepPython.Hypercube
 import sepPython.sepIO
 
 
 
 
 
-
+hypercube=sepPython.Hypercube.hypercube
+axis=sepPython.Hypercube.axis
 defaultIO=sepPython.modes.defaultIO
