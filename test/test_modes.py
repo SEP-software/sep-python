@@ -1,10 +1,10 @@
-from sepPython.modes import modes
 from sepPython.Hypercube import hypercube,axis
+import sepPython.modes
 import numpy as np
 
 
 def test_sepMode():
-    io=modes.defaultIO
+    io=sepPython.modes.defaultIO
     hyper=hypercube(ns=[10,20],os=[1.,2.],ds=[2.,3])
     ar=np.ndarray((20,10))
     for j in range(ar.shape[0]):
