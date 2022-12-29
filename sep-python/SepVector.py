@@ -266,7 +266,6 @@ class floatVector(vector):
     """Generic float vector class"""
 
     def __init__(self, hyper:Hypercube.hypercube,spaceOnly:bool=False, arr=None):
-        self.kw = kw
         super().__init__(hyper,"dataFloat")
         if not spaceOnly:
             self._arr=np.ndarray(tuple(hyper.getNs()[::-1]),dtype=np.float32)
@@ -318,7 +317,6 @@ class intVector(vector):
     """Generic int vector class"""
 
     def __init__(self, hyper:Hypercube.hypercube,spaceOnly=False, arr=None):
-        self.kw = kw
         super().__init__(hyper,"dataInt")
         if not spaceOnly:
             self._arr=np.ndarray(tuple(hyper.getNs()[::-1]),dtype=np.int32)
@@ -336,7 +334,6 @@ class complexVector(vector):
     """Generic complex vector class"""
 
     def __init__(self, hyper:Hypercube.hypercube,spaceOnly=False, arr=None):
-        self.kw = kw
         super().__init__(hyper,"float32")
         if not spaceOnly:
             self._arr=np.ndarray(tuple(hyper.getNs()[::-1]),dtype=np.float64)
@@ -363,7 +360,6 @@ class complexDoubleVector(vector):
     """Generic complex vector class"""
 
     def __init__(self, hyper:Hypercube.hypercube,spaceOnly=False, arr=None):
-        self.kw = kw
         super().__init__(hyper,"complex128")
         if not spaceOnly:
             self._arr=np.ndarray(tuple(hyper.getNs()[::-1]),dtype=np.complex128)
@@ -398,7 +394,6 @@ class byteVector(vector):
     """Generic byte vector class"""
 
     def __init__(self, hyper:Hypercube.hypercube,spaceOnly=False, arr=None):
-        self.kw = kw
         super().__init__(hyper,"dataByte")
         if not spaceOnly:
             self._arr=np.ndarray(tuple(hyper.getNs()[::-1]),dtype=np.uint8)
@@ -453,7 +448,7 @@ def getSepVector(*args, **keys,):
 
 
     if "dataFormat" in keys:
-        keyps["dataFormat"]=keys["dataFormat"]
+        keys["dataFormat"]=keys["dataFormat"]
     if len(args) == 1:
         if isinstance(args[0],Hypercube.hypercube):
             haveHyper=True
@@ -479,7 +474,7 @@ def getSepVector(*args, **keys,):
             hyper = Hypercube.hypercube(**keys)
        
         else:
-            self._loger.fatal("Must supply Hypercube,vector  or ns/axes")
+            logger.fatal("Must supply Hypercube,vector  or ns/axes")
             raise Exception("")
     else:
         logger.fatal("Only understand 0 or 1 (hypercube) non-keyword arguments")
@@ -494,7 +489,7 @@ def getSepVector(*args, **keys,):
     else:
         myt="float32"
         if "dataFormat" in keys:
-            myt = converter.getName(keys["dataFromat"])
+            myt = converter.getName(keys["dataFormat"])
 
     if myt == "float32":
         y= floatVector(hyper)

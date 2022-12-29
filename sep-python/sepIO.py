@@ -66,9 +66,9 @@ converter=sepConverter.converter
 
 def databaseFromStr(strIn:str,dataB:dict):
   lines=strIn.split("\n")
-  parq1=re.compile('(\S+)="(.+)"')
-  parq2=re.compile("(\S+)='(.+)'")
-  parS=re.compile('(\S+)=(\S+)')
+  parq1=re.compile(r'([^\s]+)="(.+)"')
+  parq2=re.compile(r"(\S+)='(.+)'")
+  parS=re.compile(r'(\S+)=(\S+)')
   commaS=re.compile(',')
   for line in lines:
     args=line.split()
@@ -123,7 +123,8 @@ class reg(ioBase.regFile):
   def __init__(self,**kw):
 
     checkValid(kw,{"hyper":Hypercube.hypercube,"path":str,"vec":sepProto.memReg,
-      "array":np.ndarray,"os":list,"ds":list,"labels":list,"units":list,"logger":logging.Logger})
+      "array":np.ndarray,"os":list,"ds":list,"labels":list,
+      "units":list,"logger":logging.Logger})
 
     super().__init__()
 
@@ -168,6 +169,7 @@ class reg(ioBase.regFile):
         array=kw["vec"].getNdArray()
         self._hyper=kw["vec"].getHyper()
       self.setDataType(str(array.dtype))
+      self._esize=converter.getEsize(str(array.dtype))
       self._params=self.buildParamsFromHyper(self._hyper)
 
       if "path" not in kw: 
@@ -193,7 +195,6 @@ class reg(ioBase.regFile):
         raise Exception("")
       self._params=self.buildParamsFromPath(kw["path"],**kw)
       self._path=kw["path"]
-      self.setBinaryPath(datafile(self._path))
       self._intent="INPUT"
     else:
       self._logger.fatal("Did not provide a valid way to create a dataset")
@@ -432,7 +433,10 @@ class sFile(reg):
       self._logger.fatal(f"When creating a file object path must not have a web address {kw['path']}")
       raise Exception("")
     super().__init__(**kw)
-
+    
+    if self._intent=="INPUT":
+      if "in" in self._params:
+        self.setBinaryPath=self._params["in"]
     
     if self.getBinaryPath() ==None:
        self._logger.fatal("Binary path is not")
@@ -493,7 +497,8 @@ class sFile(reg):
       fl.seek(sk+self._head)
       bytes=fl.read(blk)
       if self._xdr:
-        bytes=bytearray(bytes).reverse()
+        bytes=bytearray(bytes)
+        bytes.reverse()
       arUse[old:new]=np.frombuffer(bytes, dtype=arUse.dtype).copy()
       old=new
       new=new+many
@@ -540,7 +545,7 @@ class sFile(reg):
     fl.write(self.hyperToStr())
     self.setBinaryPath(datafile(self._path))
     fl.write(f"in={self.getBinaryPath()}\n")
-    fl.write(f"esize={self._esize} data_format={converter.getSEPName(self.getDataType())}")
+    fl.write(f"esize={self._esize} data_format={converter.getSEPName(self.getDataType())}\n\n")
     self._wroteHistory=True
   
     fl.close()
@@ -604,7 +609,7 @@ class sGcsObj(reg):
           self._logger.fatal("path must be specified when creating object")
           raise Exception("")
 
-      reS=re.compile("gs://(\S+)\/(.+)")
+      reS=re.compile(r"gs://(\S+)\/(.+)")
       x=reS.search(kw["path"])
 
       self._blobs=[]
@@ -667,27 +672,46 @@ class sGcsObj(reg):
   
   def close(self):
     """Close (and) pottentially combine GCS objects"""
+
     if self._closed==True:
       self._logger.info(f"Closed called multiple times {self._object}")
 
     elif self._intent=="OUTPUT":
       self._closed=True
-      storage_client = storage.Client()
-      bucket = storage_client.bucket(self._bucket)
-      if len(self._blobs)==0:
-        blob = bucket.blob(self._object)
-        blob.upload_from_string('', content_type='application/x-www-form-urlencoded;charset=UTF-8')
-      elif len(self._blobs)==1:
-          self._logger.info(f"Renaming {self._blobs[0].name} to {self._object}")
-          new_blob = bucket.rename_blob(self._blobs[0], self._object)
-      else:
-        with futures.ThreadPoolExecutor(max_workers=60) as executor:
-          destination=gcpHelper.compose(f"gs://{self._bucket}/{self._object}",self._blobs,storage_client,executor,
-          self._logger)
-      self.writeDescriptionFinal()
-      #for a in self._blobs:
-      #   a.delete()
-  
+      found=False
+      sleep=.2
+      itry=0
+      while not found and itry <5:
+        try:
+          storage_client = storage.Client()
+          bucket = storage_client.bucket(self._bucket)
+          if len(self._blobs)==0:
+            blob = bucket.blob(self._object)
+            blob.upload_from_string('', content_type='application/x-www-form-urlencoded;charset=UTF-8')
+          elif len(self._blobs)==1:
+              self._logger.info(f"Renaming {self._blobs[0].name} to {self._object}")
+              new_blob = bucket.rename_blob(self._blobs[0], self._object)
+          else:
+            with futures.ThreadPoolExecutor(max_workers=60) as executor:
+              destination=gcpHelper.compose(f"gs://{self._bucket}/{self._object}",self._blobs,storage_client,executor,
+              self._logger)
+          self.writeDescriptionFinal()
+          found=True
+          #for a in self._blobs:
+          #   a.delete()
+        except:
+          itry+=1
+          time.sleep(sleep)
+          sleep=sleep*2
+          if itry==5:
+            self._logger.fatal("Trouble obtaining client")
+            raise Exception("trouble obtaining client")
+     
+  def __del__(self):
+    """Delete object"""
+    if not self._closed:
+      self._logger.fatal("Must close gcs object before the delete is called")
+      raise Exception("")
   def remove(self,errorIfNotExists:bool=True):
       """Remove data 
        
@@ -771,7 +795,6 @@ class sGcsObj(reg):
       bucket = storage_client.bucket(self._bucket)
       blob = bucket.blob(f"{self._object}{len(self._blobs)}")
       self._blobs.append(blob)
-
       with blob.open("wb") as fl:
         old=0
         new=old+many
@@ -802,11 +825,11 @@ def datapath(host=None,all=None):
                 file = None
     if file:
         for line in file.readlines():
-            check = re.match("(?:%s\s+)?datapath=(\S+)" % hst,line)
+            check = re.match(r"(?:%s\s+)?datapath=(\S+)" % hst,line)
             if check:
                 path = check.group(1)
             else:
-                check = re.match("datapath=(\S+)",line)
+                check = re.match(r"datapath=(\S+)",line)
                 if check:
                     path = check.group(1)
         file.close()

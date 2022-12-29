@@ -375,12 +375,10 @@ class io:
             
 
         """
-        
-
         kw["path"]=path
-        file = self.getRegStorage(path, **kw)
+        file = self.getRegStorage( **kw)
         self.addStorage(path,file)
-        self._objs[tag] = file
+        self._objs[path] = file
     
         nw,fw,jw=file.getHyper().getWindowParams(**kw)
         aout=[]
@@ -390,9 +388,10 @@ class io:
              unit=ain[i].unit,d=ain[i].d*jw[i],
              o=ain[i].o+ain[i].d*fw[i]))
 
-        hyperOut =Hypercube.hypercube(axes=axes)
+        hyperOut =Hypercube.hypercube(axes=aout)
 
-        vec=self._memCreate(hyper=hyperOut,dataFormat=self.getDataFormat())
+        vec=self._memCreate(hyperOut,dataFormat=file.getDataType())
+        file.read(vec)
         return vec
 
     def writeVector(self, path, vec):

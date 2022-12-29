@@ -74,7 +74,7 @@ class dtypeConvert:
     sepName -SEP Name
     """
     if sepName not in self._sepToName:
-      self._logger.fatal(f"Invalid sep type {sepName} {self._nameToNumpy}")
+      self._logger.fatal(f"Invalid sep type {sepName} {self._sepToName}")
       raise Exception("")
     return self._nameToNumpy[self._sepToName[sepName]]
 
