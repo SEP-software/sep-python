@@ -1,8 +1,8 @@
-import sepPython.modes
+import sepPython.modes as modes
 import sepPython.sepIO
 
 
 
 
 
-defaultIO=sepPython.modes.defaultIO
+defaultIO=modes.defaultIO
