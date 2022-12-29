@@ -5,7 +5,7 @@ import numba
 from sys import version_info
 import numpy
 import sepPython.sepConverter
-import sepProto
+import sepPython.sepProto
 import logging 
 
 converter=sepPython.sepConverter.converter
