@@ -1,5 +1,5 @@
-from sepPython import modes
-from sepPython import hypercube,axis
+from sepPython.modes import modes
+from sepPython.Hypercube import hypercube,axis
 import numpy as np
 
 

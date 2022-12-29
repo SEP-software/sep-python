@@ -1,7 +1,7 @@
 import pytest
-from sepPython import sepIO
+from sepPython.sepIO import sepIO
 import os
-from sepPython import hypercube,axis
+from sepPython.Hypercube import hypercube,axis
 import numpy as np
 import logging
 

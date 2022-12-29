@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import pytest
-from sepPython import hypercube,axis
+from sepPython.Hypercube import hypercube,axis
 
 def test_just_n():
     ax=axis(n=10)
