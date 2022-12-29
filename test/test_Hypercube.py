@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import pytest
+import pytest 
 from sepPython.Hypercube import hypercube,axis
 
 def test_just_n():
