@@ -1,6 +1,6 @@
 import sepPython.sepConverter
 import sepPython.sepProto
-from sepPython.Hypercube as hypercube,axis
+from sepPython.Hypercube import hypercube,axis
 import logging
 
 converter=sepPython.sepConverter.converter
