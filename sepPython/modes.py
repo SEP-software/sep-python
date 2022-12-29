@@ -44,5 +44,5 @@ class modes:
 
 
 ioModes=modes()
-ioModes.addMode("sepDefault",sepPython.sepIO.io,sepPython.SepVector.getsepPython.SepVector)
+ioModes.addMode("sepDefault",sepPython.sepIO.io,sepPython.SepVector.getsepPython)
 defaultIO=ioModes.getMode("sepDefault")
