@@ -1,5 +1,5 @@
-import sepIO
-import SepVector
+import sepPython.sepIO
+import sepPython.SepVector
 import logging
 
 
@@ -44,5 +44,5 @@ class modes:
 
 
 ioModes=modes()
-ioModes.addMode("sepDefault",sepIO.io,SepVector.getSepVector)
+ioModes.addMode("sepDefault",sepPython.sepIO.io,sepPython.SepVector.getsepPython.SepVector)
 defaultIO=ioModes.getMode("sepDefault")
