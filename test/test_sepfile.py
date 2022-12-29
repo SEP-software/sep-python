@@ -13,6 +13,7 @@ def test_simpleArgs_1Line():
     f.write("n1=10 o1=1. d1=2. label='test' in='/tmp/junk.H@'\n")
     f.close()
     fl=sepPython.sepIO.sFile(path="/tmp/junk.H")
+    print(fl._params)
     assert 10==fl.getInt("n1")
     assert 2.==fl.getFloat("d1")
     assert 5.==fl.getFloat("DJFKKDJ",5.)
