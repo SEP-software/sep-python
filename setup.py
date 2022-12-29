@@ -1,7 +1,7 @@
 from distutils.core import setup
 
 setup(name='sepPython',
-      version='0.9',
+      version='0.9.1',
       description='A library for basic IO )SEP) all in python',
       author='R. Clapp',
       author_email='bob@sep.stanford.edu',
