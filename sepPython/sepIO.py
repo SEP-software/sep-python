@@ -1,4 +1,4 @@
-import ioBase
+import sepPython.ioBase
 import re
 import string
 import pwd
@@ -8,14 +8,13 @@ import socket
 import copy
 import time
 import types
-import Hypercube
+from sepPython import  hypercube,axis
 import numpy as np 
-import sepConverter
-import ioBase
-import sepProto
+import sepPython.sepConverter
+import sepPython.sepProto
 from google.cloud import storage 
 import re
-import gcpHelper
+import sepPython.gcpHelper
 from  concurrent import futures 
 from typing import List
 import logging
@@ -26,7 +25,7 @@ __author__ = "Robert G. Clapp"
 __email__ = "bob@sep.stanford.edu"
 __version = "2022.12.13"
 
-class io(ioBase.io):
+class io(sepPython.ioBase.io):
 
     def __init__(self,createMem,**kw):
         """
@@ -61,7 +60,7 @@ class io(ioBase.io):
         self.addStorage(path,stor)
         return stor
         
-converter=sepConverter.converter
+converter=sepPython.sepConverter.converter
 
 
 def databaseFromStr(strIn:str,dataB:dict):
@@ -118,11 +117,11 @@ def checkValid(kw:dict,args:dict):
         logging.getLogger().fatal(f"Expecting {arg} to be of type {typ} but is type {type(arg)}")
         raise Exception("")
 
-class reg(ioBase.regFile):
+class reg(sepPython.ioBase.regFile):
   """A class to """
   def __init__(self,**kw):
 
-    checkValid(kw,{"hyper":Hypercube.hypercube,"path":str,"vec":sepProto.memReg,
+    checkValid(kw,{"hyper":hypercube,"path":str,"vec":sepPython.sepProto.memReg,
       "array":np.ndarray,"os":list,"ds":list,"labels":list,
       "units":list,"logger":logging.Logger})
 
@@ -164,7 +163,7 @@ class reg(ioBase.regFile):
               self._logger.fatal("Shape of hypercube and array are different")
               raise Exception("")
           else:
-            self._hyper=Hypercube.hypercube(ns=ns,os=os,ds=ds,labels=labels,units=units)
+            self._hyper=hypercube(ns=ns,os=os,ds=ds,labels=labels,units=units)
       elif "vec" in kw:
         array=kw["vec"].getNdArray()
         self._hyper=kw["vec"].getHyper()
@@ -200,7 +199,7 @@ class reg(ioBase.regFile):
       self._logger.fatal("Did not provide a valid way to create a dataset")
       raise Exception("")
     
-  def buildParamsFromHyper(self,hyper:Hypercube.hypercube):
+  def buildParamsFromHyper(self,hyper:hypercube):
     """Build parameters from hypercube"""
     pars={}
     self._history="";
@@ -246,11 +245,11 @@ class reg(ioBase.regFile):
         unit=""
       ndim+=1
       if not found:
-        axes.append(Hypercube.axis(n=n,o=o,d=d,label=label,unit=unit))
+        axes.append(axis(n=n,o=o,d=d,label=label,unit=unit))
       if "ndims" in kw:
         if kw["ndims"] > len(axes):
           axes.append(n=1)
-    self._hyper=Hypercube.hypercube(axes=axes)
+    self._hyper=hypercube(axes=axes)
     
     if "in" in pars:
         self.setBinaryPath(pars["in"])
@@ -476,7 +475,7 @@ class sFile(reg):
       nw,fw,jw - Standard window parameters
 
     """
-    if isinstance(mem,sepProto.memReg):
+    if isinstance(mem,sepPython.sepProto.memReg):
       array=mem.getNdArray()
     elif isinstance(mem,np.ndarray):
       array=mem
@@ -514,7 +513,7 @@ class sFile(reg):
       nw,fw,jw - Standard window parameters
 
     """
-    if isinstance(mem,sepProto.memReg):
+    if isinstance(mem,sepPython.sepProto.memReg):
       array=mem.getNdArray()
     elif isinstance(mem,np.ndarray):
       array=mem
@@ -693,7 +692,7 @@ class sGcsObj(reg):
               new_blob = bucket.rename_blob(self._blobs[0], self._object)
           else:
             with futures.ThreadPoolExecutor(max_workers=60) as executor:
-              destination=gcpHelper.compose(f"gs://{self._bucket}/{self._object}",self._blobs,storage_client,executor,
+              destination=sepPython.gcpHelper.compose(f"gs://{self._bucket}/{self._object}",self._blobs,storage_client,executor,
               self._logger)
           self.writeDescriptionFinal()
           found=True
@@ -737,7 +736,7 @@ class sGcsObj(reg):
 
       """
 
-      if isinstance(mem,sepProto.memReg):
+      if isinstance(mem,sepPython.sepProto.memReg):
         array=mem.getNdArray()
       elif isinstance(mem,np.ndarray):
         array=mem
@@ -775,7 +774,7 @@ class sGcsObj(reg):
       """
 
 
-      if isinstance(mem,sepProto.memReg):
+      if isinstance(mem,sepPython.sepProto.memReg):
         array=mem.getNdArray()
       elif isinstance(mem,np.ndarray):
         array=mem

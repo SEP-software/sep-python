@@ -1,10 +1,10 @@
 
-import Hypercube
+from sepPython import hypercube,axis
 import numpy as np
-import sepConverter
+import sepPython.sepConverter
 import logging
 
-converter=sepConverter.converter
+converter=sepPython.sepConverter.converter
 
 class memReg:
     """Basic class for in memory storage 
@@ -29,15 +29,15 @@ class memReg:
         self._logger.fatal("Must override getNdArray")
         raise Exception("")
 
-    def getHyper(self)->Hypercube.hypercube:
+    def getHyper(self)->hypercube:
         """
         Return the hypercube describing the regular array"""
-        if not isinstance(self._hyper,Hypercube.hypercube):
+        if not isinstance(self._hyper,hypercube):
             self._logger.fatal("Hypercube not set correctly")
             raise Exception("")
         return self._hyper
     
-    def setHyper(self,hyper:Hypercube.hypercube):
+    def setHyper(self,hyper:hypercube):
         """
         Set the hypercube for the regular storage
 

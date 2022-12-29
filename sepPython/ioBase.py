@@ -1,9 +1,10 @@
-import sepConverter
-import sepProto
-import Hypercube 
+import sepPython.sepConverter
+import sepPython.sepProto
+import sepPython.hypercube as hypercube
+import sepPython.axis as axis 
 import logging
 
-converter=sepConverter.converter
+converter=sepPython.sepConverter.converter
 
 
 class regFile:
@@ -29,7 +30,7 @@ class regFile:
         """
         self._logger=logger
 
-    def setHyper(self,hyper:Hypercube.hypercube):
+    def setHyper(self,hyper:hypercube):
         """
         Set the hypercube for the dataset
         
@@ -38,7 +39,7 @@ class regFile:
         """
         self._hyper=hyper
     
-    def getHyper(self)->Hypercube.hypercube:
+    def getHyper(self)->hypercube:
         """
         Get the hypercube associated with the regular dataset"""
         if self._hyper==None:
@@ -159,7 +160,7 @@ class regFile:
         self._logger.fatal("Must override putPar")
         raise Exception("")
 
-    def read(self,vec:sepProto.memReg,**kw):
+    def read(self,vec:sepPython.sepProto.memReg,**kw):
         """
             Read dataset, potentially a window
 
@@ -171,7 +172,7 @@ class regFile:
         self._logger.fatal("Must override read")
         raise Exception("")
 
-    def write(self,vec:sepProto.memReg,**kw):
+    def write(self,vec:sepPython.sepProto.memReg,**kw):
         """
             Write dataset, potentially a window
 
@@ -384,11 +385,11 @@ class io:
         aout=[]
         ain=file.getHyper().axes
         for i in range(len(nw)):
-            aout.append(Hypercube.axis(n=nw[i],label=ain[i].label,
+            aout.append(axis(n=nw[i],label=ain[i].label,
              unit=ain[i].unit,d=ain[i].d*jw[i],
              o=ain[i].o+ain[i].d*fw[i]))
 
-        hyperOut =Hypercube.hypercube(axes=aout)
+        hyperOut =hypercube(axes=aout)
 
         vec=self._memCreate(hyperOut,dataFormat=file.getDataType())
         file.read(vec)
@@ -461,7 +462,7 @@ class AppendFile:
         self.vecs = []
         self.flush = flush
         self.hyper = vec.getHyper()
-        self.hyper.addAxis(Hypercube.axis(n=maxLength))
+        self.hyper.addAxis(axis(n=maxLength))
         self.nmax = maxLength
         self._dataFormat=vec.getDataFormat()
  

@@ -1,14 +1,14 @@
 from genericSolver.pyVector import vector as pyvec
-import Hypercube
+from sepPython import hypercube,axis
 import numpy as np
 import numba
 from sys import version_info
 import numpy
-import sepConverter
+import sepPython.sepConverter
 import sepProto
 import logging 
 
-converter=sepConverter.converter
+converter=sepPython.sepConverter.converter
 
 @numba.njit(parallel=True)
 def clipIt(vec,bclip,eclip):
@@ -56,14 +56,14 @@ def calcHisto(outV,vec,mn,mx):
         ind=max(0,min(vec.shape[0]-1,int((vec[i]-mn)/delta)))
         outV[ind]+=1
 
-class vector(sepProto.memReg,pyvec):
+class vector(sepPython.sepProto.memReg,pyvec):
     """Generic sepVector class"""
 
-    def __init__(self, hyper:Hypercube.hypercube, dataFormat:str):
+    def __init__(self, hyper:hypercube, dataFormat:str):
         """Initialize a vector object"""
 
         self._logger=logging.getLogger(None)
-        sepProto.memReg.__init__(self)
+        sepPython.sepProto.memReg.__init__(self)
         pyvec.__init__(self)
         self.setHyper(hyper)
         self._dataFormat=dataFormat
@@ -108,7 +108,7 @@ class vector(sepProto.memReg,pyvec):
         axCOut=[]
         nout=[]
         for i in len(nw):
-            axOut.append(Hypercube.axis(n=nw[i],o=axes[i].o+axes[i].d*fw[i],d=jw[i]*axes[i].d,\
+            axOut.append(axis(n=nw[i],o=axes[i].o+axes[i].d*fw[i],d=jw[i]*axes[i].d,\
                 label=axes[i].label, unit=axes[i].unit))
             if nw[i]!=1 and compress:
                 axCOut.append(axOut[:-1])
@@ -147,7 +147,7 @@ class vector(sepProto.memReg,pyvec):
     def get1DArray(self)->np.ndarray:
         return np.ravel(self._arr)
 
-    def adjustHyper(self,hyper:Hypercube.hypercube):
+    def adjustHyper(self,hyper:hypercube):
         """Adjust the hypercube associated with vector. Does not reallocate. Must be same dims/size"""
         hyperOld=self.getHyper()
         if hyperOld.getN123() != hyper.getN123():
@@ -165,14 +165,14 @@ class vector(sepProto.memReg,pyvec):
     
 class nonInteger(vector):
     """A class for non-integers"""
-    def __init__(self,hyper:Hypercube.hypercube, dataFormat:str):
+    def __init__(self,hyper:hypercube, dataFormat:str):
         """Initialize a non-integer"""
         super().__init__(hyper,dataFormat)
 
 class realNumber(nonInteger):
     """A class for real numbers"""
 
-    def __init__(self,hyper:Hypercube.hypercube,dataFormat:str):
+    def __init__(self,hyper:hypercube,dataFormat:str):
         """Initialize a real number vector"""
         super().__init__(hyper,dataFormat)
 
@@ -265,7 +265,7 @@ class realNumber(nonInteger):
 class floatVector(vector):
     """Generic float vector class"""
 
-    def __init__(self, hyper:Hypercube.hypercube,spaceOnly:bool=False, arr=None):
+    def __init__(self, hyper:hypercube,spaceOnly:bool=False, arr=None):
         super().__init__(hyper,"dataFloat")
         if not spaceOnly:
             self._arr=np.ndarray(tuple(hyper.getNs()[::-1]),dtype=np.float32)
@@ -290,7 +290,7 @@ class floatVector(vector):
 class doubleVector(vector):
     """Generic double vector class"""
 
-    def __init__(self, hyper:Hypercube.hypercube,spaceOnly=False, arr=None):
+    def __init__(self, hyper:hypercube,spaceOnly=False, arr=None):
         super().__init__(hyper,"double64")
         if not spaceOnly:
             self._arr=np.ndarray(tuple(hyper.getNs()[::-1]),dtype=np.float64)
@@ -316,7 +316,7 @@ class doubleVector(vector):
 class intVector(vector):
     """Generic int vector class"""
 
-    def __init__(self, hyper:Hypercube.hypercube,spaceOnly=False, arr=None):
+    def __init__(self, hyper:hypercube,spaceOnly=False, arr=None):
         super().__init__(hyper,"dataInt")
         if not spaceOnly:
             self._arr=np.ndarray(tuple(hyper.getNs()[::-1]),dtype=np.int32)
@@ -333,7 +333,7 @@ class intVector(vector):
 class complexVector(vector):
     """Generic complex vector class"""
 
-    def __init__(self, hyper:Hypercube.hypercube,spaceOnly=False, arr=None):
+    def __init__(self, hyper:hypercube,spaceOnly=False, arr=None):
         super().__init__(hyper,"float32")
         if not spaceOnly:
             self._arr=np.ndarray(tuple(hyper.getNs()[::-1]),dtype=np.float64)
@@ -359,7 +359,7 @@ class complexVector(vector):
 class complexDoubleVector(vector):
     """Generic complex vector class"""
 
-    def __init__(self, hyper:Hypercube.hypercube,spaceOnly=False, arr=None):
+    def __init__(self, hyper:hypercube,spaceOnly=False, arr=None):
         super().__init__(hyper,"complex128")
         if not spaceOnly:
             self._arr=np.ndarray(tuple(hyper.getNs()[::-1]),dtype=np.complex128)
@@ -393,7 +393,7 @@ class complexDoubleVector(vector):
 class byteVector(vector):
     """Generic byte vector class"""
 
-    def __init__(self, hyper:Hypercube.hypercube,spaceOnly=False, arr=None):
+    def __init__(self, hyper:hypercube,spaceOnly=False, arr=None):
         super().__init__(hyper,"dataByte")
         if not spaceOnly:
             self._arr=np.ndarray(tuple(hyper.getNs()[::-1]),dtype=np.uint8)
@@ -450,7 +450,7 @@ def getSepVector(*args, **keys,):
     if "dataFormat" in keys:
         keys["dataFormat"]=keys["dataFormat"]
     if len(args) == 1:
-        if isinstance(args[0],Hypercube.hypercube):
+        if isinstance(args[0],hypercube):
             haveHyper=True
             hyper = args[0]
         elif isinstance(args[0],numpy.ndarray):
@@ -459,19 +459,19 @@ def getSepVector(*args, **keys,):
             if "hyper" in keys:
                 hyper=keys["hyper"]
             elif "axes" in keys or "ns" in keys:
-                hyper = Hypercube.hypercube(**keys)
+                hyper = hypercube(**keys)
             else:
                 nt=list(array.shape)
                 ns=[]
                 for i in range(len(nt)):
                     ns.append(nt[len(nt)-1-i])
-                hyper =Hypercube.hypercube(ns=ns)
+                hyper =hypercube(ns=ns)
         else:
             logger.fatal("First argument must by a hypercube or numpy array")
             raise Exception("")
     elif len(args) == 0:
         if "axes" in keys or "ns" in keys:
-            hyper = Hypercube.hypercube(**keys)
+            hyper = hypercube(**keys)
        
         else:
             logger.fatal("Must supply Hypercube,vector  or ns/axes")

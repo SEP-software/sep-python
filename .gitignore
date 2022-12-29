@@ -1,13 +1,3 @@
-sep-python/__pycache__/datapath.cpython-310.pyc
-sep-python/__pycache__/Hypercube_test.cpython-310-pytest-7.1.3.pyc
-sep-python/__pycache__/Hypercube.cpython-310.pyc
-sep-python/__pycache__/ioBase.cpython-310.pyc
-sep-python/__pycache__/sepConverter.cpython-310.pyc
-sep-python/__pycache__/sepfile.cpython-310.pyc
-sep-python/__pycache__/sepIO.cpython-310.pyc
-sep-python/__pycache__/sepProto.cpython-310.pyc
-sep-python/__pycache__/test_Hypercube.cpython-310-pytest-7.1.3.pyc
-sep-python/__pycache__/test_hypercube.cpython-310-pytest-7.1.3.pyc
-sep-python/__pycache__/test_Hypercube.cpython-310-pytest-7.2.0.pyc
-sep-python/__pycache__/test_sepfile.cpython-310-pytest-7.1.3.pyc
-sep-python/__pycache__/test_sepfile.cpython-310-pytest-7.2.0.pyc
+__pycache__
+.pytest_cache
+
