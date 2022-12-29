@@ -1,5 +1,5 @@
 from genericSolver.pyVector import vector as pyvec
-from sepPython import hypercube,axis
+from sepPython.Hypercube import hypercube,axis
 import numpy as np
 import numba
 from sys import version_info

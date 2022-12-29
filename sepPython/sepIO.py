@@ -8,7 +8,7 @@ import socket
 import copy
 import time
 import types
-from sepPython import  hypercube,axis
+from sepPython.Hypercube import  hypercube,axis
 import numpy as np 
 import sepPython.sepConverter
 import sepPython.sepProto
