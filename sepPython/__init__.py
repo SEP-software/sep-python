@@ -1,12 +1,10 @@
 import modes
-import Hypercube
-import sepIO
+import sepPthon.Hypercube
+import sepPython.sepIO
 
 
 
 
 
 
-defaultIO=modes.defaultIO
-hypercube=Hypercube.Hypercube
-axis=Hypercube.axis
+defaultIO=sepPython.modes.defaultIO
