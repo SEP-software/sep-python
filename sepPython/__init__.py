@@ -1,4 +1,4 @@
-import modes
+import sepPython.modes
 import sepPthon.Hypercube
 import sepPython.sepIO
 
