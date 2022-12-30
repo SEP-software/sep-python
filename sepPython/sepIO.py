@@ -454,12 +454,17 @@ class sFile(reg):
     mystr=fl.read(1024*1024)
     fl.close()
     ic=mystr.find(4)
+    fl=open(path,"r")
     if ic==-1:
       self._head=0
-      self._history=str(mystr)
+      #self._history=str(mystr)
+      fl=open(path,"rb")
+      self._history=fl.read()
     else:
       self._head=ic
-      self._history=str(mystr[:self._head])
+      self._history=fl.read(self._head)
+    fl.close()
+
     self._history=self._history.replace("\\n","\n").replace("\\t","\t")
 
     pars={}
