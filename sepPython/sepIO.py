@@ -465,7 +465,7 @@ class sFile(reg):
       self._history=fl.read(self._head)
     fl.close()
 
-    self._history=self._history.replace("\\n","\n").replace("\\t","\t")
+    #self._history=self._history.replace("\\n","\n").replace("\\t","\t")
 
     pars={}
     pars=databaseFromStr(self._history,pars)

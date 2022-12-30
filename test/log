@@ -12,38 +12,55 @@ ____________________________ test_simpleArgs_1Line _____________________________
         f=open("/tmp/junk.H","w")
         f.write("n1=10 o1=1. d1=2. label='test' in='/tmp/junk.H@'\n")
         f.close()
-        fl=sepPython.sepIO.sFile(path="/tmp/junk.H")
-        print(fl._params)
->       assert 10==fl.getInt("n1")
+>       fl=sepPython.sepIO.sFile(path="/tmp/junk.H")
 
-test_sepfile.py:17: 
+test_sepfile.py:15: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/home/spack/spack/opt/spack/linux-centos7-skylake_avx512/gcc-8.5.0/python-3.10.8-tye3styllri3xiql6psptyz7uujbz4hn/lib/python3.10/site-packages/sepPython/sepIO.py:435: in __init__
+    super().__init__(**kw)
+/home/spack/spack/opt/spack/linux-centos7-skylake_avx512/gcc-8.5.0/python-3.10.8-tye3styllri3xiql6psptyz7uujbz4hn/lib/python3.10/site-packages/sepPython/sepIO.py:196: in __init__
+    self._params=self.buildParamsFromPath(kw["path"],**kw)
+/home/spack/spack/opt/spack/linux-centos7-skylake_avx512/gcc-8.5.0/python-3.10.8-tye3styllri3xiql6psptyz7uujbz4hn/lib/python3.10/site-packages/sepPython/sepIO.py:221: in buildParamsFromPath
+    pars=self.getHistoryDict(fle)
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
 
-self = Regular file, type=SEP storage=<class 'numpy.float32'> binary=/tmp/junk.H@
+self = Regular file, type=SEP storage=None binary=None
+None
+path = '/tmp/junk.H'
 
-param = 'n1', default = None
-
-    def getInt(self,param:str,default=None)->int:
-      """Return parameter of int
-         param - Parameter to retrieve
-         default - Default value
-      """
-      v=self.getPar(param,default)
+    def getHistoryDict(self,path):
+      """Build parameters from Path"""
       try:
->       return int(v)
-E       TypeError: int() argument must be a string, a bytes-like object or a real number, not 'NoneType'
+        fl=open(path,"rb")
+      except:
+        self._logger.fatal(f"Trouble opening {path}")
+        raise Exception("")
+    
+    
+      mystr=fl.read(1024*1024)
+      fl.close()
+      ic=mystr.find(4)
+      fl=open(path,"r")
+      if ic==-1:
+        self._head=0
+        #self._history=str(mystr)
+        fl=open(path,"rb")
+        self._history=fl.read()
+      else:
+        self._head=ic
+        self._history=fl.read(self._head)
+      fl.close()
+    
+>     self._history=self._history.replace("\\n","\n").replace("\\t","\t")
+E     TypeError: a bytes-like object is required, not 'str'
 
-/home/spack/spack/opt/spack/linux-centos7-skylake_avx512/gcc-8.5.0/python-3.10.8-tye3styllri3xiql6psptyz7uujbz4hn/lib/python3.10/site-packages/sepPython/sepIO.py:297: TypeError
------------------------------ Captured stdout call -----------------------------
- b"n1 2
- o1 2
- d1 2
- label 1
- in 1
-PARS {'b"n1': '10', 'o1': '1.', 'd1': '2.', 'label': 'test', 'in': '/tmp/junk.H@'}
-{'b"n1': '10', 'o1': '1.', 'd1': '2.', 'label': 'test', 'in': '/tmp/junk.H@'}
------------------------------- Captured log call -------------------------------
-CRITICAL root:sepIO.py:288 Can't find n1
+/home/spack/spack/opt/spack/linux-centos7-skylake_avx512/gcc-8.5.0/python-3.10.8-tye3styllri3xiql6psptyz7uujbz4hn/lib/python3.10/site-packages/sepPython/sepIO.py:468: TypeError
 =========================== short test summary info ============================
-FAILED test_sepfile.py::test_simpleArgs_1Line - TypeError: int() argument mus...
-======================= 1 failed, 6 deselected in 1.14s ========================
+FAILED test_sepfile.py::test_simpleArgs_1Line - TypeError: a bytes-like objec...
+======================= 1 failed, 6 deselected in 1.18s ========================
+Exception ignored in: <function regFile.__del__ at 0x7fe59c2a69e0>
+Traceback (most recent call last):
+  File "/home/spack/spack/opt/spack/linux-centos7-skylake_avx512/gcc-8.5.0/python-3.10.8-tye3styllri3xiql6psptyz7uujbz4hn/lib/python3.10/site-packages/sepPython/ioBase.py", line 209, in __del__
+  File "/home/spack/spack/opt/spack/linux-centos7-skylake_avx512/gcc-8.5.0/python-3.10.8-tye3styllri3xiql6psptyz7uujbz4hn/lib/python3.10/site-packages/sepPython/sepIO.py", line 389, in close
+  File "/home/spack/spack/opt/spack/linux-centos7-skylake_avx512/gcc-8.5.0/python-3.10.8-tye3styllri3xiql6psptyz7uujbz4hn/lib/python3.10/site-packages/sepPython/sepIO.py", line 546, in writeDescription
+NameError: name 'open' is not defined
