@@ -102,13 +102,6 @@ def databaseFromStr(strIn:str,dataB:dict):
           val=res.group(2)
           if isinstance(val,str): 
             if commaS.search(val): val=val.split(",")
-          if isinstance(res.group(1),bytestring):
-              dataB[res.group(1).decode("utf-8")]=val
-          elif isinstance(res.group(1),str):
-              dataB[res.group(1)]=val
-          else:
-              self._logger.fatal(f"Don't know to deal with {res.group(1)} type {type(res.group(1))}")
-              raise Exception("")
           dataB["{str(res.group(1))}"]=val
   return dataB
 
