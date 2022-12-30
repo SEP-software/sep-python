@@ -35,8 +35,8 @@ E     TypeError: a bytes-like object is required, not 'str'
 /home/spack/spack/opt/spack/linux-centos7-skylake_avx512/gcc-8.5.0/python-3.10.8-tye3styllri3xiql6psptyz7uujbz4hn/lib/python3.10/site-packages/sepPython/sepIO.py:67: TypeError
 =========================== short test summary info ============================
 FAILED test_sepfile.py::test_simpleArgs_1Line - TypeError: a bytes-like objec...
-======================= 1 failed, 6 deselected in 1.23s ========================
-Exception ignored in: <function regFile.__del__ at 0x7f4a47a8a950>
+======================= 1 failed, 6 deselected in 1.17s ========================
+Exception ignored in: <function regFile.__del__ at 0x7f207aa4e950>
 Traceback (most recent call last):
   File "/home/spack/spack/opt/spack/linux-centos7-skylake_avx512/gcc-8.5.0/python-3.10.8-tye3styllri3xiql6psptyz7uujbz4hn/lib/python3.10/site-packages/sepPython/ioBase.py", line 209, in __del__
   File "/home/spack/spack/opt/spack/linux-centos7-skylake_avx512/gcc-8.5.0/python-3.10.8-tye3styllri3xiql6psptyz7uujbz4hn/lib/python3.10/site-packages/sepPython/sepIO.py", line 389, in close

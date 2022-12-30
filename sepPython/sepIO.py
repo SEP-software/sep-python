@@ -464,7 +464,7 @@ class sFile(reg):
       self._head=ic
       self._history=fl.read(self._head)
     fl.close()
-    print(self._history.split("\n"))
+    print("XXXX",self._history.split("\n"))
     
     #self._history=self._history.replace("\\n","\n").replace("\\t","\t")
 
