@@ -10,7 +10,7 @@ import logging
 
 def test_simpleArgs_1Line():
     f=open("/tmp/junk.H","w")
-    f.write("n1=10 o1=1. d1=2. label='test' in='/tmp/junk.H@'\n")
+    f.write("\n n1=10 o1=1. d1=2. label='test' in='/tmp/junk.H@'\n")
     f.close()
     fl=sepPython.sepIO.sFile(path="/tmp/junk.H")
     print(fl._params)
