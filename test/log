@@ -40,62 +40,67 @@ test_modes.py:30:
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
 /home/spack/spack/opt/spack/linux-centos7-skylake_avx512/gcc-8.5.0/python-3.10.8-tye3styllri3xiql6psptyz7uujbz4hn/lib/python3.10/site-packages/sepPython/sepIO.py:57: in getRegStorage
     stor=sFile(**kw)
-/home/spack/spack/opt/spack/linux-centos7-skylake_avx512/gcc-8.5.0/python-3.10.8-tye3styllri3xiql6psptyz7uujbz4hn/lib/python3.10/site-packages/sepPython/sepIO.py:441: in __init__
-    super().__init__(**kw)
-/home/spack/spack/opt/spack/linux-centos7-skylake_avx512/gcc-8.5.0/python-3.10.8-tye3styllri3xiql6psptyz7uujbz4hn/lib/python3.10/site-packages/sepPython/sepIO.py:202: in __init__
-    self._params=self.buildParamsFromPath(kw["path"],**kw)
-/home/spack/spack/opt/spack/linux-centos7-skylake_avx512/gcc-8.5.0/python-3.10.8-tye3styllri3xiql6psptyz7uujbz4hn/lib/python3.10/site-packages/sepPython/sepIO.py:227: in buildParamsFromPath
-    pars=self.getHistoryDict(fle)
-/home/spack/spack/opt/spack/linux-centos7-skylake_avx512/gcc-8.5.0/python-3.10.8-tye3styllri3xiql6psptyz7uujbz4hn/lib/python3.10/site-packages/sepPython/sepIO.py:472: in getHistoryDict
-    pars=databaseFromStr(self._history,pars)
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
 
-strIn = 'b\'\nGeneric Python Program\n\nn1=10 o1=1.0 d1=2.0 label1="ax.label" unit1="ax.unit"\nn2=20 o2=2.0 d2=3 label2="ax.label" unit2="ax.unit"\nin=/tmp/junk4.H@\nesize=8 data_format=native_double\n\n\''
-dataB = {}
+self = Regular file, type=SEP storage=<class 'numpy.float32'> binary=None
 
-    def databaseFromStr(strIn:str,dataB:dict):
-      lines=strIn.split("\n")
-      parq1=re.compile(r'([^\s]+)="(.+)"')
-      parq2=re.compile(r"(\S+)='(.+)'")
-      parS=re.compile(r'(\S+)=(\S+)')
-      commaS=re.compile(',')
-      for line in lines:
-        args=line.split()
-        comment=0
-        for arg in args:
-          if arg[0]=="#": comment=1
-          res=None
-          if comment!=1:
-            q=0
-            res=parq1.search(arg)
-            if res:
-              q=1
-              meth=0
-            else:
-              res=parq2.search(arg)
-              if res:
-                q=1
-                meth=1
-              else:
-                res=parS.search(arg)
-                meth=2
-          if res:
-            if res.group(1)=="par":
-              try:
-                f2=open(res.group(2))
-              except:
-                self._logger.fatal(f"Trouble opening {res.group(2)}")
-                raise Exception("")
-              databaseFromStr(f2.read(),dataB)
-              f2.close()
-            else:
-              val=res.group(2)
-              if isinstance(val,str):
-                if commaS.search(val): val=val.split(",")
->             if isinstance(res.group(1),bytestring):
-E             NameError: name 'bytestring' is not defined
+kw = {'path': '/tmp/junk4.H'}
 
-/home/spack/spack/opt/spack/linux-centos7-skylake_avx512/gcc-8.5.0/python-3.10.8-tye3styllri3xiql6psptyz7uujbz4hn/lib/python3.10/site-packages/sepPython/sepIO.py:105: NameError
+    def __init__(self,**kw):
+    
+      """"Initialize a sepFile object
+    
+         Optional:
+    
+           logger-logger object
+    
+          Method 1:
+           hyper - Hypercube
+           path  (str) - path for Path
+           type (str) - SEP Data type
+    
+    
+          Method 2:
+           Path  - Path to file
+    
+           Optional:
+            ndims - Minimum dimensions for the data
+    
+          Method 3:
+            path (str) - path for history file
+            array (np.ndarray) - Array or memReg storage
+               or
+            vec ()
+    
+            Optional:
+               hyper - Hypercube describing data
+               os,ds,labels,units - Lists describing array
+    
+      """
+      if "logger" in kw:
+        self.setLogger(kw["logger"])
+      else:
+        self.setLogger(logging.getLogger(None))
+      if "path" not in kw:
+        self._logger.fatal("Must specify path")
+        raise Exception("")
+      if "//"  in kw["path"]:
+        self._logger.fatal(f"When creating a file object path must not have a web address {kw['path']}")
+        raise Exception("")
+      super().__init__(**kw)
+    
+      if self._intent=="INPUT":
+        if "in" in self._params:
+          self.setBinaryPath=self._params["in"]
+    
+      if self.getBinaryPath() ==None:
+         self._logger.fatal("Binary path is not")
+>        readlines
+E        NameError: name 'readlines' is not defined
+
+/home/spack/spack/opt/spack/linux-centos7-skylake_avx512/gcc-8.5.0/python-3.10.8-tye3styllri3xiql6psptyz7uujbz4hn/lib/python3.10/site-packages/sepPython/sepIO.py:442: NameError
+------------------------------ Captured log call -------------------------------
+CRITICAL root:sepIO.py:441 Binary path is not
 ____________________________ test_simpleArgs_1Line _____________________________
 
     def test_simpleArgs_1Line():
@@ -106,61 +111,66 @@ ____________________________ test_simpleArgs_1Line _____________________________
 
 test_sepfile.py:15: 
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
-/home/spack/spack/opt/spack/linux-centos7-skylake_avx512/gcc-8.5.0/python-3.10.8-tye3styllri3xiql6psptyz7uujbz4hn/lib/python3.10/site-packages/sepPython/sepIO.py:441: in __init__
-    super().__init__(**kw)
-/home/spack/spack/opt/spack/linux-centos7-skylake_avx512/gcc-8.5.0/python-3.10.8-tye3styllri3xiql6psptyz7uujbz4hn/lib/python3.10/site-packages/sepPython/sepIO.py:202: in __init__
-    self._params=self.buildParamsFromPath(kw["path"],**kw)
-/home/spack/spack/opt/spack/linux-centos7-skylake_avx512/gcc-8.5.0/python-3.10.8-tye3styllri3xiql6psptyz7uujbz4hn/lib/python3.10/site-packages/sepPython/sepIO.py:227: in buildParamsFromPath
-    pars=self.getHistoryDict(fle)
-/home/spack/spack/opt/spack/linux-centos7-skylake_avx512/gcc-8.5.0/python-3.10.8-tye3styllri3xiql6psptyz7uujbz4hn/lib/python3.10/site-packages/sepPython/sepIO.py:472: in getHistoryDict
-    pars=databaseFromStr(self._history,pars)
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
 
-strIn = 'b"n1=10 o1=1. d1=2. label=\'test\' in=\'/tmp/junk.H@\'\n"', dataB = {}
+self = Regular file, type=SEP storage=<class 'numpy.float32'> binary=None
 
-    def databaseFromStr(strIn:str,dataB:dict):
-      lines=strIn.split("\n")
-      parq1=re.compile(r'([^\s]+)="(.+)"')
-      parq2=re.compile(r"(\S+)='(.+)'")
-      parS=re.compile(r'(\S+)=(\S+)')
-      commaS=re.compile(',')
-      for line in lines:
-        args=line.split()
-        comment=0
-        for arg in args:
-          if arg[0]=="#": comment=1
-          res=None
-          if comment!=1:
-            q=0
-            res=parq1.search(arg)
-            if res:
-              q=1
-              meth=0
-            else:
-              res=parq2.search(arg)
-              if res:
-                q=1
-                meth=1
-              else:
-                res=parS.search(arg)
-                meth=2
-          if res:
-            if res.group(1)=="par":
-              try:
-                f2=open(res.group(2))
-              except:
-                self._logger.fatal(f"Trouble opening {res.group(2)}")
-                raise Exception("")
-              databaseFromStr(f2.read(),dataB)
-              f2.close()
-            else:
-              val=res.group(2)
-              if isinstance(val,str):
-                if commaS.search(val): val=val.split(",")
->             if isinstance(res.group(1),bytestring):
-E             NameError: name 'bytestring' is not defined
+kw = {'path': '/tmp/junk.H'}
 
-/home/spack/spack/opt/spack/linux-centos7-skylake_avx512/gcc-8.5.0/python-3.10.8-tye3styllri3xiql6psptyz7uujbz4hn/lib/python3.10/site-packages/sepPython/sepIO.py:105: NameError
+    def __init__(self,**kw):
+    
+      """"Initialize a sepFile object
+    
+         Optional:
+    
+           logger-logger object
+    
+          Method 1:
+           hyper - Hypercube
+           path  (str) - path for Path
+           type (str) - SEP Data type
+    
+    
+          Method 2:
+           Path  - Path to file
+    
+           Optional:
+            ndims - Minimum dimensions for the data
+    
+          Method 3:
+            path (str) - path for history file
+            array (np.ndarray) - Array or memReg storage
+               or
+            vec ()
+    
+            Optional:
+               hyper - Hypercube describing data
+               os,ds,labels,units - Lists describing array
+    
+      """
+      if "logger" in kw:
+        self.setLogger(kw["logger"])
+      else:
+        self.setLogger(logging.getLogger(None))
+      if "path" not in kw:
+        self._logger.fatal("Must specify path")
+        raise Exception("")
+      if "//"  in kw["path"]:
+        self._logger.fatal(f"When creating a file object path must not have a web address {kw['path']}")
+        raise Exception("")
+      super().__init__(**kw)
+    
+      if self._intent=="INPUT":
+        if "in" in self._params:
+          self.setBinaryPath=self._params["in"]
+    
+      if self.getBinaryPath() ==None:
+         self._logger.fatal("Binary path is not")
+>        readlines
+E        NameError: name 'readlines' is not defined
+
+/home/spack/spack/opt/spack/linux-centos7-skylake_avx512/gcc-8.5.0/python-3.10.8-tye3styllri3xiql6psptyz7uujbz4hn/lib/python3.10/site-packages/sepPython/sepIO.py:442: NameError
+------------------------------ Captured log call -------------------------------
+CRITICAL root:sepIO.py:441 Binary path is not
 ___________________________ test_simpleWriteHistory ____________________________
 
     def test_simpleWriteHistory():
@@ -171,62 +181,66 @@ ___________________________ test_simpleWriteHistory ____________________________
 
 test_sepfile.py:26: 
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
-/home/spack/spack/opt/spack/linux-centos7-skylake_avx512/gcc-8.5.0/python-3.10.8-tye3styllri3xiql6psptyz7uujbz4hn/lib/python3.10/site-packages/sepPython/sepIO.py:441: in __init__
-    super().__init__(**kw)
-/home/spack/spack/opt/spack/linux-centos7-skylake_avx512/gcc-8.5.0/python-3.10.8-tye3styllri3xiql6psptyz7uujbz4hn/lib/python3.10/site-packages/sepPython/sepIO.py:202: in __init__
-    self._params=self.buildParamsFromPath(kw["path"],**kw)
-/home/spack/spack/opt/spack/linux-centos7-skylake_avx512/gcc-8.5.0/python-3.10.8-tye3styllri3xiql6psptyz7uujbz4hn/lib/python3.10/site-packages/sepPython/sepIO.py:227: in buildParamsFromPath
-    pars=self.getHistoryDict(fle)
-/home/spack/spack/opt/spack/linux-centos7-skylake_avx512/gcc-8.5.0/python-3.10.8-tye3styllri3xiql6psptyz7uujbz4hn/lib/python3.10/site-packages/sepPython/sepIO.py:472: in getHistoryDict
-    pars=databaseFromStr(self._history,pars)
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
 
-strIn = 'b\'\nGeneric Python Program\n\nn1=10 o1=2.0 d1=1.0 label1="ax.label" unit1="ax.unit"\nn2=12 o2=1.0 d2=1.0 label2="ax.label" unit2="ax.unit"\nin=/tmp/junk.H@\nesize=None data_format=native_double\n\n\''
-dataB = {}
+self = Regular file, type=SEP storage=<class 'numpy.float32'> binary=None
 
-    def databaseFromStr(strIn:str,dataB:dict):
-      lines=strIn.split("\n")
-      parq1=re.compile(r'([^\s]+)="(.+)"')
-      parq2=re.compile(r"(\S+)='(.+)'")
-      parS=re.compile(r'(\S+)=(\S+)')
-      commaS=re.compile(',')
-      for line in lines:
-        args=line.split()
-        comment=0
-        for arg in args:
-          if arg[0]=="#": comment=1
-          res=None
-          if comment!=1:
-            q=0
-            res=parq1.search(arg)
-            if res:
-              q=1
-              meth=0
-            else:
-              res=parq2.search(arg)
-              if res:
-                q=1
-                meth=1
-              else:
-                res=parS.search(arg)
-                meth=2
-          if res:
-            if res.group(1)=="par":
-              try:
-                f2=open(res.group(2))
-              except:
-                self._logger.fatal(f"Trouble opening {res.group(2)}")
-                raise Exception("")
-              databaseFromStr(f2.read(),dataB)
-              f2.close()
-            else:
-              val=res.group(2)
-              if isinstance(val,str):
-                if commaS.search(val): val=val.split(",")
->             if isinstance(res.group(1),bytestring):
-E             NameError: name 'bytestring' is not defined
+kw = {'path': '/tmp/junk.H'}
 
-/home/spack/spack/opt/spack/linux-centos7-skylake_avx512/gcc-8.5.0/python-3.10.8-tye3styllri3xiql6psptyz7uujbz4hn/lib/python3.10/site-packages/sepPython/sepIO.py:105: NameError
+    def __init__(self,**kw):
+    
+      """"Initialize a sepFile object
+    
+         Optional:
+    
+           logger-logger object
+    
+          Method 1:
+           hyper - Hypercube
+           path  (str) - path for Path
+           type (str) - SEP Data type
+    
+    
+          Method 2:
+           Path  - Path to file
+    
+           Optional:
+            ndims - Minimum dimensions for the data
+    
+          Method 3:
+            path (str) - path for history file
+            array (np.ndarray) - Array or memReg storage
+               or
+            vec ()
+    
+            Optional:
+               hyper - Hypercube describing data
+               os,ds,labels,units - Lists describing array
+    
+      """
+      if "logger" in kw:
+        self.setLogger(kw["logger"])
+      else:
+        self.setLogger(logging.getLogger(None))
+      if "path" not in kw:
+        self._logger.fatal("Must specify path")
+        raise Exception("")
+      if "//"  in kw["path"]:
+        self._logger.fatal(f"When creating a file object path must not have a web address {kw['path']}")
+        raise Exception("")
+      super().__init__(**kw)
+    
+      if self._intent=="INPUT":
+        if "in" in self._params:
+          self.setBinaryPath=self._params["in"]
+    
+      if self.getBinaryPath() ==None:
+         self._logger.fatal("Binary path is not")
+>        readlines
+E        NameError: name 'readlines' is not defined
+
+/home/spack/spack/opt/spack/linux-centos7-skylake_avx512/gcc-8.5.0/python-3.10.8-tye3styllri3xiql6psptyz7uujbz4hn/lib/python3.10/site-packages/sepPython/sepIO.py:442: NameError
+------------------------------ Captured log call -------------------------------
+CRITICAL root:sepIO.py:441 Binary path is not
 _____________________________ test_simpleWriteRead _____________________________
 
     def test_simpleWriteRead():
@@ -241,69 +255,73 @@ _____________________________ test_simpleWriteRead _____________________________
 
 test_sepfile.py:50: 
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
-/home/spack/spack/opt/spack/linux-centos7-skylake_avx512/gcc-8.5.0/python-3.10.8-tye3styllri3xiql6psptyz7uujbz4hn/lib/python3.10/site-packages/sepPython/sepIO.py:441: in __init__
-    super().__init__(**kw)
-/home/spack/spack/opt/spack/linux-centos7-skylake_avx512/gcc-8.5.0/python-3.10.8-tye3styllri3xiql6psptyz7uujbz4hn/lib/python3.10/site-packages/sepPython/sepIO.py:202: in __init__
-    self._params=self.buildParamsFromPath(kw["path"],**kw)
-/home/spack/spack/opt/spack/linux-centos7-skylake_avx512/gcc-8.5.0/python-3.10.8-tye3styllri3xiql6psptyz7uujbz4hn/lib/python3.10/site-packages/sepPython/sepIO.py:227: in buildParamsFromPath
-    pars=self.getHistoryDict(fle)
-/home/spack/spack/opt/spack/linux-centos7-skylake_avx512/gcc-8.5.0/python-3.10.8-tye3styllri3xiql6psptyz7uujbz4hn/lib/python3.10/site-packages/sepPython/sepIO.py:472: in getHistoryDict
-    pars=databaseFromStr(self._history,pars)
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
 
-strIn = 'b\'\nGeneric Python Program\n\nn1=10 o1=0.0 d1=1.0 label1="ax.label" unit1="ax.unit"\nn2=20 o2=0.0 d2=1.0 label2="ax.label" unit2="ax.unit"\nin=/tmp/junk2.H@\nesize=8 data_format=native_double\n\n\''
-dataB = {}
+self = Regular file, type=SEP storage=<class 'numpy.float32'> binary=None
 
-    def databaseFromStr(strIn:str,dataB:dict):
-      lines=strIn.split("\n")
-      parq1=re.compile(r'([^\s]+)="(.+)"')
-      parq2=re.compile(r"(\S+)='(.+)'")
-      parS=re.compile(r'(\S+)=(\S+)')
-      commaS=re.compile(',')
-      for line in lines:
-        args=line.split()
-        comment=0
-        for arg in args:
-          if arg[0]=="#": comment=1
-          res=None
-          if comment!=1:
-            q=0
-            res=parq1.search(arg)
-            if res:
-              q=1
-              meth=0
-            else:
-              res=parq2.search(arg)
-              if res:
-                q=1
-                meth=1
-              else:
-                res=parS.search(arg)
-                meth=2
-          if res:
-            if res.group(1)=="par":
-              try:
-                f2=open(res.group(2))
-              except:
-                self._logger.fatal(f"Trouble opening {res.group(2)}")
-                raise Exception("")
-              databaseFromStr(f2.read(),dataB)
-              f2.close()
-            else:
-              val=res.group(2)
-              if isinstance(val,str):
-                if commaS.search(val): val=val.split(",")
->             if isinstance(res.group(1),bytestring):
-E             NameError: name 'bytestring' is not defined
+kw = {'path': '/tmp/junk2.H'}
 
-/home/spack/spack/opt/spack/linux-centos7-skylake_avx512/gcc-8.5.0/python-3.10.8-tye3styllri3xiql6psptyz7uujbz4hn/lib/python3.10/site-packages/sepPython/sepIO.py:105: NameError
+    def __init__(self,**kw):
+    
+      """"Initialize a sepFile object
+    
+         Optional:
+    
+           logger-logger object
+    
+          Method 1:
+           hyper - Hypercube
+           path  (str) - path for Path
+           type (str) - SEP Data type
+    
+    
+          Method 2:
+           Path  - Path to file
+    
+           Optional:
+            ndims - Minimum dimensions for the data
+    
+          Method 3:
+            path (str) - path for history file
+            array (np.ndarray) - Array or memReg storage
+               or
+            vec ()
+    
+            Optional:
+               hyper - Hypercube describing data
+               os,ds,labels,units - Lists describing array
+    
+      """
+      if "logger" in kw:
+        self.setLogger(kw["logger"])
+      else:
+        self.setLogger(logging.getLogger(None))
+      if "path" not in kw:
+        self._logger.fatal("Must specify path")
+        raise Exception("")
+      if "//"  in kw["path"]:
+        self._logger.fatal(f"When creating a file object path must not have a web address {kw['path']}")
+        raise Exception("")
+      super().__init__(**kw)
+    
+      if self._intent=="INPUT":
+        if "in" in self._params:
+          self.setBinaryPath=self._params["in"]
+    
+      if self.getBinaryPath() ==None:
+         self._logger.fatal("Binary path is not")
+>        readlines
+E        NameError: name 'readlines' is not defined
+
+/home/spack/spack/opt/spack/linux-centos7-skylake_avx512/gcc-8.5.0/python-3.10.8-tye3styllri3xiql6psptyz7uujbz4hn/lib/python3.10/site-packages/sepPython/sepIO.py:442: NameError
+------------------------------ Captured log call -------------------------------
+CRITICAL root:sepIO.py:441 Binary path is not
 =============================== warnings summary ===============================
 test/test_sepfile.py::test_simpleWriteHistoryGCS
 test/test_sepfile.py::test_simpleWriteReadGCP
-  /home/clapp_stanford_edu/.local/lib/python3.10/site-packages/_pytest/unraisableexception.py:78: PytestUnraisableExceptionWarning: Exception ignored in: <function sGcsObj.__del__ at 0x7fafffcb4790>
+  /home/clapp_stanford_edu/.local/lib/python3.10/site-packages/_pytest/unraisableexception.py:78: PytestUnraisableExceptionWarning: Exception ignored in: <function sGcsObj.__del__ at 0x7f7bec5b0790>
   
   Traceback (most recent call last):
-    File "/home/spack/spack/opt/spack/linux-centos7-skylake_avx512/gcc-8.5.0/python-3.10.8-tye3styllri3xiql6psptyz7uujbz4hn/lib/python3.10/site-packages/sepPython/sepIO.py", line 720, in __del__
+    File "/home/spack/spack/opt/spack/linux-centos7-skylake_avx512/gcc-8.5.0/python-3.10.8-tye3styllri3xiql6psptyz7uujbz4hn/lib/python3.10/site-packages/sepPython/sepIO.py", line 713, in __del__
       raise Exception("")
   Exception
   
@@ -311,49 +329,13 @@ test/test_sepfile.py::test_simpleWriteReadGCP
 
 -- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
 =========================== short test summary info ============================
-FAILED test_modes.py::test_sepMode - NameError: name 'bytestring' is not defined
-FAILED test_sepfile.py::test_simpleArgs_1Line - NameError: name 'bytestring' ...
-FAILED test_sepfile.py::test_simpleWriteHistory - NameError: name 'bytestring...
-FAILED test_sepfile.py::test_simpleWriteRead - NameError: name 'bytestring' i...
-=================== 4 failed, 3 passed, 2 warnings in 2.68s ====================
-Exception ignored in: <function regFile.__del__ at 0x7fb001276a70>
-Traceback (most recent call last):
-  File "/home/spack/spack/opt/spack/linux-centos7-skylake_avx512/gcc-8.5.0/python-3.10.8-tye3styllri3xiql6psptyz7uujbz4hn/lib/python3.10/site-packages/sepPython/ioBase.py", line 209, in __del__
-    self.close()
-  File "/home/spack/spack/opt/spack/linux-centos7-skylake_avx512/gcc-8.5.0/python-3.10.8-tye3styllri3xiql6psptyz7uujbz4hn/lib/python3.10/site-packages/sepPython/sepIO.py", line 395, in close
-    self.writeDescription()
-  File "/home/spack/spack/opt/spack/linux-centos7-skylake_avx512/gcc-8.5.0/python-3.10.8-tye3styllri3xiql6psptyz7uujbz4hn/lib/python3.10/site-packages/sepPython/sepIO.py", line 547, in writeDescription
-    fl=open(self._path,"w")
-AttributeError: 'sFile' object has no attribute '_path'
-Exception ignored in: <function regFile.__del__ at 0x7fb001276a70>
-Traceback (most recent call last):
-  File "/home/spack/spack/opt/spack/linux-centos7-skylake_avx512/gcc-8.5.0/python-3.10.8-tye3styllri3xiql6psptyz7uujbz4hn/lib/python3.10/site-packages/sepPython/ioBase.py", line 209, in __del__
-    self.close()
-  File "/home/spack/spack/opt/spack/linux-centos7-skylake_avx512/gcc-8.5.0/python-3.10.8-tye3styllri3xiql6psptyz7uujbz4hn/lib/python3.10/site-packages/sepPython/sepIO.py", line 395, in close
-    self.writeDescription()
-  File "/home/spack/spack/opt/spack/linux-centos7-skylake_avx512/gcc-8.5.0/python-3.10.8-tye3styllri3xiql6psptyz7uujbz4hn/lib/python3.10/site-packages/sepPython/sepIO.py", line 547, in writeDescription
-    fl=open(self._path,"w")
-AttributeError: 'sFile' object has no attribute '_path'
-Exception ignored in: <function regFile.__del__ at 0x7fb001276a70>
-Traceback (most recent call last):
-  File "/home/spack/spack/opt/spack/linux-centos7-skylake_avx512/gcc-8.5.0/python-3.10.8-tye3styllri3xiql6psptyz7uujbz4hn/lib/python3.10/site-packages/sepPython/ioBase.py", line 209, in __del__
-    self.close()
-  File "/home/spack/spack/opt/spack/linux-centos7-skylake_avx512/gcc-8.5.0/python-3.10.8-tye3styllri3xiql6psptyz7uujbz4hn/lib/python3.10/site-packages/sepPython/sepIO.py", line 395, in close
-    self.writeDescription()
-  File "/home/spack/spack/opt/spack/linux-centos7-skylake_avx512/gcc-8.5.0/python-3.10.8-tye3styllri3xiql6psptyz7uujbz4hn/lib/python3.10/site-packages/sepPython/sepIO.py", line 547, in writeDescription
-    fl=open(self._path,"w")
-AttributeError: 'sFile' object has no attribute '_path'
-Exception ignored in: <function regFile.__del__ at 0x7fb001276a70>
-Traceback (most recent call last):
-  File "/home/spack/spack/opt/spack/linux-centos7-skylake_avx512/gcc-8.5.0/python-3.10.8-tye3styllri3xiql6psptyz7uujbz4hn/lib/python3.10/site-packages/sepPython/ioBase.py", line 209, in __del__
-    self.close()
-  File "/home/spack/spack/opt/spack/linux-centos7-skylake_avx512/gcc-8.5.0/python-3.10.8-tye3styllri3xiql6psptyz7uujbz4hn/lib/python3.10/site-packages/sepPython/sepIO.py", line 395, in close
-    self.writeDescription()
-  File "/home/spack/spack/opt/spack/linux-centos7-skylake_avx512/gcc-8.5.0/python-3.10.8-tye3styllri3xiql6psptyz7uujbz4hn/lib/python3.10/site-packages/sepPython/sepIO.py", line 547, in writeDescription
-    fl=open(self._path,"w")
-AttributeError: 'sFile' object has no attribute '_path'
+FAILED test_modes.py::test_sepMode - NameError: name 'readlines' is not defined
+FAILED test_sepfile.py::test_simpleArgs_1Line - NameError: name 'readlines' i...
+FAILED test_sepfile.py::test_simpleWriteHistory - NameError: name 'readlines'...
+FAILED test_sepfile.py::test_simpleWriteRead - NameError: name 'readlines' is...
+=================== 4 failed, 3 passed, 2 warnings in 2.66s ====================
 Must close gcs object before the delete is called
-Exception ignored in: <function sGcsObj.__del__ at 0x7fafffcb4790>
+Exception ignored in: <function sGcsObj.__del__ at 0x7f7bec5b0790>
 Traceback (most recent call last):
-  File "/home/spack/spack/opt/spack/linux-centos7-skylake_avx512/gcc-8.5.0/python-3.10.8-tye3styllri3xiql6psptyz7uujbz4hn/lib/python3.10/site-packages/sepPython/sepIO.py", line 720, in __del__
+  File "/home/spack/spack/opt/spack/linux-centos7-skylake_avx512/gcc-8.5.0/python-3.10.8-tye3styllri3xiql6psptyz7uujbz4hn/lib/python3.10/site-packages/sepPython/sepIO.py", line 713, in __del__
 Exception: 

@@ -439,7 +439,6 @@ class sFile(reg):
     
     if self.getBinaryPath() ==None:
        self._logger.fatal("Binary path is not")
-       readlines
 
   def getHistoryDict(self,path):
     """Build parameters from Path"""
