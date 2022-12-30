@@ -458,7 +458,6 @@ class sFile(reg):
     if ic==-1:
       self._head=0
       #self._history=str(mystr)
-      fl=open(path,"rb")
       self._history=fl.read()
     else:
       self._head=ic

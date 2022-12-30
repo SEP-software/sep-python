@@ -22,23 +22,44 @@ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
     self._params=self.buildParamsFromPath(kw["path"],**kw)
 /home/spack/spack/opt/spack/linux-centos7-skylake_avx512/gcc-8.5.0/python-3.10.8-tye3styllri3xiql6psptyz7uujbz4hn/lib/python3.10/site-packages/sepPython/sepIO.py:221: in buildParamsFromPath
     pars=self.getHistoryDict(fle)
-/home/spack/spack/opt/spack/linux-centos7-skylake_avx512/gcc-8.5.0/python-3.10.8-tye3styllri3xiql6psptyz7uujbz4hn/lib/python3.10/site-packages/sepPython/sepIO.py:471: in getHistoryDict
-    pars=databaseFromStr(self._history,pars)
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
 
-strIn = b"\n n1=10 o1=1. d1=2. label='test' in='/tmp/junk.H@'\n", dataB = {}
+self = Regular file, type=SEP storage=None binary=None
+None
+path = '/tmp/junk.H'
 
-    def databaseFromStr(strIn:str,dataB:dict):
->     lines=strIn.split("\n")
+    def getHistoryDict(self,path):
+      """Build parameters from Path"""
+      try:
+        fl=open(path,"rb")
+      except:
+        self._logger.fatal(f"Trouble opening {path}")
+        raise Exception("")
+    
+    
+      mystr=fl.read(1024*1024)
+      fl.close()
+      ic=mystr.find(4)
+      fl=open(path,"r")
+      if ic==-1:
+        self._head=0
+        #self._history=str(mystr)
+        fl=open(path,"rb")
+        self._history=fl.read()
+      else:
+        self._head=ic
+        self._history=fl.read(self._head)
+      fl.close()
+>     print("XXXX",self._history.split("\n"))
 E     TypeError: a bytes-like object is required, not 'str'
 
-/home/spack/spack/opt/spack/linux-centos7-skylake_avx512/gcc-8.5.0/python-3.10.8-tye3styllri3xiql6psptyz7uujbz4hn/lib/python3.10/site-packages/sepPython/sepIO.py:67: TypeError
+/home/spack/spack/opt/spack/linux-centos7-skylake_avx512/gcc-8.5.0/python-3.10.8-tye3styllri3xiql6psptyz7uujbz4hn/lib/python3.10/site-packages/sepPython/sepIO.py:467: TypeError
 =========================== short test summary info ============================
 FAILED test_sepfile.py::test_simpleArgs_1Line - TypeError: a bytes-like objec...
 ======================= 1 failed, 6 deselected in 1.17s ========================
-Exception ignored in: <function regFile.__del__ at 0x7f207aa4e950>
+Exception ignored in: <function regFile.__del__ at 0x7faef78429e0>
 Traceback (most recent call last):
   File "/home/spack/spack/opt/spack/linux-centos7-skylake_avx512/gcc-8.5.0/python-3.10.8-tye3styllri3xiql6psptyz7uujbz4hn/lib/python3.10/site-packages/sepPython/ioBase.py", line 209, in __del__
   File "/home/spack/spack/opt/spack/linux-centos7-skylake_avx512/gcc-8.5.0/python-3.10.8-tye3styllri3xiql6psptyz7uujbz4hn/lib/python3.10/site-packages/sepPython/sepIO.py", line 389, in close
-  File "/home/spack/spack/opt/spack/linux-centos7-skylake_avx512/gcc-8.5.0/python-3.10.8-tye3styllri3xiql6psptyz7uujbz4hn/lib/python3.10/site-packages/sepPython/sepIO.py", line 546, in writeDescription
+  File "/home/spack/spack/opt/spack/linux-centos7-skylake_avx512/gcc-8.5.0/python-3.10.8-tye3styllri3xiql6psptyz7uujbz4hn/lib/python3.10/site-packages/sepPython/sepIO.py", line 547, in writeDescription
 NameError: name 'open' is not defined
