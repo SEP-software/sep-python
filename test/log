@@ -1,65 +1,28 @@
 ============================= test session starts ==============================
 platform linux -- Python 3.10.8, pytest-7.2.0, pluggy-1.0.0
 rootdir: /home/clapp_stanford_edu/Src/sep-python
-collected 7 items / 6 deselected / 1 selected
+collected 7 items
 
-test_sepfile.py F                                                        [100%]
+test_Hypercube.py .                                                      [ 14%]
+test_modes.py .                                                          [ 28%]
+test_sepfile.py .....                                                    [100%]
 
-=================================== FAILURES ===================================
-____________________________ test_simpleArgs_1Line _____________________________
+=============================== warnings summary ===============================
+test/test_sepfile.py::test_simpleWriteHistoryGCS
+test/test_sepfile.py::test_simpleWriteReadGCP
+  /home/clapp_stanford_edu/.local/lib/python3.10/site-packages/_pytest/unraisableexception.py:78: PytestUnraisableExceptionWarning: Exception ignored in: <function sGcsObj.__del__ at 0x7f1233488700>
+  
+  Traceback (most recent call last):
+    File "/home/spack/spack/opt/spack/linux-centos7-skylake_avx512/gcc-8.5.0/python-3.10.8-tye3styllri3xiql6psptyz7uujbz4hn/lib/python3.10/site-packages/sepPython/sepIO.py", line 719, in __del__
+      raise Exception("")
+  Exception
+  
+    warnings.warn(pytest.PytestUnraisableExceptionWarning(msg))
 
-    def test_simpleArgs_1Line():
-        f=open("/tmp/junk.H","w")
-        f.write("\n n1=10 o1=1. d1=2. label='test' in='/tmp/junk.H@'\n")
-        f.close()
->       fl=sepPython.sepIO.sFile(path="/tmp/junk.H")
-
-test_sepfile.py:15: 
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
-/home/spack/spack/opt/spack/linux-centos7-skylake_avx512/gcc-8.5.0/python-3.10.8-tye3styllri3xiql6psptyz7uujbz4hn/lib/python3.10/site-packages/sepPython/sepIO.py:435: in __init__
-    super().__init__(**kw)
-/home/spack/spack/opt/spack/linux-centos7-skylake_avx512/gcc-8.5.0/python-3.10.8-tye3styllri3xiql6psptyz7uujbz4hn/lib/python3.10/site-packages/sepPython/sepIO.py:196: in __init__
-    self._params=self.buildParamsFromPath(kw["path"],**kw)
-/home/spack/spack/opt/spack/linux-centos7-skylake_avx512/gcc-8.5.0/python-3.10.8-tye3styllri3xiql6psptyz7uujbz4hn/lib/python3.10/site-packages/sepPython/sepIO.py:221: in buildParamsFromPath
-    pars=self.getHistoryDict(fle)
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
-
-self = Regular file, type=SEP storage=None binary=None
-None
-path = '/tmp/junk.H'
-
-    def getHistoryDict(self,path):
-      """Build parameters from Path"""
-      try:
-        fl=open(path,"rb")
-      except:
-        self._logger.fatal(f"Trouble opening {path}")
-        raise Exception("")
-    
-    
-      mystr=fl.read(1024*1024)
-      fl.close()
-      ic=mystr.find(4)
-      fl=open(path,"r")
-      if ic==-1:
-        self._head=0
-        #self._history=str(mystr)
-        fl=open(path,"rb")
-        self._history=fl.read()
-      else:
-        self._head=ic
-        self._history=fl.read(self._head)
-      fl.close()
->     print("XXXX",self._history.split("\n"))
-E     TypeError: a bytes-like object is required, not 'str'
-
-/home/spack/spack/opt/spack/linux-centos7-skylake_avx512/gcc-8.5.0/python-3.10.8-tye3styllri3xiql6psptyz7uujbz4hn/lib/python3.10/site-packages/sepPython/sepIO.py:467: TypeError
-=========================== short test summary info ============================
-FAILED test_sepfile.py::test_simpleArgs_1Line - TypeError: a bytes-like objec...
-======================= 1 failed, 6 deselected in 1.17s ========================
-Exception ignored in: <function regFile.__del__ at 0x7faef78429e0>
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+======================== 7 passed, 2 warnings in 2.41s =========================
+Must close gcs object before the delete is called
+Exception ignored in: <function sGcsObj.__del__ at 0x7f1233488700>
 Traceback (most recent call last):
-  File "/home/spack/spack/opt/spack/linux-centos7-skylake_avx512/gcc-8.5.0/python-3.10.8-tye3styllri3xiql6psptyz7uujbz4hn/lib/python3.10/site-packages/sepPython/ioBase.py", line 209, in __del__
-  File "/home/spack/spack/opt/spack/linux-centos7-skylake_avx512/gcc-8.5.0/python-3.10.8-tye3styllri3xiql6psptyz7uujbz4hn/lib/python3.10/site-packages/sepPython/sepIO.py", line 389, in close
-  File "/home/spack/spack/opt/spack/linux-centos7-skylake_avx512/gcc-8.5.0/python-3.10.8-tye3styllri3xiql6psptyz7uujbz4hn/lib/python3.10/site-packages/sepPython/sepIO.py", line 547, in writeDescription
-NameError: name 'open' is not defined
+  File "/home/spack/spack/opt/spack/linux-centos7-skylake_avx512/gcc-8.5.0/python-3.10.8-tye3styllri3xiql6psptyz7uujbz4hn/lib/python3.10/site-packages/sepPython/sepIO.py", line 719, in __del__
+Exception: 

@@ -102,7 +102,6 @@ def databaseFromStr(strIn:str,dataB:dict):
           val=res.group(2)
           if isinstance(val,str): 
             if commaS.search(val): val=val.split(",")
-          print(f" {res.group(1)} {meth}")
           dataB[f"{str(res.group(1))}"]=val
   return dataB
 
@@ -434,7 +433,6 @@ class sFile(reg):
       raise Exception("")
     super().__init__(**kw)
     
-    print("PARS",self._params)
     if self._intent=="INPUT":
       if "in" in self._params:
         self.setBinaryPath=self._params["in"]
@@ -463,7 +461,6 @@ class sFile(reg):
       self._head=ic
       self._history=fl.read(self._head)
     fl.close()
-    print("XXXX",self._history.split("\n"))
     
     #self._history=self._history.replace("\\n","\n").replace("\\t","\t")
 
@@ -714,9 +711,10 @@ class sGcsObj(reg):
      
   def __del__(self):
     """Delete object"""
-    if not self._closed:
+    if not self._closed and self._intent=="OUTPUT":
       self._logger.fatal("Must close gcs object before the delete is called")
-      raise Exception("")
+      raise Exception("Must close gcs object before the delete is called")
+  
   def remove(self,errorIfNotExists:bool=True):
       """Remove data 
        
@@ -731,6 +729,7 @@ class sGcsObj(reg):
       elif errorIfNotExists:
         self._logger.fatal(f"Attempted to remove blob={self._object} which does not exist")
         raise Exception("")
+  
   def read(self,mem,**kw):
       """
           read a block of data
