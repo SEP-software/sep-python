@@ -102,7 +102,7 @@ def databaseFromStr(strIn:str,dataB:dict):
           val=res.group(2)
           if isinstance(val,str): 
             if commaS.search(val): val=val.split(",")
-          dataB["{str(res.group(1))}"]=val
+          dataB[f"{str(res.group(1))}"]=val
   return dataB
 
 def checkValid(kw:dict,args:dict):

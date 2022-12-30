@@ -1,21 +1,22 @@
 ============================= test session starts ==============================
 platform linux -- Python 3.10.8, pytest-7.2.0, pluggy-1.0.0
 rootdir: /home/clapp_stanford_edu/Src/sep-python
-collected 7 items / 5 deselected / 2 selected
+collected 7 items / 6 deselected / 1 selected
 
-test_sepfile.py F.                                                       [100%]
+test_sepfile.py F                                                        [100%]
 
 =================================== FAILURES ===================================
-___________________________ test_simpleWriteHistory ____________________________
+____________________________ test_simpleArgs_1Line _____________________________
 
-    def test_simpleWriteHistory():
-        hyper=hypercube(ns=[10,12],os=[2.,1.])
-        fle=sepPython.sepIO.sFile(hyper=hyper,path="/tmp/junk.H",type="float64")
-        fle.writeDescription()
-        fin=sepPython.sepIO.sFile(path="/tmp/junk.H")
->       assert 10==fin.getInt("n1")
+    def test_simpleArgs_1Line():
+        f=open("/tmp/junk.H","w")
+        f.write("n1=10 o1=1. d1=2. label='test' in='/tmp/junk.H@'\n")
+        f.close()
+        fl=sepPython.sepIO.sFile(path="/tmp/junk.H")
+        print(fl._params)
+>       assert 10==fl.getInt("n1")
 
-test_sepfile.py:27: 
+test_sepfile.py:17: 
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
 
 self = Regular file, type=SEP storage=<class 'numpy.float32'> binary=None
@@ -33,21 +34,12 @@ param = 'n1', default = None
 E       TypeError: int() argument must be a string, a bytes-like object or a real number, not 'NoneType'
 
 /home/spack/spack/opt/spack/linux-centos7-skylake_avx512/gcc-8.5.0/python-3.10.8-tye3styllri3xiql6psptyz7uujbz4hn/lib/python3.10/site-packages/sepPython/sepIO.py:296: TypeError
+----------------------------- Captured stdout call -----------------------------
+PARS {'{str(res.group(1))}': '/tmp/junk.H@'}
+{'{str(res.group(1))}': '/tmp/junk.H@'}
 ------------------------------ Captured log call -------------------------------
-CRITICAL root:sepIO.py:441 Binary path is not
+CRITICAL root:sepIO.py:442 Binary path is not
 CRITICAL root:sepIO.py:287 Can't find n1
-=============================== warnings summary ===============================
-test/test_sepfile.py::test_simpleWriteHistoryGCS
-  /home/clapp_stanford_edu/.local/lib/python3.10/site-packages/_pytest/unraisableexception.py:78: PytestUnraisableExceptionWarning: Exception ignored in: <function sGcsObj.__del__ at 0x7f1a43b90790>
-  
-  Traceback (most recent call last):
-    File "/home/spack/spack/opt/spack/linux-centos7-skylake_avx512/gcc-8.5.0/python-3.10.8-tye3styllri3xiql6psptyz7uujbz4hn/lib/python3.10/site-packages/sepPython/sepIO.py", line 712, in __del__
-      raise Exception("")
-  Exception
-  
-    warnings.warn(pytest.PytestUnraisableExceptionWarning(msg))
-
--- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
 =========================== short test summary info ============================
-FAILED test_sepfile.py::test_simpleWriteHistory - TypeError: int() argument m...
-============= 1 failed, 1 passed, 5 deselected, 1 warning in 1.51s =============
+FAILED test_sepfile.py::test_simpleArgs_1Line - TypeError: int() argument mus...
+======================= 1 failed, 6 deselected in 1.17s ========================
