@@ -19,7 +19,7 @@ ____________________________ test_simpleArgs_1Line _____________________________
 test_sepfile.py:17: 
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
 
-self = Regular file, type=SEP storage=<class 'numpy.float32'> binary=None
+self = Regular file, type=SEP storage=<class 'numpy.float32'> binary=/tmp/junk.H@
 
 param = 'n1', default = None
 
@@ -35,11 +35,10 @@ E       TypeError: int() argument must be a string, a bytes-like object or a rea
 
 /home/spack/spack/opt/spack/linux-centos7-skylake_avx512/gcc-8.5.0/python-3.10.8-tye3styllri3xiql6psptyz7uujbz4hn/lib/python3.10/site-packages/sepPython/sepIO.py:296: TypeError
 ----------------------------- Captured stdout call -----------------------------
-PARS {'{str(res.group(1))}': '/tmp/junk.H@'}
-{'{str(res.group(1))}': '/tmp/junk.H@'}
+PARS {'b"n1': '10', 'o1': '1.', 'd1': '2.', 'label': 'test', 'in': '/tmp/junk.H@'}
+{'b"n1': '10', 'o1': '1.', 'd1': '2.', 'label': 'test', 'in': '/tmp/junk.H@'}
 ------------------------------ Captured log call -------------------------------
-CRITICAL root:sepIO.py:442 Binary path is not
 CRITICAL root:sepIO.py:287 Can't find n1
 =========================== short test summary info ============================
 FAILED test_sepfile.py::test_simpleArgs_1Line - TypeError: int() argument mus...
-======================= 1 failed, 6 deselected in 1.17s ========================
+======================= 1 failed, 6 deselected in 1.14s ========================
