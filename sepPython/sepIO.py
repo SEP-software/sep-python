@@ -109,7 +109,7 @@ def databaseFromStr(strIn:str,dataB:dict):
           else:
               self._logger.fatal(f"Don't know to deal with {res.group(1)} type {type(res.group(1))}")
               raise Exception("")
-          dataB[str(res.group(1))]=val
+          dataB["{str(res.group(1))}"]=val
   return dataB
 
 def checkValid(kw:dict,args:dict):
