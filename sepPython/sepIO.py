@@ -548,7 +548,7 @@ class sFile(reg):
     fl.write(f"{self._history}\n{self.getProgName()}\n")
     for par in self._parPut:
       fl.write(f"{par}={self._params[par]}")
-    fl.write(self.hyperToStr())
+    fl.write("\n"+self.hyperToStr())
     self.setBinaryPath(datafile(self._path))
     fl.write(f"in={self.getBinaryPath()}\n")
     fl.write(f"esize={self._esize} data_format={converter.getSEPName(self.getDataType())}\n\n")
