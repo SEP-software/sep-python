@@ -433,6 +433,7 @@ class sFile(reg):
       raise Exception("")
     super().__init__(**kw)
     
+    print("PARS",self._params)
     if self._intent=="INPUT":
       if "in" in self._params:
         self.setBinaryPath=self._params["in"]

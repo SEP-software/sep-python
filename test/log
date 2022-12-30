@@ -1,327 +1,47 @@
 ============================= test session starts ==============================
 platform linux -- Python 3.10.8, pytest-7.2.0, pluggy-1.0.0
 rootdir: /home/clapp_stanford_edu/Src/sep-python
-collected 7 items
+collected 7 items / 5 deselected / 2 selected
 
-test_Hypercube.py .                                                      [ 14%]
-test_modes.py F                                                          [ 28%]
-test_sepfile.py FF.F.                                                    [100%]
+test_sepfile.py F.                                                       [100%]
 
 =================================== FAILURES ===================================
-_________________________________ test_sepMode _________________________________
-
-    def test_sepMode():
-        io=sepPython.modes.defaultIO
-        hyper=hypercube(ns=[10,20],os=[1.,2.],ds=[2.,3])
-        ar=np.ndarray((20,10))
-        for j in range(ar.shape[0]):
-            for i in range(ar.shape[1]):
-                ar[j,i]=100*j+i
-    
-        vec=io.getRegVector(ar,hyper=hyper)
-        fle=io.getRegStorage(vec=vec,path="gs://scratch-sep/junk3.H")
-        fle.writeDescription()
-        fle.write(ar)
-        fle.close()
-    
-        fl2=io.getRegStorage(path="gs://scratch-sep/junk3.H")
-        ar2=np.zeros((20,10))
-        fl2.read(ar2)
-        for j in range(ar.shape[0]):
-            for i in range(ar.shape[1]):
-                assert ar[j,i] == ar2[j,i]
-    
-        fl3=io.getRegStorage(vec=vec,path="/tmp/junk4.H")
-        fl3.close()
-    
->       fl4=io.getRegStorage(path="/tmp/junk4.H")
-
-test_modes.py:30: 
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
-/home/spack/spack/opt/spack/linux-centos7-skylake_avx512/gcc-8.5.0/python-3.10.8-tye3styllri3xiql6psptyz7uujbz4hn/lib/python3.10/site-packages/sepPython/sepIO.py:57: in getRegStorage
-    stor=sFile(**kw)
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
-
-self = Regular file, type=SEP storage=<class 'numpy.float32'> binary=None
-
-kw = {'path': '/tmp/junk4.H'}
-
-    def __init__(self,**kw):
-    
-      """"Initialize a sepFile object
-    
-         Optional:
-    
-           logger-logger object
-    
-          Method 1:
-           hyper - Hypercube
-           path  (str) - path for Path
-           type (str) - SEP Data type
-    
-    
-          Method 2:
-           Path  - Path to file
-    
-           Optional:
-            ndims - Minimum dimensions for the data
-    
-          Method 3:
-            path (str) - path for history file
-            array (np.ndarray) - Array or memReg storage
-               or
-            vec ()
-    
-            Optional:
-               hyper - Hypercube describing data
-               os,ds,labels,units - Lists describing array
-    
-      """
-      if "logger" in kw:
-        self.setLogger(kw["logger"])
-      else:
-        self.setLogger(logging.getLogger(None))
-      if "path" not in kw:
-        self._logger.fatal("Must specify path")
-        raise Exception("")
-      if "//"  in kw["path"]:
-        self._logger.fatal(f"When creating a file object path must not have a web address {kw['path']}")
-        raise Exception("")
-      super().__init__(**kw)
-    
-      if self._intent=="INPUT":
-        if "in" in self._params:
-          self.setBinaryPath=self._params["in"]
-    
-      if self.getBinaryPath() ==None:
-         self._logger.fatal("Binary path is not")
->        readlines
-E        NameError: name 'readlines' is not defined
-
-/home/spack/spack/opt/spack/linux-centos7-skylake_avx512/gcc-8.5.0/python-3.10.8-tye3styllri3xiql6psptyz7uujbz4hn/lib/python3.10/site-packages/sepPython/sepIO.py:442: NameError
------------------------------- Captured log call -------------------------------
-CRITICAL root:sepIO.py:441 Binary path is not
-____________________________ test_simpleArgs_1Line _____________________________
-
-    def test_simpleArgs_1Line():
-        f=open("/tmp/junk.H","w")
-        f.write("n1=10 o1=1. d1=2. label='test' in='/tmp/junk.H@'\n")
-        f.close()
->       fl=sepPython.sepIO.sFile(path="/tmp/junk.H")
-
-test_sepfile.py:15: 
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
-
-self = Regular file, type=SEP storage=<class 'numpy.float32'> binary=None
-
-kw = {'path': '/tmp/junk.H'}
-
-    def __init__(self,**kw):
-    
-      """"Initialize a sepFile object
-    
-         Optional:
-    
-           logger-logger object
-    
-          Method 1:
-           hyper - Hypercube
-           path  (str) - path for Path
-           type (str) - SEP Data type
-    
-    
-          Method 2:
-           Path  - Path to file
-    
-           Optional:
-            ndims - Minimum dimensions for the data
-    
-          Method 3:
-            path (str) - path for history file
-            array (np.ndarray) - Array or memReg storage
-               or
-            vec ()
-    
-            Optional:
-               hyper - Hypercube describing data
-               os,ds,labels,units - Lists describing array
-    
-      """
-      if "logger" in kw:
-        self.setLogger(kw["logger"])
-      else:
-        self.setLogger(logging.getLogger(None))
-      if "path" not in kw:
-        self._logger.fatal("Must specify path")
-        raise Exception("")
-      if "//"  in kw["path"]:
-        self._logger.fatal(f"When creating a file object path must not have a web address {kw['path']}")
-        raise Exception("")
-      super().__init__(**kw)
-    
-      if self._intent=="INPUT":
-        if "in" in self._params:
-          self.setBinaryPath=self._params["in"]
-    
-      if self.getBinaryPath() ==None:
-         self._logger.fatal("Binary path is not")
->        readlines
-E        NameError: name 'readlines' is not defined
-
-/home/spack/spack/opt/spack/linux-centos7-skylake_avx512/gcc-8.5.0/python-3.10.8-tye3styllri3xiql6psptyz7uujbz4hn/lib/python3.10/site-packages/sepPython/sepIO.py:442: NameError
------------------------------- Captured log call -------------------------------
-CRITICAL root:sepIO.py:441 Binary path is not
 ___________________________ test_simpleWriteHistory ____________________________
 
     def test_simpleWriteHistory():
         hyper=hypercube(ns=[10,12],os=[2.,1.])
         fle=sepPython.sepIO.sFile(hyper=hyper,path="/tmp/junk.H",type="float64")
         fle.writeDescription()
->       fin=sepPython.sepIO.sFile(path="/tmp/junk.H")
+        fin=sepPython.sepIO.sFile(path="/tmp/junk.H")
+>       assert 10==fin.getInt("n1")
 
-test_sepfile.py:26: 
+test_sepfile.py:27: 
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
 
 self = Regular file, type=SEP storage=<class 'numpy.float32'> binary=None
 
-kw = {'path': '/tmp/junk.H'}
+param = 'n1', default = None
 
-    def __init__(self,**kw):
-    
-      """"Initialize a sepFile object
-    
-         Optional:
-    
-           logger-logger object
-    
-          Method 1:
-           hyper - Hypercube
-           path  (str) - path for Path
-           type (str) - SEP Data type
-    
-    
-          Method 2:
-           Path  - Path to file
-    
-           Optional:
-            ndims - Minimum dimensions for the data
-    
-          Method 3:
-            path (str) - path for history file
-            array (np.ndarray) - Array or memReg storage
-               or
-            vec ()
-    
-            Optional:
-               hyper - Hypercube describing data
-               os,ds,labels,units - Lists describing array
-    
+    def getInt(self,param:str,default=None)->int:
+      """Return parameter of int
+         param - Parameter to retrieve
+         default - Default value
       """
-      if "logger" in kw:
-        self.setLogger(kw["logger"])
-      else:
-        self.setLogger(logging.getLogger(None))
-      if "path" not in kw:
-        self._logger.fatal("Must specify path")
-        raise Exception("")
-      if "//"  in kw["path"]:
-        self._logger.fatal(f"When creating a file object path must not have a web address {kw['path']}")
-        raise Exception("")
-      super().__init__(**kw)
-    
-      if self._intent=="INPUT":
-        if "in" in self._params:
-          self.setBinaryPath=self._params["in"]
-    
-      if self.getBinaryPath() ==None:
-         self._logger.fatal("Binary path is not")
->        readlines
-E        NameError: name 'readlines' is not defined
+      v=self.getPar(param,default)
+      try:
+>       return int(v)
+E       TypeError: int() argument must be a string, a bytes-like object or a real number, not 'NoneType'
 
-/home/spack/spack/opt/spack/linux-centos7-skylake_avx512/gcc-8.5.0/python-3.10.8-tye3styllri3xiql6psptyz7uujbz4hn/lib/python3.10/site-packages/sepPython/sepIO.py:442: NameError
+/home/spack/spack/opt/spack/linux-centos7-skylake_avx512/gcc-8.5.0/python-3.10.8-tye3styllri3xiql6psptyz7uujbz4hn/lib/python3.10/site-packages/sepPython/sepIO.py:296: TypeError
 ------------------------------ Captured log call -------------------------------
 CRITICAL root:sepIO.py:441 Binary path is not
-_____________________________ test_simpleWriteRead _____________________________
-
-    def test_simpleWriteRead():
-        ar=np.ndarray((20,10))
-        for j in range(ar.shape[0]):
-            for i in range(ar.shape[1]):
-                ar[j,i]=100*j+i
-        fle=sepPython.sepIO.sFile(array=ar,path="/tmp/junk2.H")
-        fle.writeDescription()
-        fle.write(ar)
->       fl2=sepPython.sepIO.sFile(path="/tmp/junk2.H")
-
-test_sepfile.py:50: 
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
-
-self = Regular file, type=SEP storage=<class 'numpy.float32'> binary=None
-
-kw = {'path': '/tmp/junk2.H'}
-
-    def __init__(self,**kw):
-    
-      """"Initialize a sepFile object
-    
-         Optional:
-    
-           logger-logger object
-    
-          Method 1:
-           hyper - Hypercube
-           path  (str) - path for Path
-           type (str) - SEP Data type
-    
-    
-          Method 2:
-           Path  - Path to file
-    
-           Optional:
-            ndims - Minimum dimensions for the data
-    
-          Method 3:
-            path (str) - path for history file
-            array (np.ndarray) - Array or memReg storage
-               or
-            vec ()
-    
-            Optional:
-               hyper - Hypercube describing data
-               os,ds,labels,units - Lists describing array
-    
-      """
-      if "logger" in kw:
-        self.setLogger(kw["logger"])
-      else:
-        self.setLogger(logging.getLogger(None))
-      if "path" not in kw:
-        self._logger.fatal("Must specify path")
-        raise Exception("")
-      if "//"  in kw["path"]:
-        self._logger.fatal(f"When creating a file object path must not have a web address {kw['path']}")
-        raise Exception("")
-      super().__init__(**kw)
-    
-      if self._intent=="INPUT":
-        if "in" in self._params:
-          self.setBinaryPath=self._params["in"]
-    
-      if self.getBinaryPath() ==None:
-         self._logger.fatal("Binary path is not")
->        readlines
-E        NameError: name 'readlines' is not defined
-
-/home/spack/spack/opt/spack/linux-centos7-skylake_avx512/gcc-8.5.0/python-3.10.8-tye3styllri3xiql6psptyz7uujbz4hn/lib/python3.10/site-packages/sepPython/sepIO.py:442: NameError
------------------------------- Captured log call -------------------------------
-CRITICAL root:sepIO.py:441 Binary path is not
+CRITICAL root:sepIO.py:287 Can't find n1
 =============================== warnings summary ===============================
 test/test_sepfile.py::test_simpleWriteHistoryGCS
-test/test_sepfile.py::test_simpleWriteReadGCP
-  /home/clapp_stanford_edu/.local/lib/python3.10/site-packages/_pytest/unraisableexception.py:78: PytestUnraisableExceptionWarning: Exception ignored in: <function sGcsObj.__del__ at 0x7f7bec5b0790>
+  /home/clapp_stanford_edu/.local/lib/python3.10/site-packages/_pytest/unraisableexception.py:78: PytestUnraisableExceptionWarning: Exception ignored in: <function sGcsObj.__del__ at 0x7f1a43b90790>
   
   Traceback (most recent call last):
-    File "/home/spack/spack/opt/spack/linux-centos7-skylake_avx512/gcc-8.5.0/python-3.10.8-tye3styllri3xiql6psptyz7uujbz4hn/lib/python3.10/site-packages/sepPython/sepIO.py", line 713, in __del__
+    File "/home/spack/spack/opt/spack/linux-centos7-skylake_avx512/gcc-8.5.0/python-3.10.8-tye3styllri3xiql6psptyz7uujbz4hn/lib/python3.10/site-packages/sepPython/sepIO.py", line 712, in __del__
       raise Exception("")
   Exception
   
@@ -329,13 +49,5 @@ test/test_sepfile.py::test_simpleWriteReadGCP
 
 -- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
 =========================== short test summary info ============================
-FAILED test_modes.py::test_sepMode - NameError: name 'readlines' is not defined
-FAILED test_sepfile.py::test_simpleArgs_1Line - NameError: name 'readlines' i...
-FAILED test_sepfile.py::test_simpleWriteHistory - NameError: name 'readlines'...
-FAILED test_sepfile.py::test_simpleWriteRead - NameError: name 'readlines' is...
-=================== 4 failed, 3 passed, 2 warnings in 2.66s ====================
-Must close gcs object before the delete is called
-Exception ignored in: <function sGcsObj.__del__ at 0x7f7bec5b0790>
-Traceback (most recent call last):
-  File "/home/spack/spack/opt/spack/linux-centos7-skylake_avx512/gcc-8.5.0/python-3.10.8-tye3styllri3xiql6psptyz7uujbz4hn/lib/python3.10/site-packages/sepPython/sepIO.py", line 713, in __del__
-Exception: 
+FAILED test_sepfile.py::test_simpleWriteHistory - TypeError: int() argument m...
+============= 1 failed, 1 passed, 5 deselected, 1 warning in 1.51s =============
