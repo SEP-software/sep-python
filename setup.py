@@ -8,7 +8,7 @@ setup(name='sepPython',
       url="http://zapad.stanford.edu/bob/sep-python",
           packages=['sepPython'],
     install_requires=[ 'google-cloud-storage>=1.34.0',
-                       'genericSolver @ git+http://zapad.stanford.edu/bob/python-solver.git@e382f2cf2d531c425c8b65b394613fddad087f2c'
+                       'genericSolver @ git+http://zapad.stanford.edu/bob/python-solver.git'
     ]
                        
    )

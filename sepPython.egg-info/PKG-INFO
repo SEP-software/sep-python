@@ -1,0 +1,7 @@
+Metadata-Version: 2.1
+Name: sepPython
+Version: 0.9.1
+Summary: A library for basic IO )SEP) all in python
+Home-page: http://zapad.stanford.edu/bob/sep-python
+Author: R. Clapp
+Author-email: bob@sep.stanford.edu
