@@ -492,6 +492,7 @@ class sFile(reg):
 
     seeks,blk,many,contin=self.loopIt(*self.condense(*self.getHyper().getWindowParams(**kw)))
     arUse=array.ravel()
+
     if self.getBinaryPath()=="stdin" or self.getBinaryPath()=="follow_hdr":
       fl=open(self._path,"rb")
     else:
@@ -499,16 +500,19 @@ class sFile(reg):
     old=0
     new=old+many
     for sk in seeks:
-      fl.seek(sk)
+      fl.seek(sk+self._head)
+      print(sk,blk,self._hyper,arUse.dtype)
       bytes=fl.read(blk)
-      if len(bytes) != blk:
-        self._logger.fatal(f"Only read  {len(bytes)} of {blk} starting at {sk}")
-        raise Exception(f"Only read  {len(bytes)} of {blk} starting at {sk}")
       
       if self._xdr:
+        print("in xdr",len(bytes))
         bytes=bytearray(bytes)
         bytes.reverse()
-      arUse[old:new]=np.frombuffer(bytes, dtype=arUse.dtype).copy()
+      print("len",len(bytes))
+      dd=np.frombuffer(bytes, dtype=arUse.dtype).copy()
+      arUse[old:new]=dd
+
+    #  arUse[old:new]=np.frombuffer(bytes, dtype=arUse.dtype).copy()
       old=new
       new=new+many
     fl.close()
