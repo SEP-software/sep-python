@@ -142,7 +142,7 @@ class hypercube:
                     return False
             elif hyper.axes[iax].n !=1:
                 return False
-            return True
+        return True
 
     def __repr__(self):
         """Define print method for hypercube class"""

@@ -80,12 +80,12 @@ class vector(sepPython.sepProto.memReg,pyvec):
 
     def zero(self):
         """Function to zero out a vector"""
-        self.fill(0.)
+        self.getNdArray().fill(0.)
         return self
 
     def set(self, val):
         """Function to a vector to a value"""
-        self.fill(val)
+        self.getNdArray().fill(val)
         return self
 
     def getNdArray(self)->np.ndarray:
@@ -160,9 +160,7 @@ class vector(sepPython.sepProto.memReg,pyvec):
     def checkSame(self, vec2)->bool:
         """Function to check if two vectors belong to the same vector space"""
         if vec2.getDataFormat() != self.getDataFormat():
-            print("data format problem")
             return False
-        print("not data format problem")
         return self.getHyper().checkSame(vec2.getHyper())
     
 class nonInteger(vector):
