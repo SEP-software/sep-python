@@ -101,7 +101,7 @@ class vector(sepPython.sepProto.memReg,pyvec):
             compress=False Whether or not to compress the axes of length 1
 
             """
-        axes = self.getHyper().axes
+        axes =  self.getHyper().axes
         nw,fw,jw=fixWindow(axes,**kw)
 
         axOut=[]
