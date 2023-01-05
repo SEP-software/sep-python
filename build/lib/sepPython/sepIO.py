@@ -20,12 +20,15 @@ from typing import List
 import logging
 import binascii
 import io
+import xdrlib
+import struct 
 
 from math import *
 __author__ = "Robert G. Clapp"
 __email__ = "bob@sep.stanford.edu"
 __version = "2022.12.13"
-
+def float_to_hex(f):
+    return hex(struct.unpack('<I', struct.pack('<f', f))[0])
 class inout(sepPython.ioBase.inout):
 
     def __init__(self,createMem,**kw):
@@ -308,7 +311,7 @@ class reg(sepPython.ioBase.regFile):
     try:
       return float(v) 
     except ValueError:
-      self._loger(f"Can convert {param}={v} to float")
+      self._logger(f"Can convert {param}={v} to float")
       raise Exception("")
 
   def getString(self,param:str,default=None)->str:
@@ -459,7 +462,7 @@ class sFile(reg):
       #self._history=str(mystr)
       self._history=fl.read()
     else:
-      self._head=ic
+      self._head=ic+1
       input = io.BytesIO(mystr[:self._head])
       wrapper = io.TextIOWrapper(input, encoding='utf-8')
 
@@ -492,7 +495,6 @@ class sFile(reg):
 
     seeks,blk,many,contin=self.loopIt(*self.condense(*self.getHyper().getWindowParams(**kw)))
     arUse=array.ravel()
-
     if self.getBinaryPath()=="stdin" or self.getBinaryPath()=="follow_hdr":
       fl=open(self._path,"rb")
     else:
@@ -500,19 +502,16 @@ class sFile(reg):
     old=0
     new=old+many
     for sk in seeks:
-      fl.seek(sk+self._head)
-      print(sk,blk,self._hyper,arUse.dtype)
+      fl.seek(sk)
       bytes=fl.read(blk)
-      
+      if len(bytes) != blk:
+        self._logger.fatal(f"Only read  {len(bytes)} of {blk} starting at {sk}")
+        raise Exception(f"Only read  {len(bytes)} of {blk} starting at {sk}")
       if self._xdr:
-        print("in xdr",len(bytes))
-        bytes=bytearray(bytes)
-        bytes.reverse()
-      print("len",len(bytes))
-      dd=np.frombuffer(bytes, dtype=arUse.dtype).copy()
-      arUse[old:new]=dd
-
-    #  arUse[old:new]=np.frombuffer(bytes, dtype=arUse.dtype).copy()
+        nm=converter.getName(self.getDataType())
+        arUse[old:new]=np.frombuffer(np.frombuffer(bytes,dtype=np.int32).byteswap().tobytes(),arUse.dtype)
+      else:
+        arUse[old:new]=np.frombuffer(bytes, dtype=arUse.dtype).copy()
       old=new
       new=new+many
     fl.close()
@@ -773,8 +772,10 @@ class sGcsObj(reg):
               fl.seek(sk+self._head)
               bytes=fl.read(blk)
               if self._xdr:
-                  bytes=bytearray(bytes).reverse()
-              arUse[old:new]=np.frombuffer(bytes, dtype=arUse.dtype).copy()
+                nm=converter.getName(self.getDataType())
+                arUse[old:new]=np.frombuffer(np.frombuffer(bytes,dtype=np.int32).byteswap().tobytes(),arUse.dtype)
+              else:
+                arUse[old:new]=np.frombuffer(bytes, dtype=arUse.dtype).copy()
               old=new
               new=new+many
   def write(self,mem,**kw):

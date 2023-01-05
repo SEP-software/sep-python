@@ -308,7 +308,7 @@ class reg(sepPython.ioBase.regFile):
     try:
       return float(v) 
     except ValueError:
-      self._loger(f"Can convert {param}={v} to float")
+      self._logger(f"Can convert {param}={v} to float")
       raise Exception("")
 
   def getString(self,param:str,default=None)->str:
@@ -506,9 +506,12 @@ class sFile(reg):
         raise Exception(f"Only read  {len(bytes)} of {blk} starting at {sk}")
       
       if self._xdr:
-        bytes=bytearray(bytes)
-        bytes.reverse()
-      arUse[old:new]=np.frombuffer(bytes, dtype=arUse.dtype).copy()
+        tmp=np.frombuffer(bytes, dtype=arUse.dtype)
+        print(type(tmp),tmp.shape)
+        tmo=tmp.byteswap()
+        arUse[old:new]=tmp.copy()
+      else:
+        arUse[old:new]=np.frombuffer(bytes, dtype=arUse.dtype).copy()
       old=new
       new=new+many
     fl.close()

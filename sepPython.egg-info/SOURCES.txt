@@ -1,3 +1,7 @@
+.gitignore
+.gitmodules
+.setup.py.swp
+.x.py.swp
 README.md
 setup.py
 sepPython/Hypercube.py
@@ -6,6 +10,7 @@ sepPython/__init__.py
 sepPython/gcpHelper.py
 sepPython/ioBase.py
 sepPython/modes.py
+sepPython/pytest.ini
 sepPython/sepConverter.py
 sepPython/sepIO.py
 sepPython/sepProto.py
@@ -14,6 +19,8 @@ sepPython.egg-info/SOURCES.txt
 sepPython.egg-info/dependency_links.txt
 sepPython.egg-info/requires.txt
 sepPython.egg-info/top_level.txt
+test/.test_sepfile.py.swp
+test/log
 test/test_Hypercube.py
 test/test_modes.py
 test/test_sepVector.py
