@@ -74,7 +74,7 @@ class vector(sepPython.sepProto.memReg,pyvec):
         """
         self._logger=logger
 
-    def getdataFormatType(self)->str:
+    def getDataFormat(self)->str:
         """Return type of dataFormat"""
         return self._dataFormat
 
@@ -159,8 +159,10 @@ class vector(sepPython.sepProto.memReg,pyvec):
 
     def checkSame(self, vec2)->bool:
         """Function to check if two vectors belong to the same vector space"""
-        if vec2.dataFormatType() != self.checkdataFormat():
+        if vec2.getDataFormat() != self.getDataFormat():
+            print("data format problem")
             return False
+        print("not data format problem")
         return self.getHyper().checkSame(vec2.getHyper())
     
 class nonInteger(vector):
@@ -230,7 +232,7 @@ class realNumber(nonInteger):
 
     def copy(self, vec2:vector)->vector:
         """Copy vec2 into self"""
-        if not self.checkSame(vec2) or self.getdataFormat()!=vec2.getdataFormat():
+        if not self.checkSame(vec2) or self.getDataFormat()!=vec2.getDataFormat():
             self._logger.fatal("must be of the same space and type")
             raise Exception("")
         scaleAdd(self.get1DArray(),vec.get1DArray(),0.,1.)
@@ -238,7 +240,7 @@ class realNumber(nonInteger):
 
     def dot(self, vec2:vector)->vector:
         """Compute dot product of two vectors"""
-        if not self.checkSame(vec2) or self.getdataFormat()!=vec2.getdataFormat():
+        if not self.checkSame(vec2) or self.getDataFormat()!=vec2.getDataFormat():
             self._logger.fatal("must be of the same space and type")
             raise Exception("")
         return dotIt(self.get1DArray(),vec2.get1DArray())
@@ -255,7 +257,7 @@ class realNumber(nonInteger):
    
     def multiply(self, vec2:vector)->vector:
         """self = vec2 * self"""
-        if not self.checkSame(vec2) or self.getdataFormat()!=vec2.getdataFormat():
+        if not self.checkSame(vec2) or self.getDataFormat()!=vec2.getDataFormat():
             self._logger.fatal("must be of the same space and type")
             raise Exception("")
         multiplyIt(self.get1DArray(),vec2.get1DArray())
@@ -281,7 +283,7 @@ class floatVector(vector):
 
     def clone(self):
         """Function to clone (deep copy) a vector"""
-        return floatVector(self.getHyper().self.getdataFormat())
+        return floatVector(self.getHyper())
 
     def cloneSpace(self):
         """Funtion tor return the space of a vector"""
@@ -306,7 +308,7 @@ class doubleVector(vector):
     
     def clone(self):
         """Function to clone (deep copy) a vector"""
-        return doubleVector(self.getHyper().self.getdataFormat())
+        return doubleVector(self.getHyper())
 
     def cloneSpace(self):
         """Funtion tor return the space of a vector"""
@@ -327,7 +329,7 @@ class intVector(vector):
 
     def clone(self):
         """Function to clone (deep copy) a vector"""
-        return intVector(self.getHyper().self.getdataFormat())
+        return intVector(self.getHyper())
 
 
 class complexVector(vector):
@@ -348,7 +350,7 @@ class complexVector(vector):
 
     def clone(self):
         """clone a vector"""
-        return complexVector(self.getHyper().self.getdataFormat())
+        return complexVector(self.getHyper())
 
     def rand(self)->vector:
         """Function to fill with random numbers"""
@@ -383,7 +385,7 @@ class complexDoubleVector(vector):
 
     def clone(self):
         """clone a vector"""
-        return complexDoubleVector(self.getHyper().self.getdataFormat())
+        return complexDoubleVector(self.getHyper())
 
     def clipVector(self, low, high):
         """Clip vector element by element vec=min(high,max(low,vec))"""
@@ -411,7 +413,7 @@ class byteVector(vector):
     
     def clone(self):
         """Function to clone (deep copy) a vector"""
-        return byteVector(self.getHyper(),dataFormat=self.getdataFormat())
+        return byteVector(self.getHyper())
     
     def __repr__(self):
         """Override print method"""
