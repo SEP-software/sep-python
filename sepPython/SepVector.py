@@ -285,7 +285,7 @@ class floatVector(vector):
 
     def cloneSpace(self):
         """Funtion tor return the space of a vector"""
-        return floatVector(self.getHyper().self.getdataFormat(),spaceOnly=True)
+        return floatVector(self.getHyper(),spaceOnly=True)
 
 class doubleVector(vector):
     """Generic double vector class"""
@@ -310,7 +310,7 @@ class doubleVector(vector):
 
     def cloneSpace(self):
         """Funtion tor return the space of a vector"""
-        return doubleVector(self.getHyper().self.getdataFormat(),spaceOnly=True)
+        return doubleVector(self.getHyper(),spaceOnly=True)
 
 
 class intVector(vector):
@@ -340,7 +340,7 @@ class complexVector(vector):
 
     def cloneSpace(self):
         """Funtion tor return the space of a vector"""
-        return complexVector(self.getHyper().self.getdataFormat(),spaceOnly=True)
+        return complexVector(self.getHyper(),spaceOnly=True)
 
     def __repr__(self):
         """Override print method"""
@@ -366,7 +366,7 @@ class complexDoubleVector(vector):
 
     def cloneSpace(self):
         """Funtion tor return the space of a vector"""
-        return complexDoubleVector(self.getHyper().self.getdataFormat(),spaceOnly=True)
+        return complexDoubleVector(self.getHyper(),spaceOnly=True)
 
     def norm(self, N=2):
         """Function to compute vector N-norm"""
