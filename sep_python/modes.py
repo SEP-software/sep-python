@@ -50,5 +50,6 @@ class Modes:
 
 
 ioModes=Modes()
+
 ioModes.add_mode("sepDefault",sep_python.sep_io.InOut,sep_python.sep_vector.get_sep_vector)
 default_io=ioModes.get_mode("sepDefault")
