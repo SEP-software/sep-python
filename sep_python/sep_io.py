@@ -45,7 +45,6 @@ class InOut(sep_python.io_base.InOut):
         """
         super().__init__(create_mem)
 
-        print("in sep io init")
 
         if "logger" in kw:
             self.setLogging(kw["logger"])
@@ -465,7 +464,7 @@ class SEPFile(reg):
       #self._history=str(mystr)
       self._history=fl.read()
     else:
-      self._head=ic
+      self._head=ic+1
       input = io.BytesIO(mystr[:self._head])
       wrapper = io.TextIOWrapper(input, encoding='utf-8')
 
@@ -506,7 +505,6 @@ class SEPFile(reg):
     new=old+many
     for sk in seeks:
       fl.seek(sk)
-      print("in read",sk)
       bytes=fl.read(blk)
       if len(bytes) != blk:
         self._logger.fatal(f"Only read  {len(bytes)} of {blk} starting at {sk}")
@@ -514,11 +512,9 @@ class SEPFile(reg):
       
       if self._xdr:
         tmp=np.frombuffer(bytes, dtype=arUse.dtype)
-        print("inxdro",type(tmp),tmp.shape)
         tmo=tmp.byteswap()
-        arUse[old:new]=tmp.copy()
+        arUse[old:new]=tmo.copy()
       else:
-        print("not in xdr")
         arUse[old:new]=np.frombuffer(bytes, dtype=arUse.dtype).copy()
       old=new
       new=new+many
