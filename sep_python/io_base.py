@@ -116,7 +116,7 @@ class RegFile:
             param - Parameter to retrieve
             default - Default value 
         """
-        self._logger.fatal("Must override getInt")
+        self._logger.fatal("Must override get_int")
         raise Exception("")
 
     def get_float(self,param:str,default=None)->float:
@@ -124,7 +124,7 @@ class RegFile:
             param - Parameter to retrieve
             default - Default value 
         """
-        self._logger.fatal("Must override getFloat")
+        self._logger.fatal("Must override get_float")
         raise Exception("")
 
     def get_string(self,param:str,default=None)->str:
@@ -132,7 +132,7 @@ class RegFile:
             param - Parameter to retrieve
             default - Default value 
         """
-        self._logger.fatal("Must override getString")
+        self._logger.fatal("Must override get+string")
         raise Exception("")
 
     def get_ints(self,param:str,default=None)->list:
@@ -140,7 +140,7 @@ class RegFile:
             param - Parameter to retrieve
             default - Default value 
         """
-        self._logger.fatal("Must override getInts")
+        self._logger.fatal("Must override get_ints")
         raise Exception("")
 
     def get_floats(self,param:str,default=None)->float:
@@ -148,7 +148,7 @@ class RegFile:
             param - Parameter to retrieve
             default - Default value 
         """
-        self._logger.fatal("Must override getFloats")
+        self._logger.fatal("Must override get_floats")
         raise Exception("")
 
     def put_par(self,param:str,val):
@@ -156,7 +156,7 @@ class RegFile:
 
             param - Parameter to store
             val  - Value"""
-        self._logger.fatal("Must override putPar")
+        self._logger.fatal("Must override put_par")
         raise Exception("")
 
     def read(self,vec:sep_python.sep_proto.MemReg,**kw):
@@ -322,7 +322,7 @@ class InOut:
                 Optional:
                         
         """
-        self._logger.fatal("must ovveride getRegFile")
+        self._logger.fatal("must ovveride get_reg_storage")
         raise Exception("")
         return None
 
