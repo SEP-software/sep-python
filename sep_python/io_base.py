@@ -42,7 +42,7 @@ class RegFile:
     def get_hyper(self)->Hypercube:
         """
         Get the hypercube associated with the regular dataset"""
-        if self._hyper==None:
+        if self._hyper is None:
             self._logger.fatal("Hypercube has not been set")
         return self._hyper
     
@@ -406,7 +406,7 @@ class InOut:
                 obj - Object to interact with storage
                 vecs - Vectors
                 ifirst - Position in object for first vector"""
-        n_wind = obj.getHyper().get_ns()
+        n_wind = obj.get_hyper().get_ns()
         fwind = [0] * len(n_wind)
         jwind = [1] * len(n_wind)
         n_wind[len(n_wind) - 1] = 1
@@ -426,7 +426,7 @@ class InOut:
             self.append_files[path] = Append_File(
                 self, path, vec, max_length, flush)
         if self.append_files[path].add_vector(vec):
-            vs = self.append_files[path].flushVectors()
+            vs = self.append_files[path].flush_vectors()
             if self.append_files[path].icount > self.append_files[path].nmax:
                 self.append_files[path].finish()
             self.write_vectors(
@@ -464,7 +464,7 @@ class Append_File:
         self.nmax = max_length
         self._data_format=vec.get_data_format()
  
-        self.file = io.gety_reg_storage(path, hyper=self.hyper, data_format=self._data_format)
+        self.file = io.get_reg_storage(path, hyper=self.hyper, data_format=self._data_format)
         self.icount = 0
 
     def add_vector(self, vec):
@@ -486,6 +486,6 @@ class Append_File:
     def finish(self, iextra=0):
         """Fix the correct number of frames in a file and update description"""
         self.hyper.axes[len(self.hyper.axes) - 1].n = self.icount + iextra
-        self.file.setHyper(self.hyper)
+        self.file.set_hyper(self.hyper)
         self.file.write_description()
         self.nmax = self.icount + iextra

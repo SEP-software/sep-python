@@ -102,11 +102,11 @@ class Hypercube:
         """Clone hypercube"""
         return Hypercube(axes=self.axes)
     
-    def sub_cube(self,nw,fw,jw):
+    def sub_cube(self,nwind,fwind,jwind):
         """Return a sub-cube"""
         axes=[]
         for i in range(len(self.axes)):
-            axes.append(Axis(n=nw[i],o=self.axes[i].o+self.axes[i].d*fw[i],d=self.axes[i].d*jw[i],label=self.axes[i].label,unit=self.axes[i].unit))
+            axes.append(Axis(n=nwind[i],o=self.axes[i].o+self.axes[i].d*fwind[i],d=self.axes[i].d*jwind[i],label=self.axes[i].label,unit=self.axes[i].unit))
         return Hypercube(axes=axes)
 
     def get_ndim (self):
@@ -117,14 +117,14 @@ class Hypercube:
         """Return an axis"""
         return self.axes[i - 1]
 
-    def getN123(self):
+    def get_n123(self):
         """Get the number of elements"""
         n123 = 1
         for ax in self.axes:
             n123 = n123 * ax.n
         return n123
 
-    def getNs(self):
+    def get_ns(self):
         """Get a list of the sizes of the axes"""
         ns = []
         for a in self.axes:
