@@ -506,7 +506,7 @@ class SEPFile(reg):
     new=old+many
     for sk in seeks:
       fl.seek(sk)
-      print("in read".sk)
+      print("in read",sk)
       bytes=fl.read(blk)
       if len(bytes) != blk:
         self._logger.fatal(f"Only read  {len(bytes)} of {blk} starting at {sk}")
