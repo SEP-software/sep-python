@@ -174,7 +174,7 @@ class Vector(sep_python.sep_proto.MemReg,pyvec):
             Adjust the Hypercube associated with vector. Does not reallocate. 
             Must be same dims/size
         """
-        hyper_old=self.getHyper()
+        hyper_old=self.get_hyper()
         if hyper_old.getN123() != hyper.getN123():
             self._logger.fatal("Trying to reset with a different sized hyper")
             raise Exception("")
@@ -186,7 +186,7 @@ class Vector(sep_python.sep_proto.MemReg,pyvec):
         """Function to check if two vectors belong to the same vector space"""
         if vec2.get_data_format() != self.get_data_format():
             return False
-        return self.getHyper().check_same(vec2.getHyper())
+        return self.get_hyper().check_same(vec2.get_hyper())
     
 class NonInteger(Vector):
     """A class for non-integers"""
@@ -293,11 +293,11 @@ class FloatVector(Vector):
     def __init__(self, hyper:Hypercube,space_only:bool=False):
         super().__init__(hyper,"dataFloat")
         if not space_only:
-            self._arr=np.ndarray(tuple(hyper.getNs()[::-1]),dtype=np.float32)
+            self._arr=np.ndarray(tuple(hyper.get_ns()[::-1]),dtype=np.float32)
  
     def __repr__(self):
         """Override print method"""
-        return "FloatVector\n%s"%str(self.getHyper())
+        return "FloatVector\n%s"%str(self.get_hyper())
 
     def rand(self)->Vector:
         """Function to fill with random numbers"""
@@ -306,11 +306,11 @@ class FloatVector(Vector):
 
     def clone(self):
         """Function to clone (deep copy) a vector"""
-        return FloatVector(self.getHyper())
+        return FloatVector(self.get_hyper())
 
     def clone_space(self):
         """Funtion tor return the space of a vector"""
-        return FloatVector(self.getHyper(),space_only=True)
+        return FloatVector(self.get_hyper(),space_only=True)
 
 class Double_Vector(Vector):
     """Generic double vector class"""
@@ -318,7 +318,7 @@ class Double_Vector(Vector):
     def __init__(self, hyper:Hypercube,space_only=False):
         super().__init__(hyper,"double64")
         if not space_only:
-            self._arr=np.ndarray(tuple(hyper.getNs()[::-1]),dtype=np.float64)
+            self._arr=np.ndarray(tuple(hyper.get_ns()[::-1]),dtype=np.float64)
 
     def rand(self)->Vector:
         """Function to fill with random numbers"""
@@ -327,15 +327,15 @@ class Double_Vector(Vector):
     
     def __repr__(self):
         """Override print method"""
-        return "Double_Vector\n%s"%str(self.getHyper())
+        return "Double_Vector\n%s"%str(self.get_hyper())
     
     def clone(self):
         """Function to clone (deep copy) a vector"""
-        return Double_Vector(self.getHyper())
+        return Double_Vector(self.get_hyper())
 
     def clone_space(self):
         """Funtion tor return the space of a vector"""
-        return Double_Vector(self.getHyper(),space_only=True)
+        return Double_Vector(self.get_hyper(),space_only=True)
 
 
 class IntVector(Vector):
@@ -344,15 +344,15 @@ class IntVector(Vector):
     def __init__(self, hyper:Hypercube,space_only=False):
         super().__init__(hyper,"dataInt")
         if not space_only:
-            self._arr=np.ndarray(tuple(hyper.getNs()[::-1]),dtype=np.int32)
+            self._arr=np.ndarray(tuple(hyper.get_ns()[::-1]),dtype=np.int32)
 
     def __repr__(self):
         """Override print method"""
-        return "IntVector\n%s"%str(self.getHyper())
+        return "IntVector\n%s"%str(self.get_hyper())
 
     def clone(self):
         """Function to clone (deep copy) a vector"""
-        return IntVector(self.getHyper())
+        return IntVector(self.get_hyper())
 
 
 class ComplexVector(Vector):
@@ -361,19 +361,19 @@ class ComplexVector(Vector):
     def __init__(self, hyper:Hypercube,space_only=False):
         super().__init__(hyper,"float32")
         if not space_only:
-            self._arr=np.ndarray(tuple(hyper.getNs()[::-1]),dtype=np.float64)
+            self._arr=np.ndarray(tuple(hyper.get_ns()[::-1]),dtype=np.float64)
 
     def clone_space(self):
         """Funtion tor return the space of a vector"""
-        return ComplexVector(self.getHyper(),space_only=True)
+        return ComplexVector(self.get_hyper(),space_only=True)
 
     def __repr__(self):
         """Override print method"""
-        return "ComplexVector\n%s"%str(self.getHyper())
+        return "ComplexVector\n%s"%str(self.get_hyper())
 
     def clone(self):
         """clone a vector"""
-        return ComplexVector(self.getHyper())
+        return ComplexVector(self.get_hyper())
 
     def rand(self)->Vector:
         """Function to fill with random numbers"""
@@ -387,11 +387,11 @@ class ComplexDoubleVector(Vector):
     def __init__(self, hyper:Hypercube,space_only=False):
         super().__init__(hyper,"complex128")
         if not space_only:
-            self._arr=np.ndarray(tuple(hyper.getNs()[::-1]),dtype=np.complex128)
+            self._arr=np.ndarray(tuple(hyper.get_ns()[::-1]),dtype=np.complex128)
 
     def clone_space(self):
         """Funtion tor return the space of a vector"""
-        return ComplexDoubleVector(self.getHyper(),space_only=True)
+        return ComplexDoubleVector(self.get_hyper(),space_only=True)
 
     def norm(self, N=2):
         """Function to compute vector N-norm"""
@@ -399,7 +399,7 @@ class ComplexDoubleVector(Vector):
 
     def __repr__(self):
         """Override print method"""
-        return "ComplexDoubleVector\n%s"%str(self.getHyper())
+        return "ComplexDoubleVector\n%s"%str(self.get_hyper())
 
     def rand(self)->Vector:
         """Function to fill with random numbers"""
@@ -408,7 +408,7 @@ class ComplexDoubleVector(Vector):
 
     def clone(self):
         """clone a vector"""
-        return ComplexDoubleVector(self.getHyper())
+        return ComplexDoubleVector(self.get_hyper())
 
     def clip_vector(self, low, high):
         """Clip vector element by element vec=min(high,max(low,vec))"""
@@ -421,7 +421,7 @@ class ByteVector(Vector):
     def __init__(self, hyper:Hypercube,space_only=False):
         super().__init__(hyper,"dataByte")
         if not space_only:
-            self._arr=np.ndarray(tuple(hyper.getNs()[::-1]),dtype=np.uint8)
+            self._arr=np.ndarray(tuple(hyper.get_ns()[::-1]),dtype=np.uint8)
 
     def calc_histo(self, nelem, min_val, max_val):
         """Calculate histogram
@@ -431,14 +431,14 @@ class ByteVector(Vector):
 
            @return Histogram """
         histo = get_sep_vector(ns=[nelem], data_format="dataInt")
-        calc_histo(histo,self._get_nd_array(),min_val,max_val)
+        calc_histo(histo,self.get_nd_array(),min_val,max_val)
         return histo
     def clone(self):
         """Function to clone (deep copy) a vector"""
-        return ByteVector(self.getHyper())
+        return ByteVector(self.get_hyper())
     def __repr__(self):
         """Override print method"""
-        return "ByteVector\n%s"%str(self.getHyper())
+        return "ByteVector\n%s"%str(self.get_hyper())
 
 def get_sep_vector(*args, **keys,):
     """ Get a sepVector object

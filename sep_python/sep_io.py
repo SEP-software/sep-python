@@ -263,7 +263,7 @@ class reg(sep_python.io_base.RegFile):
         self._xdr=True
         pars["data_format"]="native"+pars["data_format"][3:]
       self.set_data_type(converter.sep_name_to_numpy(pars["data_format"]))
-      self._esize=converter.get_esize(converter.from_sep_name(pars["data_format"]))
+      self._esize=converter.get_esize(converter.from_SEP_name(pars["data_format"]))
     elif "esize" in pars:
       self._esize=int(pars["esize"])
       if self._esize==1:
@@ -510,12 +510,12 @@ class SEPFile(reg):
         raise Exception(f"Only read  {len(bytes)} of {blk} starting at {sk}")
       
       if self._xdr:
-        tmp=np.from_buffer(bytes, dtype=arUse.dtype)
+        tmp=np.frombuffer(bytes, dtype=arUse.dtype)
         print(type(tmp),tmp.shape)
         tmo=tmp.byteswap()
         arUse[old:new]=tmp.copy()
       else:
-        arUse[old:new]=np.from_buffer(bytes, dtype=arUse.dtype).copy()
+        arUse[old:new]=np.frombuffer(bytes, dtype=arUse.dtype).copy()
       old=new
       new=new+many
     fl.close()
