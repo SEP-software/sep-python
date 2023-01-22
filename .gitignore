@@ -4,3 +4,4 @@ build
 sepPython.egg-info
 .*.sw*
 .vscode
+.pytest_cache
