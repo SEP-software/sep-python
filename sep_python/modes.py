@@ -35,6 +35,7 @@ class Modes:
         io_pointer -  Pointer to the IO Class
         mem_creator - Pointer on how to create memory
         """
+        print("in add mode",io_pointer,mem_creator)
         self._modes[name]=io_pointer(mem_creator)
 
     def get_mode(self,typ):
