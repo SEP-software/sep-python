@@ -44,6 +44,9 @@ class InOut(sep_python.io_base.InOut):
 
         """
         super().__init__(createMem)
+
+        print("in sep io init")
+
         if "logger" in kw:
             self.setLogging(kw["logger"])
 
