@@ -5,8 +5,8 @@
 
 """
 import logging
-import sepPython.sepIO
-import sepPython.SepVector
+import sep_python.sep_io
+import sep_python.sep_vector
 
 
 class Modes:
@@ -50,5 +50,5 @@ class Modes:
 
 
 ioModes=Modes()
-ioModes.add_mode("sepDefault",sepPython.sepIO.inout,sepPython.SepVector.getSepVector)
-defaultIO=ioModes.get_mode("sepDefault")
+ioModes.add_mode("sepDefault",sep_python.sep_io.inout,sep_python.sep_vector.get_sep_vector)
+default_io=ioModes.get_mode("sepDefault")

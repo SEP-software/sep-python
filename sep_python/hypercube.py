@@ -1,3 +1,5 @@
+"""    Module for describing regular spaces """
+
 import logging
 from typing import List
 
@@ -42,7 +44,7 @@ class Axis:
 
 class Hypercube:
 
-    def __init__(self, axes: List(Axis)):
+    def __init__(self, axes: list):
         """Initialize a hyperube
 
         Args:
@@ -54,23 +56,9 @@ class Hypercube:
         
         self.axes=axes
         
-    
-    @classmethod
-    def set_with_hypercube(cls,hyper:Hypercube):
-
-        """ Set hypercube from another hypercube
-
-        Args:
-            hyper (Hypercube): Input hypercube
-
-
-
-        Returns:
-            _type_: _description_
-        """
 
     @classmethod
-    def set_with_ns(cls,ns:List[int],**kw):
+    def set_with_ns(cls,ns:list,**kw):
         """ Set hypercube up using ns,os,ds, labels, units
 
         Args:

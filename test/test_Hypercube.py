@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 import pytest 
-from sepPython.Hypercube import hypercube,axis
+from sep_python.hypercube import Hypercube,Axis
 
 def test_just_n():
-    ax=axis(n=10)
+    ax=Axis(n=10)
     assert ax.n==10
     assert ax.o==0.
     assert ax.d==1.

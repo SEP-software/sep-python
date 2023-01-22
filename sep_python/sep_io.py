@@ -1,4 +1,3 @@
-import sepPython.ioBase
 import re
 import string
 import pwd
@@ -8,25 +7,30 @@ import socket
 import copy
 import time
 import types
-from sepPython.Hypercube import  hypercube,axis
-import numpy as np 
-import sepPython.sepConverter
-import sepPython.sepProto
-from google.cloud import storage 
 import re
-import sepPython.gcpHelper
-from  concurrent import futures 
-from typing import List
+import numpy as np
 import logging
 import binascii
 import io
+import re
+from  concurrent import futures 
+from typing import List
+from sep_python.hypercube import  Hypercube,Axis
+import sep_python.io_base
+import sep_python.sep_converter
+import sep_python.sep_proto
+from google.cloud import storage 
+import re
+import sep_python.gcp_helper
+
+
 
 from math import *
 __author__ = "Robert G. Clapp"
 __email__ = "bob@sep.stanford.edu"
 __version = "2022.12.13"
 
-class inout(sepPython.ioBase.inout):
+class InOut(sep_python.io_base.InOut):
 
     def __init__(self,createMem,**kw):
         """
@@ -40,9 +44,8 @@ class inout(sepPython.ioBase.inout):
 
         """
         super().__init__(createMem)
-    
         if "logger" in kw:
-          self.setLogging(kw["logger"])
+            self.setLogging(kw["logger"])
 
     def getRegStorage(self,**kw):
         """
@@ -55,56 +58,56 @@ class inout(sepPython.ioBase.inout):
         
         path=kw["path"]
         if "//" not in path:
-          stor=sFile(**kw)
+            stor=SEPFile(**kw)
         elif path[:5]=="gs://":
-          stor=sGcsObj(**kw)
+            stor=SEPGcsObj(**kw)
         self.addStorage(path,stor)
         return stor
         
-converter=sepPython.sepConverter.converter
+converter=sep_python.sep_converter.converter
 
 
-def databaseFromStr(strIn:str,dataB:dict):
-  lines=strIn.split("\n")
-  parq1=re.compile(r'([^\s]+)="(.+)"')
-  parq2=re.compile(r"(\S+)='(.+)'")
-  parS=re.compile(r'(\S+)=(\S+)')
-  commaS=re.compile(',')
-  for line in lines:
-    args=line.split()
-    comment=0
-    for arg in args:
-      if arg[0]=="#": comment=1
-      res=None
-      if comment!=1:
-        q=0
-        res=parq1.search(arg)
-        if res: 
-          q=1
-          meth=0
-        else:
-          res=parq2.search(arg)
-          if res: 
-            q=1
-            meth=1
-          else:
-            res=parS.search(arg)
-            meth=2
-      if res:
-        if res.group(1)=="par":
-          try:
-            f2=open(res.group(2))
-          except:
-            self._logger.fatal(f"Trouble opening {res.group(2)}")
-            raise Exception("") 
-          databaseFromStr(f2.read(),dataB)
-          f2.close()
-        else:
-          val=res.group(2)
-          if isinstance(val,str): 
-            if commaS.search(val): val=val.split(",")
-          dataB[f"{str(res.group(1))}"]=val
-  return dataB
+def database_from_str(strIn:str,dataB:dict):
+    lines=strIn.split("\n")
+    parq1=re.compile(r'([^\s]+)="(.+)"')
+    parq2=re.compile(r"(\S+)='(.+)'")
+    parS=re.compile(r'(\S+)=(\S+)')
+    commaS=re.compile(',')
+    for line in lines:
+        args=line.split()
+        comment=0
+        for arg in args:
+            if arg[0]=="#": comment=1
+            res=None
+            if comment!=1:
+              q=0
+              res=parq1.search(arg)
+              if res: 
+                q=1
+                meth=0
+              else:
+                res=parq2.search(arg)
+                if res: 
+                  q=1
+                  meth=1
+                else:
+                  res=parS.search(arg)
+                  meth=2
+            if res:
+              if res.group(1)=="par":
+                try:
+                  f2=open(res.group(2))
+                except:
+                  self._logger.fatal(f"Trouble opening {res.group(2)}")
+                  raise Exception("") 
+                databaseFromStr(f2.read(),dataB)
+                f2.close()
+              else:
+                val=res.group(2)
+                if isinstance(val,str): 
+                  if commaS.search(val): val=val.split(",")
+                dataB[f"{str(res.group(1))}"]=val
+    return dataB
 
 def checkValid(kw:dict,args:dict):
   """Check to make sure keyword is of the correct type
@@ -118,11 +121,11 @@ def checkValid(kw:dict,args:dict):
         logging.getLogger().fatal(f"Expecting {arg} to be of type {typ} but is type {type(arg)}")
         raise Exception("")
 
-class reg(sepPython.ioBase.regFile):
+class reg(sep_python.io_base.RegFile):
   """A class to """
   def __init__(self,**kw):
 
-    checkValid(kw,{"hyper":hypercube,"path":str,"vec":sepPython.sepProto.memReg,
+    checkValid(kw,{"hyper":hypercube,"path":str,"vec":sep_python.sepProto.memReg,
       "array":np.ndarray,"os":list,"ds":list,"labels":list,
       "units":list,"logger":logging.Logger})
 
@@ -164,7 +167,7 @@ class reg(sepPython.ioBase.regFile):
               self._logger.fatal("Shape of hypercube and array are different")
               raise Exception("")
           else:
-            self._hyper=hypercube(ns=ns,os=os,ds=ds,labels=labels,units=units)
+            self._hyper=Hypercube(ns=ns,os=os,ds=ds,labels=labels,units=units)
       elif "vec" in kw:
         array=kw["vec"].getNdArray()
         self._hyper=kw["vec"].getHyper()
@@ -200,7 +203,7 @@ class reg(sepPython.ioBase.regFile):
       self._logger.fatal("Did not provide a valid way to create a dataset")
       raise Exception("")
     
-  def buildParamsFromHyper(self,hyper:hypercube):
+  def build_params_from_hyper(self,hyper:Hypercube):
     """Build parameters from hypercube"""
     pars={}
     self._history="";
@@ -246,11 +249,11 @@ class reg(sepPython.ioBase.regFile):
         unit=""
       ndim+=1
       if not found:
-        axes.append(axis(n=n,o=o,d=d,label=label,unit=unit))
+        axes.append(Axis(n=n,o=o,d=d,label=label,unit=unit))
       if "ndims" in kw:
         if kw["ndims"] > len(axes):
           axes.append(n=1)
-    self._hyper=hypercube(axes=axes)
+    self._hyper=Hypercube(axes=axes)
     
     if "in" in pars:
         self.setBinaryPath(pars["in"])
@@ -388,7 +391,7 @@ class reg(sepPython.ioBase.regFile):
     if not self._wroteHistory and self._intent=="OUTPUT":
       self.writeDescription()
      
-class sFile(reg):
+class SEPFile(reg):
   """Class when SEP data is stored in a file"""
 
   def __init__(self,**kw):
@@ -469,7 +472,7 @@ class sFile(reg):
     #self._history=self._history.replace("\\n","\n").replace("\\t","\t")
 
     pars={}
-    pars=databaseFromStr(self._history,pars)
+    pars=database_from_str(self._history,pars)
     return pars
     
   def read(self,mem,**kw):
@@ -482,7 +485,7 @@ class sFile(reg):
       nw,fw,jw - Standard window parameters
 
     """
-    if isinstance(mem,sepPython.sepProto.memReg):
+    if isinstance(mem,sep_python.sepProto.memReg):
       array=mem.getNdArray()
     elif isinstance(mem,np.ndarray):
       array=mem
@@ -526,7 +529,7 @@ class sFile(reg):
       nw,fw,jw - Standard window parameters
 
     """
-    if isinstance(mem,sepPython.sepProto.memReg):
+    if isinstance(mem,sep_python.sepProto.memReg):
       array=mem.getNdArray()
     elif isinstance(mem,np.ndarray):
       array=mem
@@ -577,7 +580,7 @@ class sFile(reg):
       self._logger.fatal(f"Tried to remove file {self._path}")
       raise Exception("")
 
-class sGcsObj(reg):
+class SEPGcsObj(reg):
   """Class when SEP data is stored in an object"""
 
   def __init__(self,**kw):
@@ -650,7 +653,7 @@ class sGcsObj(reg):
       for k,v in pars.items():
           newS+=f"{k}={v}"
       if "history" in pars:
-          pars=databaseFromStr(pars["history"],pars)
+          pars=database_from_str(pars["history"],pars)
           self._history=pars["history"]
           if "progName" in pars:
               self._history+=f"\n{pars['progName']}\n"
@@ -705,7 +708,7 @@ class sGcsObj(reg):
               new_blob = bucket.rename_blob(self._blobs[0], self._object)
           else:
             with futures.ThreadPoolExecutor(max_workers=60) as executor:
-              destination=sepPython.gcpHelper.compose(f"gs://{self._bucket}/{self._object}",self._blobs,storage_client,executor,
+              destination=sep_python.gcpHelper.compose(f"gs://{self._bucket}/{self._object}",self._blobs,storage_client,executor,
               self._logger)
           self.writeDescriptionFinal()
           found=True
@@ -751,7 +754,7 @@ class sGcsObj(reg):
 
       """
 
-      if isinstance(mem,sepPython.sepProto.memReg):
+      if isinstance(mem,sep_python.sepProto.memReg):
         array=mem.getNdArray()
       elif isinstance(mem,np.ndarray):
         array=mem
@@ -788,7 +791,7 @@ class sGcsObj(reg):
       """
 
 
-      if isinstance(mem,sepPython.sepProto.memReg):
+      if isinstance(mem,sep_python.sepProto.memReg):
         array=mem.getNdArray()
       elif isinstance(mem,np.ndarray):
         array=mem

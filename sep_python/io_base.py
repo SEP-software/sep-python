@@ -1,18 +1,19 @@
-import sepPython.sepConverter
-import sepPython.sepProto
-from sepPython.hypercube import Hypercube,Axis
 import logging
+import sep_python.sep_converter
+import sep_python.sep_proto
+from sep_python.hypercube import Hypercube,Axis
 
-converter=sepPython.sepConverter.converter
+converter=sep_python.sep_converter.converter
 
 
-class reg_file:
+class RegFile:
 
     def __init__(self):
         """Default class for a regular file
 
 
         """
+        self._head=0
         self._hyper=None
         self._history=""
         self._data_type=None
@@ -78,7 +79,7 @@ class reg_file:
         """Return the data type assoicated with the file
 
         """
-        if type(self._data_type)==None:
+        if type(self._data_type) is None:
             self._logger.fatal("Datatype has not been set")
             raise Exception("")
         return self._data_type
@@ -88,7 +89,6 @@ class reg_file:
         Return the path to the binary
         """
         return self._binary_path
-    
     def set_binary_path(self,path:str):
         """
         Set the path to the binary
@@ -104,7 +104,7 @@ class reg_file:
     def remove(self,error_if_not_exists:bool=True):
         """Remove data
         
-            error_if_not_exists : Return an error if the blob does not exist
+            error_if_not_exists : Return an error if the blockob does not exist
         
         
         """
@@ -159,26 +159,26 @@ class reg_file:
         self._logger.fatal("Must override putPar")
         raise Exception("")
 
-    def read(self,vec:sepPython.sepProto.memReg,**kw):
+    def read(self,vec:sep_python.sep_proto.MemReg,**kw):
         """
             Read dataset, potentially a window
 
         vec- Storage to read into
         
         Optional:
-            nw,fw,jw - Windowing parameters
+            n_wind,fwind,jwind - Windowing parameters
         """
         self._logger.fatal("Must override read")
         raise Exception("")
 
-    def write(self,vec:sepPython.sepProto.memReg,**kw):
+    def write(self,vec:sep_python.sep_proto.MemReg,**kw):
         """
             Write dataset, potentially a window
 
         vec- Storage to read into
         
         Optional:
-            nw,fw,jw - Windowing parameters
+            n_wind,fwind,jwind - Windowing parameters
         """
         self._logger.fatal("Must override read")
         raise Exception("")
@@ -208,100 +208,100 @@ class reg_file:
         """
         self.close()
 
-    def condense(self,nw_in:list,fw_in:list,jw_in:list)->tuple(list,list,list,list,list):
+    def condense(self,nwind_in:list,fwind_in:list,jwind_in:list):
 
         """Figure out the best way to write a given request
         
-        nw_in - list [int] windowing parameters (number of samples)
-        fw_in - list [int] windowing parameters (initial sample)
-        jw_in - list [int] skip parameter
+        nwind_in - list [int] windowing parameters (number of samples)
+        fwind_in - list [int] windowing parameters (initial sample)
+        jwind_in - list [int] skip parameter
         
         Output:
-            ngOut,nwOut,fwOut,jwOut,bl
+            ngOut,nwOut,fwindOut,jwindOut,block
         """
-        nw_out=[nw_in[0]]
+        nwind_out=[nwind_in[0]]
         ng_in=self._hyper.get_ns()
         ng_out=[ng_in[0]]
-        fw_out=[fw_in[0]]
-        jw_out=[jw_in[0]]
+        fwind_out=[fwind_in[0]]
+        jwind_out=[jwind_in[0]]
         iout=0
-        bl=nw_out[0]
-        for i in range(1,len(nw_in)):
+        block=nwind_out[0]
+        for i in range(1,len(nwind_in)):
             #We have the whole axis
-            if nw_in[i]==ng_in[i]:
-                nw_out[iout]*=ng_in[i]
-                bl*=nw_in[i]
+            if nwind_in[i]==ng_in[i]:
+                nwind_out[iout]*=ng_in[i]
+                block*=nwind_in[i]
                 ng_out[iout]*=ng_in[i]
 
             #We have a single chunk of th axis
-            elif jw_in[i]==1:
-                jw_out[iout]=bl*jw_in[i]
-                fw_out[iout]=bl*fw_in[i]
-                nw_out[iout]=bl*nw_in[i]
+            elif jwind_in[i]==1:
+                jwind_out[iout]=block*jwind_in[i]
+                fwind_out[iout]=block*fwind_in[i]
+                nwind_out[iout]=block*nwind_in[i]
                 ng_out[iout]*=ng_in[i]
-                if i!=len(nw_in)-1:
-                    jw_out.append(1)
-                    fw_out.append(0)
-                    nw_out.append(1)
+                if i!=len(nwind_in)-1:
+                    jwind_out.append(1)
+                    fwind_out.append(0)
+                    nwind_out.append(1)
                     ng_out.append(1)
                     iout+=1
                 else:
                     iout+=1
-                    fw_out.append(fw_in[i])
-                    jw_out.append(jw_in[i])
-                    nw_out.append(nw_in[i])
+                    fwind_out.append(fwind_in[i])
+                    jwind_out.append(jwind_in[i])
+                    nwind_out.append(nwind_in[i])
                     ng_out.append(ng_in[i])
 
         for i in range(len(ng_out),8):
             ng_out.append(1)
-            nw_out.append(1)
-            fw_out.append(0)
-            jw_out.append(1)
-        bl=[1]
+            nwind_out.append(1)
+            fwind_out.append(0)
+            jwind_out.append(1)
+        block=[1]
         for i in range(8):
-            bl.append(ng_out[i]*bl[i])
-        return ng_out,nw_out,fw_out,jw_out,bl
+            block.append(ng_out[i]*block[i])
+        return ng_out,nwind_out,fwind_out,jwind_out,block
 
     def close(self):
         """ Close file"""
         pass
 
-    def loop_it(self,ng:list,nw:list,fw:list,jw:list,bl:list)->list:
+    def loop_it(self,ng:list,n_wind:list,fwind:list,jwind:list,block:list)->list:
         seeks=[]
         esize=converter.get_esize(self.get_data_type())
 
         for ig7 in range(ng[7]):
-            pos7=self._head+(fw[7]+jw[7]*bl[7])*ig7
+            pos7=self._head+(fwind[7]+jwind[7]*block[7])*ig7
             for ig6 in range(ng[6]):
-                pos6=pos7+(fw[6]+jw[6]*bl[6])*ig6
+                pos6=pos7+(fwind[6]+jwind[6]*block[6])*ig6
                 for ig5 in range(ng[5]):
-                    pos5=pos6+(fw[5]+jw[5]*bl[5])*ig5
+                    pos5=pos6+(fwind[5]+jwind[5]*block[5])*ig5
                     for ig4 in range(ng[4]):
-                        pos4=pos5+(fw[4]+jw[4]*bl[4])*ig4
+                        pos4=pos5+(fwind[4]+jwind[4]*block[4])*ig4
                         for ig3 in range(ng[3]):
-                            pos3=pos4+(fw[3]+jw[3]*bl[3])*ig3
+                            pos3=pos4+(fwind[3]+jwind[3]*block[3])*ig3
                             for ig2 in range(ng[2]):
-                                pos2=pos3+(fw[2]+jw[2]*bl[2])*ig2
+                                pos2=pos3+(fwind[2]+jwind[2]*block[2])*ig2
                                 for ig1 in range(ng[1]):
-                                    pos1=pos2+(fw[1]+jw[1]*bl[1])*ig1
-                                    if jw[0] ==1:
+                                    pos1=pos2+(fwind[1]+jwind[1]*block[1])*ig1
+                                    if jwind[0] ==1:
                                         seeks.append(pos1)
                                     else:
                                         for ig0 in range(ng[0]):
-                                            seeks.append(pos1+(fw[0]+jw[0]*bl[0])*ig0)
-        if jw[0]==1:
-            return seeks,esize*nw[0],nw[0],len(seeks)==1
+                                            seeks.append(pos1+(fwind[0]+jwind[0]*block[0])*ig0)
+        if jwind[0]==1:
+            return seeks,esize*n_wind[0],n_wind[0],len(seeks)==1
         else:
             return seeks,esize,1,False
 
 
-class In_out:
+class InOut:
 
     def __init__(self,mem_create):
         """Initialize default IO"""
         self._objs={}
         self.append_files={}
-        self._memCreate=memCreate
+        self._mem_create=mem_create
         self._logger=logging.getLogger(None)
     
     def set_logger(self,log:logging.Logger):
@@ -324,6 +324,7 @@ class In_out:
         """
         self._logger.fatal("must ovveride getRegFile")
         raise Exception("")
+        return None
 
     def get_reg_vector(self,*arg,**kw):
         """
@@ -336,22 +337,22 @@ class In_out:
                     labels = [] list of labels
                     axes = [] list of axes
 
-            dataFormat = dataFormatType(float32[default], float64,double64,int32,complex64,complex128)
+            dataFormat = dataFormatType(float32[default], float64,doublocke64,int32,complex64,complex128)
 
             Option 4 (numpy)
                 Provide hyper, ns, os, or ds,label,s axes
 
         """
-        x= self._memCreate(*arg,**kw)
+        x= self._mem_create(*arg,**kw)
         return x
 
-    def add_storage(self,path, storageObj):
+    def add_storage(self,path, storage_obj):
         """Add regFile to list of files
 
            path - Path to storage
-            storageObj - Object to add to list
+            storage_obj - Object to add to list
         """
-        self._objs[path]=storageObj
+        self._objs[path]=storage_obj
        
     def get_storage(self, path):
         """Return object to interact with storage
@@ -380,17 +381,17 @@ class In_out:
         self.add_storage(path,file)
         self._objs[path] = file
     
-        nw,fw,jw=file.getHyper().get_window_params(**kw)
+        n_wind,fwind,jwind=file.getHyper().get_window_params(**kw)
         aout=[]
         ain=file.get_hyper().axes
-        for i in range(len(nw)):
-            aout.append(axis(n=nw[i],label=ain[i].label,
-             unit=ain[i].unit,d=ain[i].d*jw[i],
-             o=ain[i].o+ain[i].d*fw[i]))
+        for i in range(len(n_wind)):
+            aout.append(Axis(n=n_wind[i],label=ain[i].label,
+             unit=ain[i].unit,d=ain[i].d*jwind[i],
+             o=ain[i].o+ain[i].d*fwind[i]))
 
-        hyperOut =hypercube(axes=aout)
+        hyper_out =Hypercube(axes=aout)
 
-        vec=self._mem_create(hyperOut,data_format=file.get_data_type())
+        vec=self._mem_create(hyper_out,data_format=file.get_data_type())
         file.read(vec)
         return vec
 
@@ -398,74 +399,72 @@ class In_out:
         """Write entire sepVector to disk
            path - File to write to
            vec - Vector to write"""
-        
-        file=self.getRegStorage(vec=vec,path=path)
+        file=self.get_reg_storage(vec=vec,path=path)
         file.write(vec)
-   
     def write_vectors(self, obj, vecs, ifirst):
         """Write a collection of vectors to a path
                 obj - Object to interact with storage
                 vecs - Vectors
                 ifirst - Position in object for first vector"""
-        nw = obj.getHyper().get_ns()
-        fw = [0] * len(nw)
-        jw = [1] * len(nw)
-        nw[len(nw) - 1] = 1
+        n_wind = obj.getHyper().get_ns()
+        fwind = [0] * len(n_wind)
+        jwind = [1] * len(n_wind)
+        n_wind[len(n_wind) - 1] = 1
         iouter = ifirst
         for vec in vecs:
-            fw[len(fw) - 1] = iouter
+            fwind[len(fwind) - 1] = iouter
             iouter += 1
-            obj.write(vec,nw=nw,fw=fw,jw=jw)
+            obj.write(vec,n_wind=n_wind,fwind=fwind,jwind=jwind)
 
-    def append_vector(self, path, vec, maxLength=1000, flush=1):
+    def append_vector(self, path, vec, max_length=1000, flush=1):
         """Write entire sepVector to disk
            path - File to write to
            vec - Vector to write
-           maxLength - Maximum number of appended frames
+           max_length - Maximum number of appended frames
            flush - How often to flush the files"""
-        if path not in self.appendFiles:
-            self.appendFiles[path] = AppendFile(
-                self, path, vec, maxLength, flush)
-        if self.appendFiles[path].addVector(vec):
-            vs = self.appendFiles[path].flushVectors()
-            if self.appendFiles[path].icount > self.appendFiles[path].nmax:
-                self.appendFiles[path].finish()
-            self.writeVectors(
-                self.appendFiles[path].file,
-                vs, self.appendFiles[path].icount - len(vs))
+        if path not in self.append_files:
+            self.append_files[path] = Append_File(
+                self, path, vec, max_length, flush)
+        if self.append_files[path].add_vector(vec):
+            vs = self.append_files[path].flushVectors()
+            if self.append_files[path].icount > self.append_files[path].nmax:
+                self.append_files[path].finish()
+            self.write_vectors(
+                self.append_files[path].file,
+                vs, self.append_files[path].icount - len(vs))
 
     def close_append_file(self, path):
         """Close an append file and fix the description to the right number of frames"""
-        if path not in self.appendFiles:
+        if path not in self.append_files:
             self._logger.fatal("No record of appended file")
             raise Exception("")
         vs = self.append_files[path].flushVectors()
         self.write_vectors(
             self.append_files[path].file,
-            vs, self.appendFiles[path].icount - len(vs))
-        self.append_files[tag].finish(0)
+            vs, self.append_files[path].icount - len(vs))
+        self.append_files[path].finish(0)
 
 
 
-class Append_file:
+class Append_File:
     """Class for append files"""
 
-    def __init__(self, io,path, vec, maxLength, flush):
+    def __init__(self, io,path, vec, max_length, flush):
         """
                 io - IO to use
                 path - path to file
                 vec - Vector
-                maxLength - Maximum number of frames
+                max_length - Maximum number of frames
                 flush - How often to flush a file"""
         self.shape = vec.cloneSpace()
         self.vecs = []
         self.flush = flush
         self.hyper = vec.getHyper()
-        self.hyper.add_axis(axis(n=maxLength))
-        self.nmax = maxLength
-        self._data_format=vec.get_data_for,at()
+        self.hyper.add_axis(Axis(n=max_length))
+        self.nmax = max_length
+        self._data_format=vec.get_data_format()
  
-        self.file = io.gety_reg_storage(path, hyper=self.hyper, data_format=storage)
+        self.file = io.gety_reg_storage(path, hyper=self.hyper, data_format=self._data_format)
         self.icount = 0
 
     def add_vector(self, vec):
@@ -488,5 +487,5 @@ class Append_file:
         """Fix the correct number of frames in a file and update description"""
         self.hyper.axes[len(self.hyper.axes) - 1].n = self.icount + iextra
         self.file.setHyper(self.hyper)
-        self.writeDescrption()
+        self.file.write_description()
         self.nmax = self.icount + iextra
