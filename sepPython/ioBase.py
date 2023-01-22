@@ -1,12 +1,12 @@
 import sepPython.sepConverter
 import sepPython.sepProto
-from sepPython.Hypercube import hypercube,axis
+from sepPython.hypercube import Hypercube,Axis
 import logging
 
 converter=sepPython.sepConverter.converter
 
 
-class regFile:
+class reg_file:
 
     def __init__(self):
         """Default class for a regular file
@@ -15,13 +15,13 @@ class regFile:
         """
         self._hyper=None
         self._history=""
-        self._dataType=None
-        self._progName="Generic Python Program"
-        self._IOtype="Unknown"
-        self._binaryPath=None
+        self._data_type=None
+        self._prog_name="Generic Python Program"
+        self._io_type="Unknown"
+        self._binary_path=None
         self._logger=logging.getLogger(None)
 
-    def setLogger(self,logger:logging.Logger):
+    def set_logger(self,logger:logging.Logger):
         """
         Set the logger
 
@@ -29,7 +29,7 @@ class regFile:
         """
         self._logger=logger
 
-    def setHyper(self,hyper:hypercube):
+    def set_hyper(self,hyper:Hypercube):
         """
         Set the hypercube for the dataset
         
@@ -38,14 +38,14 @@ class regFile:
         """
         self._hyper=hyper
     
-    def getHyper(self)->hypercube:
+    def get_hyper(self)->Hypercube:
         """
         Get the hypercube associated with the regular dataset"""
         if self._hyper==None:
             self._logger.fatal("Hypercube has not been set")
         return self._hyper
     
-    def setHistory(self,hist:str):
+    def set_history(self,hist:str):
         """
         Set the history assoicated with a dataset
 
@@ -53,65 +53,65 @@ class regFile:
         """
         self._history=hist
 
-    def setProgName(self,nm:str):
+    def set_prog_name(self,nm:str):
         """
             Set the name of the current program
 
         """
-        self._progName=nm
+        self._prog_name=nm
 
-    def getProgramName(self)->str:
+    def get_prog_name(self)->str:
         """
         Return program name
         """
-        return self._progName
+        return self._prog_name
 
-    def setDataType(self,typ):
+    def set_data_type(self,typ):
         """
             Set the data type for the dataset
 
             typ - Data type for dataset
         """
-        self._dataType=typ
+        self._data_type=typ
 
-    def getDataType(self)->str:
+    def get_data_type(self)->str:
         """Return the data type assoicated with the file
 
         """
-        if type(self._dataType)==None:
+        if type(self._data_type)==None:
             self._logger.fatal("Datatype has not been set")
             raise Exception("")
-        return self._dataType
+        return self._data_type
 
-    def getBinaryPath(self):
+    def get_binary_path(self):
         """
         Return the path to the binary
         """
-        return self._binaryPath
+        return self._binary_path
     
-    def setBinaryPath(self,path:str):
+    def set_binary_path(self,path:str):
         """
         Set the path to the binary
         """
-        self._binaryPath=path
+        self._binary_path=path
 
     def __repr__(self):
         """Print information about file"""
-        x=f"Regular file, type={self._ioType} storage={self.getDataType()} binary={self.getBinaryPath()}\n"
-        x+=str(self.getHyper())
+        x=f"Regular file, type={self._io_type} storage={self.get_data_type()} binary={self.get_binary_path()}\n"
+        x+=str(self.get_hyper())
         return x
 
-    def remove(self,errorIfNotExists:bool=True):
+    def remove(self,error_if_not_exists:bool=True):
         """Remove data
         
-            errorIfNotExists : Return an error if the blob does not exist
+            error_if_not_exists : Return an error if the blob does not exist
         
         
         """
         self._logger.fatal("Must override remove")
         raise Exception("")
 
-    def getInt(self,param:str,default=None)->int:
+    def get_int(self,param:str,default=None)->int:
         """Return parameter of int
             param - Parameter to retrieve
             default - Default value 
@@ -119,7 +119,7 @@ class regFile:
         self._logger.fatal("Must override getInt")
         raise Exception("")
 
-    def getFloat(self,param:str,default=None)->float:
+    def get_float(self,param:str,default=None)->float:
         """Return parameter of type float
             param - Parameter to retrieve
             default - Default value 
@@ -127,7 +127,7 @@ class regFile:
         self._logger.fatal("Must override getFloat")
         raise Exception("")
 
-    def getString(self,param:str,default=None)->str:
+    def get_string(self,param:str,default=None)->str:
         """Return parameter of type string
             param - Parameter to retrieve
             default - Default value 
@@ -135,7 +135,7 @@ class regFile:
         self._logger.fatal("Must override getString")
         raise Exception("")
 
-    def getInts(self,param:str,default=None)->list:
+    def get_ints(self,param:str,default=None)->list:
         """Return parameter of type int arrau
             param - Parameter to retrieve
             default - Default value 
@@ -143,7 +143,7 @@ class regFile:
         self._logger.fatal("Must override getInts")
         raise Exception("")
 
-    def getFloats(self,param:str,default=None)->float:
+    def get_floats(self,param:str,default=None)->float:
         """Return parameter of float arry
             param - Parameter to retrieve
             default - Default value 
@@ -151,7 +151,7 @@ class regFile:
         self._logger.fatal("Must override getFloats")
         raise Exception("")
 
-    def putPar(self,param:str,val):
+    def put_par(self,param:str,val):
         """Store a parameter
 
             param - Parameter to store
@@ -183,7 +183,7 @@ class regFile:
         self._logger.fatal("Must override read")
         raise Exception("")
 
-    def hyperToDict(self,myd:dict):
+    def hyper_to_dict(self,myd:dict):
         idim=1
         for ax in self._hyper.axes:
             myd[f"n{idim}"]=ax.n
@@ -194,7 +194,7 @@ class regFile:
             idim+=1
         return myd
     
-    def hyperToStr(self):
+    def hyper_to_str(self):
         idim=1
         out=""
         for ax in self._hyper.axes:
@@ -208,67 +208,67 @@ class regFile:
         """
         self.close()
 
-    def condense(self,nwIn:list,fwIn:list,jwIn:list)->(list,list,list,list,list):
+    def condense(self,nw_in:list,fw_in:list,jw_in:list)->tuple(list,list,list,list,list):
 
         """Figure out the best way to write a given request
         
-        nwIn - list [int] windowing parameters (number of samples)
-        fwIn - list [int] windowing parameters (initial sample)
-        jwIn - list [int] skip parameter
+        nw_in - list [int] windowing parameters (number of samples)
+        fw_in - list [int] windowing parameters (initial sample)
+        jw_in - list [int] skip parameter
         
         Output:
             ngOut,nwOut,fwOut,jwOut,bl
         """
-        nwOut=[nwIn[0]]
-        ngIn=self._hyper.getNs()
-        ngOut=[ngIn[0]]
-        fwOut=[fwIn[0]]
-        jwOut=[jwIn[0]]
+        nw_out=[nw_in[0]]
+        ng_in=self._hyper.get_ns()
+        ng_out=[ng_in[0]]
+        fw_out=[fw_in[0]]
+        jw_out=[jw_in[0]]
         iout=0
-        bl=ngOut[0]
-        for i in range(1,len(nwIn)):
+        bl=nw_out[0]
+        for i in range(1,len(nw_in)):
             #We have the whole axis
-            if nwIn[i]==ngIn[i]:
-                nwOut[iout]*=ngIn[i]
-                bl*=nwIn[i]
-                ngOut[iout]*=ngIn[i]
+            if nw_in[i]==ng_in[i]:
+                nw_out[iout]*=ng_in[i]
+                bl*=nw_in[i]
+                ng_out[iout]*=ng_in[i]
 
             #We have a single chunk of th axis
-            elif jw[i]==1:
-                jwOut[iout]=bl*jwIn[i]
-                fwOut[iout]=bl*fwIn[i]
-                nwOut[iout]=bl*nwIn[i]
-                ngOut[iout]*=ngIn[i]
-                if i!=len(nwIn)-1:
-                    jwOut.append(1)
-                    fWout.append(0)
-                    nwOut.append(1)
-                    ngOut.append(1)
+            elif jw_in[i]==1:
+                jw_out[iout]=bl*jw_in[i]
+                fw_out[iout]=bl*fw_in[i]
+                nw_out[iout]=bl*nw_in[i]
+                ng_out[iout]*=ng_in[i]
+                if i!=len(nw_in)-1:
+                    jw_out.append(1)
+                    fw_out.append(0)
+                    nw_out.append(1)
+                    ng_out.append(1)
                     iout+=1
                 else:
                     iout+=1
-                    fwOut.append(fwIn[i])
-                    jwOut.append(jwIn[i])
-                    nwOut.append(nwIn[i])
-                    ngOut.append(ngIn[i])
+                    fw_out.append(fw_in[i])
+                    jw_out.append(jw_in[i])
+                    nw_out.append(nw_in[i])
+                    ng_out.append(ng_in[i])
 
-        for i in range(len(ngOut),8):
-            ngOut.append(1)
-            nwOut.append(1)
-            fwOut.append(0)
-            jwOut.append(1)
+        for i in range(len(ng_out),8):
+            ng_out.append(1)
+            nw_out.append(1)
+            fw_out.append(0)
+            jw_out.append(1)
         bl=[1]
         for i in range(8):
-            bl.append(ngOut[i]*bl[i])
-        return ngOut,nwOut,fwOut,jwOut,bl
+            bl.append(ng_out[i]*bl[i])
+        return ng_out,nw_out,fw_out,jw_out,bl
 
     def close(self):
         """ Close file"""
         pass
 
-    def loopIt(self,ng:list,nw:list,fw:list,jw:list,bl:list)->list:
+    def loop_it(self,ng:list,nw:list,fw:list,jw:list,bl:list)->list:
         seeks=[]
-        esize=converter.getEsize(self.getDataType())
+        esize=converter.get_esize(self.get_data_type())
 
         for ig7 in range(ng[7]):
             pos7=self._head+(fw[7]+jw[7]*bl[7])*ig7
@@ -295,16 +295,16 @@ class regFile:
             return seeks,esize,1,False
 
 
-class inout:
+class In_out:
 
-    def __init__(self,memCreate):
+    def __init__(self,mem_create):
         """Initialize default IO"""
         self._objs={}
-        self.appendFiles={}
+        self.append_files={}
         self._memCreate=memCreate
         self._logger=logging.getLogger(None)
     
-    def setLogger(self,log:logging.Logger):
+    def set_logger(self,log:logging.Logger):
         """
 
         Set logging for io base
@@ -315,7 +315,7 @@ class inout:
         self._logger=log
 
 
-    def getRegStorage(self,  **kw):
+    def get_reg_storage(self,  **kw):
         """Get object to deal with storage
                 Requiered:
                         path - Path to file
@@ -325,7 +325,7 @@ class inout:
         self._logger.fatal("must ovveride getRegFile")
         raise Exception("")
 
-    def getRegVector(self,*arg,**kw):
+    def get_reg_vector(self,*arg,**kw):
         """
             Option 1 (supply hypercube):
                     hyper, kw args
@@ -345,7 +345,7 @@ class inout:
         x= self._memCreate(*arg,**kw)
         return x
 
-    def addStorage(self,path, storageObj):
+    def add_storage(self,path, storageObj):
         """Add regFile to list of files
 
            path - Path to storage
@@ -353,7 +353,7 @@ class inout:
         """
         self._objs[path]=storageObj
        
-    def getStorage(self, path):
+    def get_storage(self, path):
         """Return object to interact with storage
 
             path - Tag associated with file
@@ -363,7 +363,7 @@ class inout:
             raise Exception("")
         return self._objs[path]
  
-    def vectorFromStorage(self, path,  **kw):
+    def vector_from_storage(self, path,  **kw):
         """Get vector from a file and read its contents
 
            path -Path for vector
@@ -376,13 +376,13 @@ class inout:
 
         """
         kw["path"]=path
-        file = self.getRegStorage( **kw)
-        self.addStorage(path,file)
+        file = self.get_reg_storage( **kw)
+        self.add_storage(path,file)
         self._objs[path] = file
     
-        nw,fw,jw=file.getHyper().getWindowParams(**kw)
+        nw,fw,jw=file.getHyper().get_window_params(**kw)
         aout=[]
-        ain=file.getHyper().axes
+        ain=file.get_hyper().axes
         for i in range(len(nw)):
             aout.append(axis(n=nw[i],label=ain[i].label,
              unit=ain[i].unit,d=ain[i].d*jw[i],
@@ -390,11 +390,11 @@ class inout:
 
         hyperOut =hypercube(axes=aout)
 
-        vec=self._memCreate(hyperOut,dataFormat=file.getDataType())
+        vec=self._mem_create(hyperOut,data_format=file.get_data_type())
         file.read(vec)
         return vec
 
-    def writeVector(self, path, vec):
+    def write_vector(self, path, vec):
         """Write entire sepVector to disk
            path - File to write to
            vec - Vector to write"""
@@ -402,12 +402,12 @@ class inout:
         file=self.getRegStorage(vec=vec,path=path)
         file.write(vec)
    
-    def writeVectors(self, obj, vecs, ifirst):
+    def write_vectors(self, obj, vecs, ifirst):
         """Write a collection of vectors to a path
                 obj - Object to interact with storage
                 vecs - Vectors
                 ifirst - Position in object for first vector"""
-        nw = obj.getHyper().getNs()
+        nw = obj.getHyper().get_ns()
         fw = [0] * len(nw)
         jw = [1] * len(nw)
         nw[len(nw) - 1] = 1
@@ -417,7 +417,7 @@ class inout:
             iouter += 1
             obj.write(vec,nw=nw,fw=fw,jw=jw)
 
-    def appendVector(self, path, vec, maxLength=1000, flush=1):
+    def append_vector(self, path, vec, maxLength=1000, flush=1):
         """Write entire sepVector to disk
            path - File to write to
            vec - Vector to write
@@ -434,20 +434,20 @@ class inout:
                 self.appendFiles[path].file,
                 vs, self.appendFiles[path].icount - len(vs))
 
-    def closeAppendFile(self, path):
+    def close_append_file(self, path):
         """Close an append file and fix the description to the right number of frames"""
         if path not in self.appendFiles:
             self._logger.fatal("No record of appended file")
             raise Exception("")
-        vs = self.appendFiles[path].flushVectors()
-        self.writeVectors(
-            self.appendFiles[path].file,
+        vs = self.append_files[path].flushVectors()
+        self.write_vectors(
+            self.append_files[path].file,
             vs, self.appendFiles[path].icount - len(vs))
-        self.appendFiles[tag].finish(0)
+        self.append_files[tag].finish(0)
 
 
 
-class AppendFile:
+class Append_file:
     """Class for append files"""
 
     def __init__(self, io,path, vec, maxLength, flush):
@@ -461,14 +461,14 @@ class AppendFile:
         self.vecs = []
         self.flush = flush
         self.hyper = vec.getHyper()
-        self.hyper.addAxis(axis(n=maxLength))
+        self.hyper.add_axis(axis(n=maxLength))
         self.nmax = maxLength
-        self._dataFormat=vec.getDataFormat()
+        self._data_format=vec.get_data_for,at()
  
-        self.file = io.getRegStorage(path, hyper=self.hyper, dataFormat=storage)
+        self.file = io.gety_reg_storage(path, hyper=self.hyper, data_format=storage)
         self.icount = 0
 
-    def addVector(self, vec):
+    def add_vector(self, vec):
         """Adds a vector to this of vectors being held"""
         self.vecs.append(vec.clone())
         self.icount += 1
@@ -476,7 +476,7 @@ class AppendFile:
             return True
         return False
 
-    def flushVectors(self):
+    def flush_vectors(self):
         """Return the list of vectors, zero out"""
         vs = []
         for v in self.vecs:

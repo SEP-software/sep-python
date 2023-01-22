@@ -1,48 +1,54 @@
+"""
+
+    Module to select mode of operation (what vector and what io to use)
+
+
+"""
+import logging
 import sepPython.sepIO
 import sepPython.SepVector
-import logging
 
 
-class modes:
+class Modes:
     """Class for selecting modes"""
     def __init__(self):
-       self._modes={}
-       self._logger=logging.getLogger(None)
+        self._modes={}
+        self._logger=logging.getLogger(None)
 
 
-    def setLogger(self,logger:logging.Logger):
+    def set_logger(self,logger:logging.Logger):
         """
 
         Set the logger for mode
 
-        logger 
+        logger
 
         """
         self._logger(logger)
 
 
-    def addMode(self,name,ioP,memC):
+    def add_mode(self,name,io_pointer,mem_creator):
         """
-        Add a new mode 
+        Add a new mode
 
         name - Name for the mode
-        ioP -  Pointer to the IO Class
-        memC - Pointer on how to create memory
+        io_pointer -  Pointer to the IO Class
+        mem_creator - Pointer on how to create memory
         """
-        self._modes[name]=ioP(memC)
+        self._modes[name]=io_pointer(mem_creator)
 
-    def getMode(self,typ):
+    def get_mode(self,typ):
         """Get a specific io mode"""
         if typ not in self._modes:
             self._logger.fatal(f"Unknown mode {typ}")
             raise Exception("")
         return self._modes[typ]
-    
-    def getModes(self):
+
+    def get_modes(self):
         """Return all available modes"""
         return self._modes.keys()
 
 
-ioModes=modes()
-ioModes.addMode("sepDefault",sepPython.sepIO.inout,sepPython.SepVector.getSepVector)
-defaultIO=ioModes.getMode("sepDefault")
+ioModes=Modes()
+ioModes.add_mode("sepDefault",sepPython.sepIO.inout,sepPython.SepVector.getSepVector)
+defaultIO=ioModes.get_mode("sepDefault")
