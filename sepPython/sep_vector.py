@@ -1,14 +1,14 @@
 from genericSolver.pyVector import vector as pyvec
-from sepPython.Hypercube import hypercube,axis
+from sepPython.hypercube import hypercube,axis
 import numpy as np
 import numba
 from sys import version_info
 import numpy
-import sepPython.sepConverter
-import sepPython.sepProto
+import sepPython.sep_converter
+import sepPython.sep_proto
 import logging 
 
-converter=sepPython.sepConverter.converter
+converter=sepPython.sep_converter.converter
 
 @numba.njit(parallel=True)
 def clipIt(vec,bclip,eclip):
@@ -56,14 +56,14 @@ def calcHisto(outV,vec,mn,mx):
         ind=max(0,min(vec.shape[0]-1,int((vec[i]-mn)/delta)))
         outV[ind]+=1
 
-class vector(sepPython.sepProto.memReg,pyvec):
+class vector(sepPython.sep_proto.memReg,pyvec):
     """Generic sepVector class"""
 
     def __init__(self, hyper:hypercube, dataFormat:str):
         """Initialize a vector object"""
 
         self._logger=logging.getLogger(None)
-        sepPython.sepProto.memReg.__init__(self)
+        sepPython.sep_proto.memReg.__init__(self)
         pyvec.__init__(self)
         self.setHyper(hyper)
         self._dataFormat=dataFormat
