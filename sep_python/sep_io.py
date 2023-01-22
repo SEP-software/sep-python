@@ -47,7 +47,7 @@ class InOut(sep_python.io_base.InOut):
         if "logger" in kw:
             self.setLogging(kw["logger"])
 
-    def getRegStorage(self,**kw):
+    def get_reg_storage(self,**kw):
         """
 
             Return a regular sampled file pointer 
@@ -98,9 +98,9 @@ def database_from_str(strIn:str,dataB:dict):
                 try:
                   f2=open(res.group(2))
                 except:
-                  self._logger.fatal(f"Trouble opening {res.group(2)}")
+                  logging.getLogger(None).fatal(f"Trouble opening {res.group(2)}")
                   raise Exception("") 
-                databaseFromStr(f2.read(),dataB)
+                database_from_str(f2.read(),dataB)
                 f2.close()
               else:
                 val=res.group(2)
@@ -109,7 +109,7 @@ def database_from_str(strIn:str,dataB:dict):
                 dataB[f"{str(res.group(1))}"]=val
     return dataB
 
-def checkValid(kw:dict,args:dict):
+def check_valid(kw:dict,args:dict):
   """Check to make sure keyword is of the correct type
    
    kw - dictionary of kw
@@ -125,7 +125,7 @@ class reg(sep_python.io_base.RegFile):
   """A class to """
   def __init__(self,**kw):
 
-    checkValid(kw,{"hyper":hypercube,"path":str,"vec":sep_python.sepProto.memReg,
+    check_valid(kw,{"hyper":Hypercube,"path":str,"vec":sep_python.sepProto.memReg,
       "array":np.ndarray,"os":list,"ds":list,"labels":list,
       "units":list,"logger":logging.Logger})
 
@@ -218,7 +218,7 @@ class reg(sep_python.io_base.RegFile):
     
     return pars
 
-  def buildParamsFromPath(self,fle:str,**kw):
+  def build_params_from_path(self,fle:str,**kw):
     """Build parameters from Path"""
 
     pars=self.getHistoryDict(fle)
@@ -279,7 +279,7 @@ class reg(sep_python.io_base.RegFile):
 
     return pars
 
-  def getPar(self,param:str,default=None):
+  def get_par(self,param:str,default=None):
     """Return parameter of any type
        param - Parameter to retrieve
        default - Default value 
@@ -290,7 +290,7 @@ class reg(sep_python.io_base.RegFile):
       return default
     self._logger.fatal(f"Can't find {param}")
   
-  def getInt(self,param:str,default=None)->int:
+  def get_int(self,param:str,default=None)->int:
     """Return parameter of int
        param - Parameter to retrieve
        default - Default value 
@@ -302,7 +302,7 @@ class reg(sep_python.io_base.RegFile):
       self._logger.fatal(f"Can convert {param}={v} to int")
       raise Exception("")
 
-  def getFloat(self,param:str,default=None)->float:
+  def get_float(self,param:str,default=None)->float:
     """Return parameter of type float
        param - Parameter to retrieve
        default - Default value 
@@ -314,14 +314,14 @@ class reg(sep_python.io_base.RegFile):
       self._logger(f"Can convert {param}={v} to float")
       raise Exception("")
 
-  def getString(self,param:str,default=None)->str:
+  def get_string(self,param:str,default=None)->str:
     """Return parameter of type string
        param - Parameter to retrieve
        default - Default value 
     """
     return self.getPar(param,default)
 
-  def getInts(self,param:str,default=None)->list:
+  def get_ints(self,param:str,default=None)->list:
     """Return parameter of type int arrau
        param - Parameter to retrieve
        default - Default value 
@@ -336,7 +336,7 @@ class reg(sep_python.io_base.RegFile):
         self._logger.fatal(f"Can not convert {param}={v} to ints")   
         raise Exception("")
   
-  def getFloats(self,param:str,default=None)->float:
+  def get_floats(self,param:str,default=None)->float:
     """Return parameter of float arry
        param - Parameter to retrieve
        default - Default value 
@@ -351,7 +351,7 @@ class reg(sep_python.io_base.RegFile):
         self._logger.fatal(f"Can not convert {param}={v} to floats")
         raise Exception("")
 
-  def putPar(self,param:str,val):
+  def put_par(self,param:str,val):
     """Store a parameter
 
       param - Parameter to store
@@ -378,18 +378,18 @@ class reg(sep_python.io_base.RegFile):
     self._parPut.append(param)
     self._params[param]=pout
 
-  def getProgName(self)->str:
+  def get_prog_name(self)->str:
     """
     Return get program name
     """
-    return self._progName
+    return self._prog_name
 
   def close(self):
     """
     Delete function. Write descrption if data has been written
     """
-    if not self._wroteHistory and self._intent=="OUTPUT":
-      self.writeDescription()
+    if not self._wrote_history and self._intent=="OUTPUT":
+      self.write_description()
      
 class SEPFile(reg):
   """Class when SEP data is stored in a file"""
@@ -444,7 +444,7 @@ class SEPFile(reg):
     if self.getBinaryPath() ==None:
        self._logger.fatal("Binary path is not")
 
-  def getHistoryDict(self,path):
+  def get_history_dict(self,path):
     """Build parameters from Path"""
     try:
       fl=open(path,"rb")
@@ -549,7 +549,7 @@ class SEPFile(reg):
       new=new+many
     fl.close()
 
-  def writeDescription(self):
+  def write_description(self):
     """Write description to path"""
 
 
@@ -636,7 +636,7 @@ class SEPGcsObj(reg):
           raise Exception("")
       super().__init__(**kw)
 
-  def getHistoryDict(self,path):
+  def get_history_dict(self,path):
       client = storage.Client()
       bucket = client.bucket(self._bucket)
       if not bucket.exists():
@@ -661,11 +661,11 @@ class SEPGcsObj(reg):
       self._history+=f"\n{newS}"
       return pars
 
-  def writeDescription(self):
+  def write_description(self):
       """Write description to path"""
       pass;
 
-  def writeDescriptionFinal(self):
+  def write_description_final(self):
       """
         Write description when closing file
 
@@ -728,7 +728,7 @@ class SEPGcsObj(reg):
       self._logger.fatal("Must close gcs object before the delete is called")
       raise Exception("Must close gcs object before the delete is called")
   
-  def remove(self,errorIfNotExists:bool=True):
+  def remove(self,error_if_not_exists:bool=True):
       """Remove data 
        
          errorIfNotExists - Return an error if blob does not exist
@@ -739,7 +739,7 @@ class SEPGcsObj(reg):
       blob = bucket.get_blob(self._object)
       if blob.exists():
         blob.delete()
-      elif errorIfNotExists:
+      elif error_if_not_exists:
         self._logger.fatal(f"Attempted to remove blob={self._object} which does not exist")
         raise Exception("")
   
