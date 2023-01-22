@@ -16,7 +16,7 @@ class MemReg:
         self._hyper=None
         self._storage=None
         self._logger=logging.getLogger(None)
-
+        
     def set_logger(self,logger):
         """Set the logger
 
@@ -38,6 +38,8 @@ class MemReg:
             self._logger.fatal("Hypercube not set correctly")
             raise Exception("")
         return self._hyper
+
+
 
     def set_hyper(self,hyper:Hypercube):
         """

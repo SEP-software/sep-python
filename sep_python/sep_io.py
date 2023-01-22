@@ -61,7 +61,7 @@ class InOut(sep_python.io_base.InOut):
             stor=SEPFile(**kw)
         elif path[:5]=="gs://":
             stor=SEPGcsObj(**kw)
-        self.addStorage(path,stor)
+        self.add_storage(path,stor)
         return stor
         
 converter=sep_python.sep_converter.converter
@@ -125,7 +125,7 @@ class reg(sep_python.io_base.RegFile):
   """A class to """
   def __init__(self,**kw):
 
-    check_valid(kw,{"hyper":Hypercube,"path":str,"vec":sep_python.sepProto.memReg,
+    check_valid(kw,{"hyper":Hypercube,"path":str,"vec":sep_python.sep_proto.MemReg,
       "array":np.ndarray,"os":list,"ds":list,"labels":list,
       "units":list,"logger":logging.Logger})
 
@@ -134,7 +134,7 @@ class reg(sep_python.io_base.RegFile):
     self._xdr=False
     self._parPut=[]
     self._firstWrite=True
-    self._wroteHistory=False
+    self._wrote_history=False
     self._head=0 
     self._esize=None
     self._dataOut=False
@@ -142,9 +142,9 @@ class reg(sep_python.io_base.RegFile):
     self._intent="OUTPUT"
     self._closed=False
     if "logger" in kw:
-      self.setLogger(kw["logger"])
+      self.set_logger(kw["logger"])
     else:
-      self.setLogger(logging.getLogger(None))
+      self.set_logger(logging.getLogger(None))
     
     if "array" in kw or "vec" in kw:
       
@@ -169,34 +169,34 @@ class reg(sep_python.io_base.RegFile):
           else:
             self._hyper=Hypercube(ns=ns,os=os,ds=ds,labels=labels,units=units)
       elif "vec" in kw:
-        array=kw["vec"].getNdArray()
-        self._hyper=kw["vec"].getHyper()
-      self.setDataType(str(array.dtype))
-      self._esize=converter.getEsize(str(array.dtype))
-      self._params=self.buildParamsFromHyper(self._hyper)
+        array=kw["vec"].get_nd_array()
+        self._hyper=kw["vec"].get_hyper()
+      self.set_data_type(str(array.dtype))
+      self._esize=converter.get_esize(str(array.dtype))
+      self._params=self.build_params_from_hyper(self._hyper)
 
       if "path" not in kw: 
         self._logger.fatal("Must specify path")
         raise Exception("")
       self._path=kw["path"]
-      self.setBinaryPath(datafile(self._path))
+      self.set_binary_path(datafile(self._path))
 
     elif "hyper" in kw:
-      self._params=self.buildParamsFromHyper(kw["hyper"])
+      self._params=self.build_params_from_hyper(kw["hyper"])
       if "path" not in kw: 
         self._logger.fatal("Must specify path in creation")
         raise Exception("")
       self._path=kw["path"]
-      self.setBinaryPath(datafile(self._path))
+      self.set_binary_path(datafile(self._path))
       if "type" not in kw: 
         self._logger.fatal("Musty specify type when creating from hypercube")
         raise Exception("")
-      self.setDataType(converter.getNumpy(kw["type"]))
+      self.set_data_type(converter.get_numpy(kw["type"]))
     elif "path" in kw:
       if not isinstance(kw["path"],str):
         self._logger.fatal("path must be a string")
         raise Exception("")
-      self._params=self.buildParamsFromPath(kw["path"],**kw)
+      self._params=self.build_params_from_path(kw["path"],**kw)
       self._path=kw["path"]
       self._intent="INPUT"
     else:
@@ -221,7 +221,7 @@ class reg(sep_python.io_base.RegFile):
   def build_params_from_path(self,fle:str,**kw):
     """Build parameters from Path"""
 
-    pars=self.getHistoryDict(fle)
+    pars=self.get_history_dict(fle)
 
     ndim=1
     found=False
@@ -256,25 +256,25 @@ class reg(sep_python.io_base.RegFile):
     self._hyper=Hypercube(axes=axes)
     
     if "in" in pars:
-        self.setBinaryPath(pars["in"])
+        self.set_binary_path(pars["in"])
 
     if "data_format" in pars:
       if pars["data_format"][:3]=="xdr":
         self._xdr=True
         pars["data_format"]="native"+pars["data_format"][3:]
-      self.setDataType(converter.sepNameToNumpy(pars["data_format"]))
-      self._esize=converter.getEsize(converter.fromSepName(pars["data_format"]))
+      self.set_data_type(converter.sep_name_to_numpy(pars["data_format"]))
+      self._esize=converter.get_esize(converter.from_sep_name(pars["data_format"]))
     elif "esize" in pars:
       self._esize=int(pars["esize"])
       if self._esize==1:
-        self.setDataType(np.uint8)
+        self.set_data_type(np.uint8)
       elif self._esize==8:
-        self.setDataType(np.complex64)
+        self.set_data_type(np.complex64)
       elif self._esize==4:
-        self.setDataType(np.float32)
+        self.set_data_type(np.float32)
     else:
       self._esize=4
-      self.setDataType(np.float32)
+      self.set_data_type(np.float32)
 
 
     return pars
@@ -295,7 +295,7 @@ class reg(sep_python.io_base.RegFile):
        param - Parameter to retrieve
        default - Default value 
     """
-    v=self.getPar(param,default)
+    v=self.get_par(param,default)
     try:
       return int(v) 
     except ValueError:
@@ -307,7 +307,7 @@ class reg(sep_python.io_base.RegFile):
        param - Parameter to retrieve
        default - Default value 
     """
-    v=self.getPar(param,default)
+    v=self.get_par(param,default)
     try:
       return float(v) 
     except ValueError:
@@ -319,14 +319,14 @@ class reg(sep_python.io_base.RegFile):
        param - Parameter to retrieve
        default - Default value 
     """
-    return self.getPar(param,default)
+    return self.get_par(param,default)
 
   def get_ints(self,param:str,default=None)->list:
     """Return parameter of type int arrau
        param - Parameter to retrieve
        default - Default value 
     """
-    v=self.getPar(param,default)
+    v=self.get_par(param,default)
     vs=v.split(",")
     vout=[]
     for v in vs:
@@ -341,7 +341,7 @@ class reg(sep_python.io_base.RegFile):
        param - Parameter to retrieve
        default - Default value 
     """
-    v=self.getPar(param,default)
+    v=self.get_par(param,default)
     vs=v.split(",")
     vout=[]
     for v in vs:
@@ -391,6 +391,7 @@ class reg(sep_python.io_base.RegFile):
     if not self._wrote_history and self._intent=="OUTPUT":
       self.write_description()
      
+
 class SEPFile(reg):
   """Class when SEP data is stored in a file"""
 
@@ -426,9 +427,9 @@ class SEPFile(reg):
          
     """
     if "logger" in kw:
-      self.setLogger(kw["logger"])
+      self.set_logger(kw["logger"])
     else:
-      self.setLogger(logging.getLogger(None))
+      self.set_logger(logging.getLogger(None))
     if "path" not in kw:
       self._logger.fatal("Must specify path")
       raise Exception("")
@@ -439,9 +440,9 @@ class SEPFile(reg):
     
     if self._intent=="INPUT":
       if "in" in self._params:
-        self.setBinaryPath=self._params["in"]
+        self.set_binary_path=self._params["in"]
     
-    if self.getBinaryPath() ==None:
+    if self.get_binary_path() ==None:
        self._logger.fatal("Binary path is not")
 
   def get_history_dict(self,path):
@@ -485,20 +486,20 @@ class SEPFile(reg):
       nw,fw,jw - Standard window parameters
 
     """
-    if isinstance(mem,sep_python.sepProto.memReg):
-      array=mem.getNdArray()
+    if isinstance(mem,sep_python.sep_proto.MemReg):
+      array=mem.get_nd_array()
     elif isinstance(mem,np.ndarray):
       array=mem
     else:
       self._logger.fatal(f"Do not how to read into type {type(mem)}")
       raise Exception("")
 
-    seeks,blk,many,contin=self.loopIt(*self.condense(*self.getHyper().getWindowParams(**kw)))
+    seeks,blk,many,contin=self.loop_it(*self.condense(*self.get_hyper().get_window_params(**kw)))
     arUse=array.ravel()
-    if self.getBinaryPath()=="stdin" or self.getBinaryPath()=="follow_hdr":
+    if self.get_binary_path()=="stdin" or self.get_binary_path()=="follow_hdr":
       fl=open(self._path,"rb")
     else:
-      fl=open(self.getBinaryPath(),"rb")
+      fl=open(self.get_binary_path(),"rb")
     old=0
     new=old+many
     for sk in seeks:
@@ -509,12 +510,12 @@ class SEPFile(reg):
         raise Exception(f"Only read  {len(bytes)} of {blk} starting at {sk}")
       
       if self._xdr:
-        tmp=np.frombuffer(bytes, dtype=arUse.dtype)
+        tmp=np.from_buffer(bytes, dtype=arUse.dtype)
         print(type(tmp),tmp.shape)
         tmo=tmp.byteswap()
         arUse[old:new]=tmp.copy()
       else:
-        arUse[old:new]=np.frombuffer(bytes, dtype=arUse.dtype).copy()
+        arUse[old:new]=np.from_buffer(bytes, dtype=arUse.dtype).copy()
       old=new
       new=new+many
     fl.close()
@@ -529,17 +530,17 @@ class SEPFile(reg):
       nw,fw,jw - Standard window parameters
 
     """
-    if isinstance(mem,sep_python.sepProto.memReg):
-      array=mem.getNdArray()
+    if isinstance(mem,sep_python.sep_proto.MemReg):
+      array=mem.get_nd_array()
     elif isinstance(mem,np.ndarray):
       array=mem
     else:
       self._logger.fatal(f"Do not how to read into type {type(mem)}")    
       raise Exception("")
-    seeks,blk,many,contin=self.loopIt(*self.condense(*self.getHyper().getWindowParams(**kw)))
+    seeks,blk,many,contin=self.loop_it(*self.condense(*self.get_hyper().get_window_params(**kw)))
     arUse=array.ravel()
     self._dataOut=True
-    fl=open(self.getBinaryPath(),"wb+")
+    fl=open(self.get_binary_path(),"wb+")
     old=0
     new=old+many
     for sk in seeks:
@@ -554,18 +555,18 @@ class SEPFile(reg):
 
 
     fl=open(self._path,"w")
-    fl.write(f"{self._history}\n{self.getProgName()}\n")
+    fl.write(f"{self._history}\n{self.get_prog_name()}\n")
     for par in self._parPut:
       fl.write(f"{par}={self._params[par]}")
-    fl.write("\n"+self.hyperToStr())
-    self.setBinaryPath(datafile(self._path))
-    fl.write(f"in={self.getBinaryPath()}\n")
-    fl.write(f"esize={self._esize} data_format={converter.getSEPName(self.getDataType())}\n\n")
-    self._wroteHistory=True
+    fl.write("\n"+self.hyper_to_str())
+    self.set_binary_path(datafile(self._path))
+    fl.write(f"in={self.get_binary_path()}\n")
+    fl.write(f"esize={self._esize} data_format={converter.get_SEP_name(self.get_data_type())}\n\n")
+    self._write_history=True
   
     fl.close()
 
-  def remove(self,errorIfNotExists=True):
+  def remove(self,error_if_not_exists=True):
     """Remove data 
     
       errorIfNotExist- Return an error if file does not exist
@@ -573,10 +574,10 @@ class SEPFile(reg):
     """
     if os.path.isfile(self._path):
       os.remove(self._path)
-      if self._binaryPath!="stdin":
-        if os.path.isfile(self._binaryPath):
-          os.remove(self._binaryPath)
-    elif errorIfNotExists:
+      if self._binary_path!="stdin":
+        if os.path.isfile(self._binary_path):
+          os.remove(self._binary_path)
+    elif error_if_not_exists:
       self._logger.fatal(f"Tried to remove file {self._path}")
       raise Exception("")
 
@@ -616,9 +617,9 @@ class SEPGcsObj(reg):
       """
 
       if "logger" in kw:
-        self.setLogger(kw["logger"])
+        self.set_logger(kw["logger"])
       else:
-        self.setLogger(logging.getLogger(None))
+        self.set_logger(logging.getLogger(None))
 
       if "path" not in kw:
           self._logger.fatal("path must be specified when creating object")
@@ -674,9 +675,9 @@ class SEPGcsObj(reg):
       """
       tmp=copy.deepcopy(self._params)
       tmp["history"]=self._history
-      tmp["progName"]=self.getProgName()
+      tmp["progName"]=self.get_prog_name()
       tmp["esize"]=self._esize 
-      tmp["data_format"]=converter.getSEPName(self.getDataType())
+      tmp["data_format"]=converter.get_SEP_name(self.get_data_type())
 
       self.hyperToDict(tmp)
       storage_client = storage.Client()
@@ -708,9 +709,9 @@ class SEPGcsObj(reg):
               new_blob = bucket.rename_blob(self._blobs[0], self._object)
           else:
             with futures.ThreadPoolExecutor(max_workers=60) as executor:
-              destination=sep_python.gcpHelper.compose(f"gs://{self._bucket}/{self._object}",self._blobs,storage_client,executor,
+              destination=sep_python.gcp_helper.compose(f"gs://{self._bucket}/{self._object}",self._blobs,storage_client,executor,
               self._logger)
-          self.writeDescriptionFinal()
+          self.write_description_final()
           found=True
           #for a in self._blobs:
           #   a.delete()
@@ -754,14 +755,14 @@ class SEPGcsObj(reg):
 
       """
 
-      if isinstance(mem,sep_python.sepProto.memReg):
+      if isinstance(mem,sep_python.sep_proto.MemReg):
         array=mem.getNdArray()
       elif isinstance(mem,np.ndarray):
         array=mem
       else:
         self._logger.fatal(f"Do not how to read into type {type(mem)}")
         raise Exception("")
-      seeks,blk,many,contin=self.loopIt(*self.condense(*self.getHyper().getWindowParams(**kw)))
+      seeks,blk,many,contin=self.loop_it(*self.condense(*self.get_hyper().get_window_params(**kw)))
       arUse=array.ravel()
 
       storage_client = storage.Client()
@@ -791,15 +792,15 @@ class SEPGcsObj(reg):
       """
 
 
-      if isinstance(mem,sep_python.sepProto.memReg):
-        array=mem.getNdArray()
+      if isinstance(mem,sep_python.sep_proto.MemReg):
+        array=mem.get_nd_array()
       elif isinstance(mem,np.ndarray):
         array=mem
       else:
         self._logger.fatal(f"Do not how to read into type {type(mem)}")
         raise Exception("")
       
-      seeks,blk,many,contin=self.loopIt(*self.condense(*self.getHyper().getWindowParams(**kw)))
+      seeks,blk,many,contin=self.loop_it(*self.condense(*self.get_hyper().get_window_params(**kw)))
 
       if not contin:
         self._logger("Can only write continuously to GCS storage")
@@ -881,6 +882,6 @@ def datafile(name,host=None,all=None,nfiles=1):
   def remove(self):
     """Remove data """
     os.remove(self._path)
-    if self._binaryPath!="stdin":
-        os.remove(self._binaryPath)
+    if self._binary_path!="stdin":
+        os.remove(self._binary_path)
 
