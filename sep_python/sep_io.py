@@ -32,18 +32,18 @@ __version = "2022.12.13"
 
 class InOut(sep_python.io_base.InOut):
 
-    def __init__(self,createMem,**kw):
+    def __init__(self,create_mem,**kw):
         """
           SEPlib IO 
 
-          createMem - Function to create memory
+          create_mem - Function to create memory
 
           Optional:
 
             logger - Logger to use for IO
 
         """
-        super().__init__(createMem)
+        super().__init__(create_mem)
 
         print("in sep io init")
 
@@ -52,8 +52,7 @@ class InOut(sep_python.io_base.InOut):
 
     def get_reg_storage(self,**kw):
         """
-
-            Return a regular sampled file pointer 
+            Return a regular sampled object pointer 
         """
         if "path" not in kw:
             self._logger.fatal("path must be specified")
@@ -507,6 +506,7 @@ class SEPFile(reg):
     new=old+many
     for sk in seeks:
       fl.seek(sk)
+      print("in read".sk)
       bytes=fl.read(blk)
       if len(bytes) != blk:
         self._logger.fatal(f"Only read  {len(bytes)} of {blk} starting at {sk}")
@@ -514,10 +514,11 @@ class SEPFile(reg):
       
       if self._xdr:
         tmp=np.frombuffer(bytes, dtype=arUse.dtype)
-        print(type(tmp),tmp.shape)
+        print("inxdro",type(tmp),tmp.shape)
         tmo=tmp.byteswap()
         arUse[old:new]=tmp.copy()
       else:
+        print("not in xdr")
         arUse[old:new]=np.frombuffer(bytes, dtype=arUse.dtype).copy()
       old=new
       new=new+many
