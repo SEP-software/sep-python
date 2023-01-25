@@ -94,7 +94,7 @@ class Vector(sep_python.sep_proto.MemReg,pyvec):
 
     def norm(self,N=2):
         """Return the norm of a vector"""
-        return scipy.linalg.norm(self._ar,N)
+        return scipy.linalg.norm(self._arr,N)
         
     def set(self, val):
         """Function to a vector to a value"""
