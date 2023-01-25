@@ -7,7 +7,7 @@ from genericSolver.pyVector import vector as pyvec
 from sep_python.hypercube import Hypercube,Axis
 import sep_python.sep_converter
 import sep_python.sep_proto
-
+import scipy.linalg
 
 converter=sep_python.sep_converter.converter
 
@@ -29,13 +29,6 @@ def clip_array(vec,bclip,eclip):
     for i in numba.prange(vec.shape[0]):
         vec[i]=min(eclip[i],max(bclip[i],vec[i]))
 
-@numba.njit(parallel=True)
-def norm1(vec):
-    """Norm 1"""
-    tot=0
-    for i in numba.prange(vec.shape[0]):
-        tot+=np.abs(vec[i])
-    return tot
 
 @numba.njit(parallel=True)
 def scale_add(vec1,vec2,sc1,sc2):
@@ -71,6 +64,7 @@ def calc_histo(out_vec,vec,min_val,max_val):
         ind=max(0,min(vec.shape[0]-1,int((vec[i]-min_val)/delta)))
         out_vec[ind]+=1
 
+
 class Vector(sep_python.sep_proto.MemReg,pyvec):
     """Generic sepVector class"""
 
@@ -98,6 +92,10 @@ class Vector(sep_python.sep_proto.MemReg,pyvec):
         self.get_nd_array().fill(0.)
         return self
 
+    def norm(self,N=2):
+        """Return the norm of a vector"""
+        return scipy.linalg.norm(self._ar,N)
+        
     def set(self, val):
         """Function to a vector to a value"""
         self.get_nd_array().fill(val)
