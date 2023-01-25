@@ -114,7 +114,7 @@ class Vector(sep_python.sep_proto.MemReg,pyvec):
     def max(self):
         """Find the maximum of an array"""
         return self._arr.max()
-        
+
     def window(self, compress=False, **kw):
         """Window a vector return another vector (of the same dimension
             specify min1..min6, max1...max6, f1...f6, j1...j6, n1...n6, or
@@ -491,7 +491,10 @@ def get_sep_vector(*args, **keys,):
             if "hyper" in keys:
                 hyper=keys["hyper"]
             elif "axes" in keys or "ns" in keys:
-                hyper = Hypercube(**keys)
+                if "axes" in keys:
+                    hyper=Hypercube(keys["axes"])
+                else:
+                    hyper = Hypercube(keys["ns"],**keys)
             else:
                 nt=list(array.shape)
                 ns=[]
