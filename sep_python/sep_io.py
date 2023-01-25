@@ -515,8 +515,13 @@ class SEPFile(reg):
         raise Exception(f"Only read  {len(bytes)} of {blk} starting at {sk}")
       
       if self._xdr:
-        tmp=np.frombuffer(bytes, dtype=arUse.dtype)
-        tmo=tmp.byteswap()
+        if self._esize==8:
+          tmp=np.frombuffer(bytes, dtype=np.float32)
+          tmo=tmp.byteswap()
+          tmo=np.frombuffer(tmo.tobytes(),arUse.dtype)
+        else:
+          tmp=np.frombuffer(bytes, dtype=arUse.dtype)
+          tmo=tmp.byteswap()
         arUse[old:new]=tmo.copy()
       else:
         arUse[old:new]=np.frombuffer(bytes, dtype=arUse.dtype).copy()
