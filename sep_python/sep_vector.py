@@ -105,7 +105,7 @@ class Vector(sep_python.sep_proto.MemReg,pyvec):
         """Return a numpy version of the array (same memory"""
         return self._arr
     
-    def dot(self, vec2:Vector)->Vector:
+    def dot(self, vec2):
         """Compute dot product of two vectors"""
         if not self.check_same(vec2) or self.get_data_format()!=vec2.get_data_format():
             self._logger.fatal("must be of the same space and type")
