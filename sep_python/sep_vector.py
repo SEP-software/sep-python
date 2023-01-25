@@ -107,6 +107,14 @@ class Vector(sep_python.sep_proto.MemReg,pyvec):
         """Return a numpy version of the array (same memory"""
         return self._arr
 
+    def min(self):
+        """Find the minimum of array"""
+        return self._arr.min()
+
+    def max(self):
+        """Find the maximum of an array"""
+        return self._arr.max()
+        
     def window(self, compress=False, **kw):
         """Window a vector return another vector (of the same dimension
             specify min1..min6, max1...max6, f1...f6, j1...j6, n1...n6, or
@@ -361,7 +369,7 @@ class ComplexVector(Vector):
     def __init__(self, hyper:Hypercube,space_only=False):
         super().__init__(hyper,"float32")
         if not space_only:
-            self._arr=np.ndarray(tuple(hyper.get_ns()[::-1]),dtype=np.float64)
+            self._arr=np.ndarray(tuple(hyper.get_ns()[::-1]),dtype=np.complex64)
 
     def clone_space(self):
         """Funtion tor return the space of a vector"""

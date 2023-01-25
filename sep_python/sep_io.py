@@ -512,8 +512,7 @@ class SEPFile(reg):
       bytes=fl.read(blk)
       if len(bytes) != blk:
         self._logger.fatal(f"Only read  {len(bytes)} of {blk} starting at {sk}")
-        raise Exception(f"Only read  {len(bytes)} of {blk} starting at {sk}")
-      
+        raise Exception(f"Only read  {len(bytes)} of {blk} starting at {sk}")      
       if self._xdr:
         if self._esize==8:
           tmp=np.frombuffer(bytes, dtype=np.float32)
