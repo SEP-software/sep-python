@@ -196,6 +196,9 @@ class Vector(sep_python.sep_proto.MemReg,pyvec):
         """
         return not self.check_same(vec2)
 
+    def checkSame(self,vec2)->bool:
+        return check_same(vec2)
+        
     def check_same(self, vec2)->bool:
         """Function to check if two vectors belong to the same vector space"""
         if vec2.get_data_format() != self.get_data_format():
@@ -325,7 +328,7 @@ class FloatVector(Vector):
 
     def cloneSpace(self):
         return self.clone_space()
-        
+
     def clone_space(self):
         """Funtion tor return the space of a vector"""
         return FloatVector(self.get_hyper(),space_only=True)
