@@ -5,3 +5,4 @@ sepPython.egg-info
 .*.sw*
 .vscode
 .pytest_cache
+*.H
