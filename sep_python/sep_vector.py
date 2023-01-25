@@ -197,8 +197,8 @@ class Vector(sep_python.sep_proto.MemReg,pyvec):
         return not self.check_same(vec2)
 
     def checkSame(self,vec2)->bool:
-        return check_same(vec2)
-        
+        return self.check_same(vec2)
+
     def check_same(self, vec2)->bool:
         """Function to check if two vectors belong to the same vector space"""
         if vec2.get_data_format() != self.get_data_format():
