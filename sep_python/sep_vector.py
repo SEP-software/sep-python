@@ -105,7 +105,7 @@ class Vector(sep_python.sep_proto.MemReg,pyvec):
         """Return a numpy version of the array (same memory"""
         return self._arr
    
-    def scale_add(self, vec2:Vector, sc1=1., sc2=1.)->Vector:
+    def scale_add(self, vec2, sc1=1., sc2=1.):
         """self = self * sc1 + sc2 * vec2"""
         if not self.check_same(vec2) or self.get_data_format()!=vec2.get_data_format():
             self._logger.fatal("must be of the same space and type")
