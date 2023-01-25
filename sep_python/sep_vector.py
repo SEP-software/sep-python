@@ -104,7 +104,14 @@ class Vector(sep_python.sep_proto.MemReg,pyvec):
     def get_nd_array(self)->np.ndarray:
         """Return a numpy version of the array (same memory"""
         return self._arr
-   
+    
+    def dot(self, vec2:Vector)->Vector:
+        """Compute dot product of two vectors"""
+        if not self.check_same(vec2) or self.get_data_format()!=vec2.get_data_format():
+            self._logger.fatal("must be of the same space and type")
+            raise Exception("")
+        return np.dot(self._arr,vec2._arr)
+    
     def scale_add(self, vec2, sc1=1., sc2=1.):
         """self = self * sc1 + sc2 * vec2"""
         if not self.check_same(vec2) or self.get_data_format()!=vec2.get_data_format():
@@ -282,12 +289,7 @@ class RealNumber(NonInteger):
         scale_add(self.get1DArray(),vec2.get_1d_array(),0.,1.)
         return self
 
-    def dot(self, vec2:Vector)->Vector:
-        """Compute dot product of two vectors"""
-        if not self.check_same(vec2) or self.get_data_format()!=vec2.get_data_format():
-            self._logger.fatal("must be of the same space and type")
-            raise Exception("")
-        return dot_it(self.get1DArray(),vec2.get1DArray())
+
     
     def norm(self,N=2):
         """Return the norm of a vector"""
