@@ -502,7 +502,7 @@ def get_sep_vector(*args, **keys,):
                 ns=[]
                 for i in range(len(nt)):
                     ns.append(nt[len(nt)-1-i])
-                hyper =Hypercube(ns)
+                hyper =Hypercube.set_with_ns(ns)
         else:
             logger.fatal("First argument must by a Hypercube or numpy array")
             raise Exception("")
