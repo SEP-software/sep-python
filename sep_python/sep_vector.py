@@ -494,7 +494,7 @@ def get_sep_vector(*args, **keys,):
                 if "axes" in keys:
                     hyper=Hypercube(keys["axes"])
                 else:
-                    hyper = Hypercube(keys["ns"],**keys)
+                    hyper = Hypercube.set_with_ns(keys["ns"],**keys)
             else:
                 nt=list(array.shape)
                 ns=[]
