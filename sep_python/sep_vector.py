@@ -322,6 +322,10 @@ class FloatVector(Vector):
         """Function to clone (deep copy) a vector"""
         return FloatVector(self.get_hyper())
 
+
+    def cloneSpace(self):
+        return self.clone_space()
+        
     def clone_space(self):
         """Funtion tor return the space of a vector"""
         return FloatVector(self.get_hyper(),space_only=True)
