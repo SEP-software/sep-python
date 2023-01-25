@@ -251,6 +251,9 @@ class RealNumber(NonInteger):
         scale_add(self.get1DArray(),vec2.get1DArray(),sc1,sc2)
         return self
 
+    def scaleAdd(self, vec2:Vector, sc1=1., sc2=1.)->Vector:
+        return scale_add(vec2,sc1,sc2)
+
     def scale(self,sc)->Vector:
         """self = self * sc"""
         scale(self.get_1d_array(),sc)
@@ -285,15 +288,10 @@ class RealNumber(NonInteger):
             raise Exception("")
         return dot_it(self.get1DArray(),vec2.get1DArray())
     
-    def norm(self, N=2):
-        """Function to compute vector N-norm"""
-        if N==1:
-            return  norm1(self.get1Darray())
-        elif N==2:
-            return self.dot(self)/2
-        else:
-            self._logger.fatal("Only can do norm 1 and 2")
-            raise Exception("")
+    def norm(self,N=2):
+        """Return the norm of a vector"""
+        return scipy.linalg.norm(self._arr,N)
+        
    
     def multiply(self, vec2:Vector)->Vector:
         """self = vec2 * self"""
@@ -358,7 +356,8 @@ class Double_Vector(Vector):
         """Funtion tor return the space of a vector"""
         return Double_Vector(self.get_hyper(),space_only=True)
 
-
+    def cloneSpace(self):
+        return self.clone_space()
 class IntVector(Vector):
     """Generic int vector class"""
 
@@ -387,7 +386,8 @@ class ComplexVector(Vector):
     def clone_space(self):
         """Funtion tor return the space of a vector"""
         return ComplexVector(self.get_hyper(),space_only=True)
-
+    def cloneSpace(self):
+        return self.clone_space()
     def __repr__(self):
         """Override print method"""
         return "ComplexVector\n%s"%str(self.get_hyper())
@@ -413,10 +413,12 @@ class ComplexDoubleVector(Vector):
     def clone_space(self):
         """Funtion tor return the space of a vector"""
         return ComplexDoubleVector(self.get_hyper(),space_only=True)
-
-    def norm(self, N=2):
-        """Function to compute vector N-norm"""
-        return self.cppMode.norm(N)
+    def cloneSpace(self):
+        return self.clone_space()
+    def norm(self,N=2):
+        """Return the norm of a vector"""
+        return scipy.linalg.norm(self._arr,N)
+        
 
     def __repr__(self):
         """Override print method"""
