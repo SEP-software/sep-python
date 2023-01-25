@@ -117,7 +117,7 @@ class Vector(sep_python.sep_proto.MemReg,pyvec):
         if not self.check_same(vec2) or self.get_data_format()!=vec2.get_data_format():
             self._logger.fatal("must be of the same space and type")
             raise Exception("")
-        scale_add(self.get1DArray(),vec2.get1DArray(),sc1,sc2)
+        scale_add(self.get_1d_array(),vec2.get_1d_array(),sc1,sc2)
         return self
 
     def scaleAdd(self, vec2, sc1=1.0, sc2=1.0):
@@ -240,7 +240,7 @@ class RealNumber(NonInteger):
         """Clip dataset
                 bclip - Minimum value to clip to
                 eclip - Maximum value to clip to"""
-        clip_it(self.get1DArray(),bclip,eclip)
+        clip_it(self.get_1d_array(),bclip,eclip)
 
     def cent(self, pct:float, jsamp=1):
         """Calculate the percentile of a dataset
@@ -258,7 +258,7 @@ class RealNumber(NonInteger):
         if not self.check_same(low) or self.check_same(high):
             self._logger.fatal("low,high, and vector must all be the same space")
             raise Exception("")
-        clip_array(self.get1DArray(),low.get1DArray(), high.get1DArray())
+        clip_array(self.get_1d_array(),low.get_1d_array(), high.get_1d_array())
         return self
 
 
@@ -274,7 +274,7 @@ class RealNumber(NonInteger):
            nelem - Return number of elements in histogram
 
            @return Histogram """
-        #ar=self.get1DArray()
+        #ar=self.get_1d_array()
         #CHANGE
         histo=self.get_sep_vector()
         histo = get_sep_vector(ns=[nelem], data_format="int32")
@@ -286,7 +286,7 @@ class RealNumber(NonInteger):
         if not self.check_same(vec2) or self.get_data_format()!=vec2.get_data_format():
             self._logger.fatal("must be of the same space and type")
             raise Exception("")
-        scale_add(self.get1DArray(),vec2.get_1d_array(),0.,1.)
+        scale_add(self.get_1d_array(),vec2.get_1d_array(),0.,1.)
         return self
 
 
