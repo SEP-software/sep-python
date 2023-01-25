@@ -190,6 +190,14 @@ class Vector(sep_python.sep_proto.MemReg,pyvec):
         self._arr=np.reshape(self._ar,new_shape)
         self._hyper=hyper
 
+    def isDifferent(self,vec2)->bool:
+        """Function to check if two vectors are different
+        
+            vec2 - Vec to compare
+
+        """
+        return not self.check_same(vec2)
+
     def check_same(self, vec2)->bool:
         """Function to check if two vectors belong to the same vector space"""
         if vec2.get_data_format() != self.get_data_format():
