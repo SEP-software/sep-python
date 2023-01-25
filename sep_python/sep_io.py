@@ -265,6 +265,11 @@ class reg(sep_python.io_base.RegFile):
         pars["data_format"]="native"+pars["data_format"][3:]
       self.set_data_type(converter.sep_name_to_numpy(pars["data_format"]))
       self._esize=converter.get_esize(converter.from_SEP_name(pars["data_format"]))
+      if "esize" in pars:
+        if int(pars["esize"])==8:
+          if pars["data_format"]=="native_float" or pars["data_format"]=="xdr_float":
+            self._esize=8
+            self.set_data_type("complex64")
     elif "esize" in pars:
       self._esize=int(pars["esize"])
       if self._esize==1:
@@ -470,7 +475,6 @@ class SEPFile(reg):
 
       self._history=wrapper.read()
     fl.close()
-    
     #self._history=self._history.replace("\\n","\n").replace("\\t","\t")
 
     pars={}
