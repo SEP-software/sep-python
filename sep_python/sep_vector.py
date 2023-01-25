@@ -104,6 +104,17 @@ class Vector(sep_python.sep_proto.MemReg,pyvec):
     def get_nd_array(self)->np.ndarray:
         """Return a numpy version of the array (same memory"""
         return self._arr
+   
+    def scale_add(self, vec2:Vector, sc1=1., sc2=1.)->Vector:
+        """self = self * sc1 + sc2 * vec2"""
+        if not self.check_same(vec2) or self.get_data_format()!=vec2.get_data_format():
+            self._logger.fatal("must be of the same space and type")
+            raise Exception("")
+        scale_add(self.get1DArray(),vec2.get1DArray(),sc1,sc2)
+        return self
+
+    def scaleAdd(self, vec2, sc1=1.0, sc2=1.0):
+        return scale_add(vec2,sc1,sc2)
 
     def min(self):
         """Find the minimum of array"""
@@ -243,16 +254,6 @@ class RealNumber(NonInteger):
         clip_array(self.get1DArray(),low.get1DArray(), high.get1DArray())
         return self
 
-    def scale_add(self, vec2:Vector, sc1=1., sc2=1.)->Vector:
-        """self = self * sc1 + sc2 * vec2"""
-        if not self.check_same(vec2) or self.get_data_format()!=vec2.get_data_format():
-            self._logger.fatal("must be of the same space and type")
-            raise Exception("")
-        scale_add(self.get1DArray(),vec2.get1DArray(),sc1,sc2)
-        return self
-
-    def scaleAdd(self, vec2, sc1=1., sc2=1.):
-        return scale_add(vec2,sc1,sc2)
 
     def scale(self,sc)->Vector:
         """self = self * sc"""
