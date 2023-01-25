@@ -227,11 +227,14 @@ class reg(sep_python.io_base.RegFile):
     ndim=1
     found=False
     axes=[]
+    skip_1=True
+    if "ignore_1" in kw:
+      skip_1=kw["ignore_1"]
     while not found: 
       if not f"n{ndim}" in pars:
         found=True
       else:
-        n=pars[f"n{ndim}"]
+        n=int(pars[f"n{ndim}"])
       if f"o{ndim}" in pars:
         o=pars[f"o{ndim}"]
       else:
@@ -254,6 +257,14 @@ class reg(sep_python.io_base.RegFile):
       if "ndims" in kw:
         if kw["ndims"] > len(axes):
           axes.append(n=1)
+    if skip_1:
+      ngreater1=len(axes)
+      print(len(axes))
+      for i in range(len(axes)-1,1,-1):
+        print(i,axes[i])
+        if axes[i].n==1:
+          ngreater1=i
+      axes=axes[:ngreater1]
     self._hyper=Hypercube(axes=axes)
     
     if "in" in pars:
@@ -420,6 +431,7 @@ class SEPFile(reg):
 
          Optional:
           ndims - Minimum dimensions for the data
+          ignore_1 [True] Ignore axes that are 1 in length
 
         Method 3:
           path (str) - path for history file
@@ -611,6 +623,7 @@ class SEPGcsObj(reg):
 
       Optional:
       ndims - Minimum dimensions for the data
+      ignore_1 [True] Ignore axes that are 1 in length
 
       Method 3:
       path (str) - path for history file
