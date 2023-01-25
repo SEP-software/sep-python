@@ -121,7 +121,7 @@ class Vector(sep_python.sep_proto.MemReg,pyvec):
         return self
 
     def scaleAdd(self, vec2, sc1=1.0, sc2=1.0):
-        return scale_add(vec2,sc1,sc2)
+        return self.scale_add(vec2,sc1,sc2)
 
     def min(self):
         """Find the minimum of array"""
@@ -250,7 +250,7 @@ class RealNumber(NonInteger):
 
     def rand(self)->Vector:
         """Function to fill with random numbers"""
-        self._arr=np.random.random(self._arr.shape)
+        self._arr=np.random.random(self._arr.shape)-.5
         return self
 
     def clip_vector(self, low:Vector, high:Vector)->Vector:
