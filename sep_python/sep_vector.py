@@ -494,7 +494,9 @@ def get_sep_vector(*args, **keys,):
                 if "axes" in keys:
                     hyper=Hypercube(keys["axes"])
                 else:
-                    hyper = Hypercube.set_with_ns(keys["ns"],**keys)
+                    ns=keys["ns"]
+                    del keys["ns"]
+                    hyper = Hypercube.set_with_ns(ns,**keys)
             else:
                 nt=list(array.shape)
                 ns=[]
@@ -506,7 +508,12 @@ def get_sep_vector(*args, **keys,):
             raise Exception("")
     elif len(args) == 0:
         if "axes" in keys or "ns" in keys:
-            hyper = Hypercube(**keys)
+            if "axes" in keys:
+                hyper=Hypercube(keys["axes"])
+            else:
+                ns=keys["ns"]
+                del keys["ns"]
+                hyper = Hypercube.set_with_ns(ns,**keys)
        
         else:
             logger.fatal("Must supply Hypercube,vector  or ns/axes")
