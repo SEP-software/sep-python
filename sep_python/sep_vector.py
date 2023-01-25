@@ -251,7 +251,7 @@ class RealNumber(NonInteger):
         scale_add(self.get1DArray(),vec2.get1DArray(),sc1,sc2)
         return self
 
-    def scaleAdd(self, vec2:Vector, sc1=1., sc2=1.)->Vector:
+    def scaleAdd(self, vec2, sc1=1., sc2=1.):
         return scale_add(vec2,sc1,sc2)
 
     def scale(self,sc)->Vector:
