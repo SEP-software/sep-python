@@ -3,58 +3,13 @@ import logging
 import numba
 import numpy as np
 from sys import version_info
-from genericSolver.pyVector import vector as pyvec
+from genericSolver.pyVector import vectorIC as pyvec
 from sep_python.hypercube import Hypercube,Axis
 import sep_python.sep_converter
 import sep_python.sep_proto
 import scipy.linalg
 
 converter=sep_python.sep_converter.converter
-
-@numba.njit(parallel=True)
-def clip_it(vec,bclip,eclip):
-    """Numba clip function"""
-    for i in numba.prange(vec.shape[0]):
-        vec[i]=min(eclip,max(bclip,vec[i]))
-
-@numba.njit(parallel=True)
-def clip_array(vec,bclip,eclip):
-    """Clip based on vectors
-
-    Args:
-        vec ((1d-array): in/out vectors
-        bclip (1d-array): min
-        eclip ((1d-array): mac
-    """
-    for i in numba.prange(vec.shape[0]):
-        vec[i]=min(eclip[i],max(bclip[i],vec[i]))
-
-
-@numba.njit(parallel=True)
-def scale_add(vec1,vec2,sc1,sc2):
-    """Scale and add two vectors"""
-    for i in numba.prange(vec1.shape[0]):
-        vec1[i]=vec1[i]*sc1+vec2[i]*sc2
-
-@numba.njit(parallel=True)
-def scale(vec,sc):
-    """Scale a vector"""
-    for i in numba.prange(vec.shape[0]):
-        vec[i]=vec[i]*sc
-
-@numba.njit(parallel=True)
-def dot_it(vec1,vec2):
-    """Dot product of two vectors"""
-    val=0
-    for i in numba.prange(vec1.shape[0]):
-        val+=vec1[i]*vec2[i]
-    return val
-
-@numba.njit(parallel=True)
-def multiply_it(vec1,vec2):
-    """Multiply two vectors element by element"""
-    for i in numba.prange(vec1.shape[0]):
-        vec1[i]=vec1[i]*vec2[i]
 
 @numba.njit()
 def calc_histo(out_vec,vec,min_val,max_val):
@@ -68,14 +23,22 @@ def calc_histo(out_vec,vec,min_val,max_val):
 class Vector(sep_python.sep_proto.MemReg,pyvec):
     """Generic sepVector class"""
 
-    def __init__(self, hyper:Hypercube, data_format:str):
+    def __init__(self, hyper:Hypercube, data_format:str,vals=None,space_only=False):
         """Initialize a vector object"""
 
+        self.arr=None
         self._logger=logging.getLogger(None)
         sep_python.sep_proto.MemReg.__init__(self)
-        pyvec.__init__(self)
         self.set_hyper(hyper)
         self._data_format=data_format
+        if vals not None:
+            if not isinstance(np.ndarray):
+                raise Exception("Vals must be ndarray")
+            pyvec.__init__(self,vals)
+        elif not space_only:
+            pyvec.__init__(self,reversed(hyper.get_ns()))
+        
+
     def set_logger(self,logger):
         """Set the logger for the vector
 
@@ -87,15 +50,6 @@ class Vector(sep_python.sep_proto.MemReg,pyvec):
         """Return type of data_format"""
         return self._data_format
 
-    def zero(self):
-        """Function to zero out a vector"""
-        self.get_nd_array().fill(0.)
-        return self
-
-    def norm(self,N=2):
-        """Return the norm of a vector"""
-        return scipy.linalg.norm(self._arr,N)
-        
     def set(self, val):
         """Function to a vector to a value"""
         self.get_nd_array().fill(val)
@@ -103,33 +57,12 @@ class Vector(sep_python.sep_proto.MemReg,pyvec):
 
     def get_nd_array(self)->np.ndarray:
         """Return a numpy version of the array (same memory"""
-        return self._arr
-    
-    def dot(self, vec2):
-        """Compute dot product of two vectors"""
-        if not self.check_same(vec2) or self.get_data_format()!=vec2.get_data_format():
-            self._logger.fatal("must be of the same space and type")
-            raise Exception("")
-        return dot_it(self.get_1d_array(),vec2.get_1d_array())
-    
+        return self.arr
+
     def scale_add(self, vec2, sc1=1., sc2=1.):
         """self = self * sc1 + sc2 * vec2"""
-        if not self.check_same(vec2) or self.get_data_format()!=vec2.get_data_format():
-            self._logger.fatal("must be of the same space and type")
-            raise Exception("")
-        scale_add(self.get_1d_array(),vec2.get_1d_array(),sc1,sc2)
+        self.scaleAdd(vec2,sc1,sc2)
         return self
-
-    def scaleAdd(self, vec2, sc1=1.0, sc2=1.0):
-        return self.scale_add(vec2,sc1,sc2)
-
-    def min(self):
-        """Find the minimum of array"""
-        return self._arr.min()
-
-    def max(self):
-        """Find the maximum of an array"""
-        return self._arr.max()
 
     def window(self, compress=False, **kw):
         """Window a vector return another vector (of the same dimension
@@ -185,9 +118,6 @@ class Vector(sep_python.sep_proto.MemReg,pyvec):
             return vec
         vec_out=get_sep_vector(axes=axis_c_out)
         vec_out.get_nd_array=out_array
-        #arO=vec_out.get_nd_array()
-        #arO=out_array.reshape(tuple(nout[::-1]))
-        #         return vec_out
 
     def get_1d_array(self)->np.ndarray:
         """Get 1-D representation of array"""
@@ -206,35 +136,23 @@ class Vector(sep_python.sep_proto.MemReg,pyvec):
         self._arr=np.reshape(self._ar,new_shape)
         self._hyper=hyper
 
-    def isDifferent(self,vec2)->bool:
-        """Function to check if two vectors are different
-        
-            vec2 - Vec to compare
-
-        """
-        return not self.check_same(vec2)
-
-    def checkSame(self,vec2)->bool:
-        return self.check_same(vec2)
-
     def check_same(self, vec2)->bool:
         """Function to check if two vectors belong to the same vector space"""
-        if vec2.get_data_format() != self.get_data_format():
-            return False
-        return self.get_hyper().check_same(vec2.get_hyper())
+        return self.checkSame(vec2)
+
     
 class NonInteger(Vector):
     """A class for non-integers"""
-    def __init__(self,hyper:Hypercube, data_format:str):
+    def __init__(self,hyper:Hypercube, data_format:str,vals=None,space_only=False):
         """Initialize a non-integer"""
-        super().__init__(hyper,data_format)
+        super().__init__(hyper,data_format,vals=vals,space_only=space_only)
 
 class RealNumber(NonInteger):
     """A class for real numbers"""
 
-    def __init__(self,hyper:Hypercube,data_format:str):
+    def __init__(self,hyper:Hypercube,data_format:str,vals=None,space_only=False):
         """Initialize a real number vector"""
-        super().__init__(hyper,data_format)
+        super().__init__(hyper,data_format,vals=vals,space_only=space_only)
 
     def clip(self, bclip, eclip):
         """Clip dataset
@@ -247,25 +165,6 @@ class RealNumber(NonInteger):
                 pct - Percentile of the dataset
                 jsamp - Sub-sampling of dartaset"""
         return np.percentile(self._arr,pct)
-
-    def rand(self)->Vector:
-        """Function to fill with random numbers"""
-        self._arr=np.random.random(self._arr.shape)-.5
-        return self
-
-    def clip_vector(self, low:Vector, high:Vector)->Vector:
-        """Clip vector element by element vec=min(high,max(low,vec))"""
-        if not self.check_same(low) or self.check_same(high):
-            self._logger.fatal("low,high, and vector must all be the same space")
-            raise Exception("")
-        clip_array(self.get_1d_array(),low.get_1d_array(), high.get_1d_array())
-        return self
-
-
-    def scale(self,sc)->Vector:
-        """self = self * sc"""
-        scale(self.get_1d_array(),sc)
-        return self
 
     def calc_histo(self, nelem, min_val, max_val):
         """Calculate histogram
@@ -281,51 +180,20 @@ class RealNumber(NonInteger):
         self.cppMode.calc_histo(histo.getCpp(), min_val, max_val)
         return histo
 
-    def copy(self, vec2:Vector)->Vector:
-        """Copy vec2 into self"""
-        if not self.check_same(vec2) or self.get_data_format()!=vec2.get_data_format():
-            self._logger.fatal("must be of the same space and type")
-            raise Exception("")
-        scale_add(self.get_1d_array(),vec2.get_1d_array(),0.,1.)
-        return self
-
-
-    
-    def norm(self,N=2):
-        """Return the norm of a vector"""
-        return scipy.linalg.norm(self._arr,N)
-        
-   
-    def multiply(self, vec2:Vector)->Vector:
-        """self = vec2 * self"""
-        if not self.check_same(vec2) or self.get_data_format()!=vec2.get_data_format():
-            self._logger.fatal("must be of the same space and type")
-            raise Exception("")
-        multiply_it(self.get_1d_array(),vec2.get_1d_array())
-        return self
-
 
 class FloatVector(Vector):
     """Generic float vector class"""
 
-    def __init__(self, hyper:Hypercube,space_only:bool=False):
-        super().__init__(hyper,"dataFloat")
-        if not space_only:
-            self._arr=np.ndarray(tuple(hyper.get_ns()[::-1]),dtype=np.float32)
- 
+    def __init__(self, hyper:Hypercube,vals=None,space_only=False):
+        super().__init__(hyper,"dataFloat",vals=vals,space_only=space_only)
+
     def __repr__(self):
         """Override print method"""
         return "FloatVector\n%s"%str(self.get_hyper())
 
-    def rand(self)->Vector:
-        """Function to fill with random numbers"""
-        self._arr=np.random.random(self._arr.shape).astype("f4")
-        return self
-
     def clone(self):
         """Function to clone (deep copy) a vector"""
-        return FloatVector(self.get_hyper())
-
+        if FloatVector(self.get_hyper(),vals=self.get_nd_array())
 
     def cloneSpace(self):
         return self.clone_space()
@@ -337,23 +205,19 @@ class FloatVector(Vector):
 class Double_Vector(Vector):
     """Generic double vector class"""
 
-    def __init__(self, hyper:Hypercube,space_only=False):
-        super().__init__(hyper,"double64")
+    def __init__(self, hyper:Hypercube,,vals=None,space_only=False):
+        super().__init__(hyper,"double64",vals=vals,space_only=space_only)
         if not space_only:
             self._arr=np.ndarray(tuple(hyper.get_ns()[::-1]),dtype=np.float64)
 
-    def rand(self)->Vector:
-        """Function to fill with random numbers"""
-        self._arr=np.random.random(self._arr.shape)
-        return self
-    
+
     def __repr__(self):
         """Override print method"""
         return "Double_Vector\n%s"%str(self.get_hyper())
     
     def clone(self):
         """Function to clone (deep copy) a vector"""
-        return Double_Vector(self.get_hyper())
+        return Double_Vector(self.get_hyper(),vals=self.get_nd_array())
 
     def clone_space(self):
         """Funtion tor return the space of a vector"""
@@ -364,8 +228,8 @@ class Double_Vector(Vector):
 class IntVector(Vector):
     """Generic int vector class"""
 
-    def __init__(self, hyper:Hypercube,space_only=False):
-        super().__init__(hyper,"dataInt")
+    def __init__(self, hyper:Hypercube,,vals=None,space_only=False):
+        super().__init__(hyper,"dataInt",vals=vals,space_only=space_only)
         if not space_only:
             self._arr=np.ndarray(tuple(hyper.get_ns()[::-1]),dtype=np.int32)
 
@@ -375,14 +239,14 @@ class IntVector(Vector):
 
     def clone(self):
         """Function to clone (deep copy) a vector"""
-        return IntVector(self.get_hyper())
+        return IntVector(self.get_hyper(),vals=self.get_nd_array())
 
 
 class ComplexVector(Vector):
     """Generic complex vector class"""
 
-    def __init__(self, hyper:Hypercube,space_only=False):
-        super().__init__(hyper,"float32")
+    def __init__(self, hyper:Hypercube,,vals=None,space_only=False):
+        super().__init__(hyper,"float32",vals=vals,space_only=space_only)
         if not space_only:
             self._arr=np.ndarray(tuple(hyper.get_ns()[::-1]),dtype=np.complex64)
 
@@ -397,19 +261,14 @@ class ComplexVector(Vector):
 
     def clone(self):
         """clone a vector"""
-        return ComplexVector(self.get_hyper())
+        return ComplexVector(self.get_hyper(),vals=self.get_nd_array())
 
-    def rand(self)->Vector:
-        """Function to fill with random numbers"""
-        self._arr=np.random.random(self._arr.shape).astype("f4")+\
-            1j*np.random.random(self._arr.shape).astype("f4")
-        return self
 
 class ComplexDoubleVector(Vector):
     """Generic complex vector class"""
 
-    def __init__(self, hyper:Hypercube,space_only=False):
-        super().__init__(hyper,"complex128")
+    def __init__(self, hyper:Hypercube,,vals=None,space_only=False):
+        super().__init__(hyper,"complex128",vals=vals,space_only=space_only)
         if not space_only:
             self._arr=np.ndarray(tuple(hyper.get_ns()[::-1]),dtype=np.complex128)
 
@@ -418,34 +277,21 @@ class ComplexDoubleVector(Vector):
         return ComplexDoubleVector(self.get_hyper(),space_only=True)
     def cloneSpace(self):
         return self.clone_space()
-    def norm(self,N=2):
-        """Return the norm of a vector"""
-        return scipy.linalg.norm(self._arr,N)
-        
 
     def __repr__(self):
         """Override print method"""
         return "ComplexDoubleVector\n%s"%str(self.get_hyper())
 
-    def rand(self)->Vector:
-        """Function to fill with random numbers"""
-        self._arr=np.random.random(self._arr.shape)+1j*np.random.random(self._arr.shape)
-        return self
-
     def clone(self):
         """clone a vector"""
-        return ComplexDoubleVector(self.get_hyper())
+        return ComplexDoubleVector(self.get_hyper(),vals=self.get_nd_array())
 
-    def clip_vector(self, low, high):
-        """Clip vector element by element vec=min(high,max(low,vec))"""
-        clip_array(self.get_nd_arraty(),low.get_nd_array(), high.get_nd_array())
-        return self
 
 class ByteVector(Vector):
     """Generic byte vector class"""
 
-    def __init__(self, hyper:Hypercube,space_only=False):
-        super().__init__(hyper,"dataByte")
+    def __init__(self, hyper:Hypercube,,vals=None,space_only=False):
+        super().__init__(hyper,"dataByte",vals=vals,space_only=space_only)
         if not space_only:
             self._arr=np.ndarray(tuple(hyper.get_ns()[::-1]),dtype=np.uint8)
 
@@ -461,7 +307,7 @@ class ByteVector(Vector):
         return histo
     def clone(self):
         """Function to clone (deep copy) a vector"""
-        return ByteVector(self.get_hyper())
+        return ByteVector(self.get_hyper(),vals=self.get_nd_array())
     def __repr__(self):
         """Override print method"""
         return "ByteVector\n%s"%str(self.get_hyper())
