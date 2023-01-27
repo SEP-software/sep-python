@@ -31,12 +31,12 @@ class Vector(sep_python.sep_proto.MemReg,pyvec):
         sep_python.sep_proto.MemReg.__init__(self)
         self.set_hyper(hyper)
         self._data_format=data_format
-        if vals not None:
+        if vals is not None:
             if not isinstance(np.ndarray):
                 raise Exception("Vals must be ndarray")
             pyvec.__init__(self,vals)
         elif not space_only:
-            pyvec.__init__(self,reversed(hyper.get_ns()))
+            pyvec.__init__(self,tuple(reversed(hyper.get_ns())))
         
 
     def set_logger(self,logger):
@@ -193,7 +193,7 @@ class FloatVector(Vector):
 
     def clone(self):
         """Function to clone (deep copy) a vector"""
-        if FloatVector(self.get_hyper(),vals=self.get_nd_array())
+        FloatVector(self.get_hyper(),vals=self.get_nd_array())
 
     def cloneSpace(self):
         return self.clone_space()
@@ -205,7 +205,7 @@ class FloatVector(Vector):
 class Double_Vector(Vector):
     """Generic double vector class"""
 
-    def __init__(self, hyper:Hypercube,,vals=None,space_only=False):
+    def __init__(self, hyper:Hypercube,vals=None,space_only=False):
         super().__init__(hyper,"double64",vals=vals,space_only=space_only)
         if not space_only:
             self._arr=np.ndarray(tuple(hyper.get_ns()[::-1]),dtype=np.float64)
@@ -228,7 +228,7 @@ class Double_Vector(Vector):
 class IntVector(Vector):
     """Generic int vector class"""
 
-    def __init__(self, hyper:Hypercube,,vals=None,space_only=False):
+    def __init__(self, hyper:Hypercube,vals=None,space_only=False):
         super().__init__(hyper,"dataInt",vals=vals,space_only=space_only)
         if not space_only:
             self._arr=np.ndarray(tuple(hyper.get_ns()[::-1]),dtype=np.int32)
@@ -245,7 +245,7 @@ class IntVector(Vector):
 class ComplexVector(Vector):
     """Generic complex vector class"""
 
-    def __init__(self, hyper:Hypercube,,vals=None,space_only=False):
+    def __init__(self, hyper:Hypercube,vals=None,space_only=False):
         super().__init__(hyper,"float32",vals=vals,space_only=space_only)
         if not space_only:
             self._arr=np.ndarray(tuple(hyper.get_ns()[::-1]),dtype=np.complex64)
@@ -267,7 +267,7 @@ class ComplexVector(Vector):
 class ComplexDoubleVector(Vector):
     """Generic complex vector class"""
 
-    def __init__(self, hyper:Hypercube,,vals=None,space_only=False):
+    def __init__(self, hyper:Hypercube,vals=None,space_only=False):
         super().__init__(hyper,"complex128",vals=vals,space_only=space_only)
         if not space_only:
             self._arr=np.ndarray(tuple(hyper.get_ns()[::-1]),dtype=np.complex128)
@@ -290,7 +290,7 @@ class ComplexDoubleVector(Vector):
 class ByteVector(Vector):
     """Generic byte vector class"""
 
-    def __init__(self, hyper:Hypercube,,vals=None,space_only=False):
+    def __init__(self, hyper:Hypercube,vals=None,space_only=False):
         super().__init__(hyper,"dataByte",vals=vals,space_only=space_only)
         if not space_only:
             self._arr=np.ndarray(tuple(hyper.get_ns()[::-1]),dtype=np.uint8)
