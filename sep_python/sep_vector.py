@@ -32,7 +32,7 @@ class Vector(sep_python.sep_proto.MemReg,pyvec):
         self.set_hyper(hyper)
         self._data_format=data_format
         if vals is not None:
-            if not isinstance(np.ndarray):
+            if not isinstance(vals,np.ndarray):
                 raise Exception("Vals must be ndarray")
             pyvec.__init__(self,vals)
         elif not space_only:
@@ -193,7 +193,7 @@ class FloatVector(Vector):
 
     def clone(self):
         """Function to clone (deep copy) a vector"""
-        FloatVector(self.get_hyper(),vals=self.get_nd_array())
+        return FloatVector(self.get_hyper(),vals=self.get_nd_array())
 
     def cloneSpace(self):
         return self.clone_space()
