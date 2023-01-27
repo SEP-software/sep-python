@@ -36,9 +36,7 @@ class Vector(sep_python.sep_proto.MemReg,pyvec):
                 raise Exception("Vals must be ndarray")
             pyvec.__init__(self,vals)
         elif not space_only:
-            x=hyper.get_ns()
-            x.reverse()
-            pyvec.__init__(self,tuple(x))
+            pyvec.__init__(self,tuple(hyper.get_ns()))
         
 
     def set_logger(self,logger):
