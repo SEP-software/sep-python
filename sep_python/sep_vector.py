@@ -204,7 +204,7 @@ class FloatVector(Vector):
     def clone_space(self):
         """Funtion tor return the space of a vector"""
         return FloatVector(self.get_hyper(),space_only=True)
-    def checkSame(sel,vec2):
+    def checkSame(self,vec2):
         """Function to check that two vectors are from same space"""
         if not isinstance(vec2,FloatVector):
             return False
@@ -229,7 +229,7 @@ class Double_Vector(Vector):
     def clone_space(self):
         """Funtion tor return the space of a vector"""
         return Double_Vector(self.get_hyper(),space_only=True)
-    def checkSame(sel,vec2):
+    def checkSame(self,vec2):
         """Function to check that two vectors are from same space"""
         if not isinstance(vec2,DoubleVector):
             return False
@@ -251,7 +251,7 @@ class IntVector(Vector):
     def clone(self):
         """Function to clone (deep copy) a vector"""
         return IntVector(self.get_hyper(),vals=self.get_nd_array())
-    def checkSame(sel,vec2):
+    def checkSame(self,vec2):
         """Function to check that two vectors are from same space"""
         if not isinstance(vec2,IntVector):
             return False
@@ -277,7 +277,7 @@ class ComplexVector(Vector):
     def clone(self):
         """clone a vector"""
         return ComplexVector(self.get_hyper(),vals=self.get_nd_array())
-    def checkSame(sel,vec2):
+    def checkSame(self,vec2):
         """Function to check that two vectors are from same space"""
         if not isinstance(vec2,ComplexVector):
             return False
@@ -304,7 +304,7 @@ class ComplexDoubleVector(Vector):
     def clone(self):
         """clone a vector"""
         return ComplexDoubleVector(self.get_hyper(),vals=self.get_nd_array())
-    def checkSame(sel,vec2):
+    def checkSame(self,vec2):
         """Function to check that two vectors are from same space"""
         if not isinstance(vec2,ComplexDoubleVector):
             return False
@@ -334,7 +334,7 @@ class ByteVector(Vector):
     def __repr__(self):
         """Override print method"""
         return "ByteVector\n%s"%str(self.get_hyper())
-    def checkSame(sel,vec2):
+    def checkSame(self,vec2):
         """Function to check that two vectors are from same space"""
         if not isinstance(vec2,ByteVector):
             return False
