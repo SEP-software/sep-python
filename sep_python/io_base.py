@@ -369,7 +369,7 @@ class InOut(ABC):
         self.add_storage(path, file)
         self._objs[path] = file
 
-        n_wind, fwind, jwind = path.get_hyper().get_window_params(**kw)
+        n_wind, fwind, jwind = file.get_hyper().get_window_params(**kw)
         aout = []
         ain = path.get_hyper().axes
         for i in range(len(n_wind)):
