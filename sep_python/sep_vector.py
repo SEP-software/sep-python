@@ -219,7 +219,7 @@ class FloatVector(Vector):
     """Generic float vector class"""
 
     def __init__(self, hyper: Hypercube, vals=None, space_only=False):
-        super().__init__(hyper, "dataFloat", vals=vals, space_only=space_only)
+        super().__init__(hyper, "float32", vals=vals, space_only=space_only)
 
     def __repr__(self):
         """Override print method"""
@@ -364,7 +364,7 @@ class ByteVector(Vector):
         nelem - Return number of elements in histogram
 
         @return Histogram"""
-        histo = get_sep_vector(ns=[nelem], data_type="dataInt")
+        histo = get_sep_vector(ns=[nelem], data_type="int32")
         calc_histo(histo, self.get_nd_array(), min_val, max_val)
         return histo
 
