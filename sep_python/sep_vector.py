@@ -246,7 +246,7 @@ class Double_Vector(Vector):
     """Generic double vector class"""
 
     def __init__(self, hyper: Hypercube, vals=None, space_only=False):
-        super().__init__(hyper, "double64", vals=vals, space_only=space_only)
+        super().__init__(hyper, "float64", vals=vals, space_only=space_only)
         if not space_only:
             self._arr = np.ndarray(tuple(hyper.get_ns()[::-1]), dtype=np.float64)
 
