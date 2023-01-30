@@ -753,7 +753,7 @@ class SEPGcsObj(reg):
     def close(self):
         """Close (and) pottentially combine GCS objects"""
 
-        if self._closed == True:
+        if self._closed:
             self._logger.info(f"Closed called multiple times {self._object}")
 
         elif self._intent == "OUTPUT":

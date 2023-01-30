@@ -457,7 +457,7 @@ class Append_File:
         self.hyper = vec.getHyper()
         self.hyper.add_axis(Axis(n=max_length))
         self.nmax = max_length
-        self._data_format = vec.get_data_format()
+        self._data_type = vec.get_data_type()
 
         self.file = io.get_reg_storage(
             path, hyper=self.hyper, data_format=self._data_format

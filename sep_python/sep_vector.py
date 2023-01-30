@@ -22,14 +22,14 @@ def calc_histo(out_vec, vec, min_val, max_val):
 class Vector(sep_python.sep_proto.MemReg, pyvec):
     """Generic sepVector class"""
 
-    def __init__(self, hyper: Hypercube, data_format: str, vals=None, space_only=False):
+    def __init__(self, hyper: Hypercube, data_type: str, vals=None, space_only=False):
         """Initialize a vector object"""
 
         self.arr = None
         self._logger = logging.getLogger(None)
         sep_python.sep_proto.MemReg.__init__(self)
         self.set_hyper(hyper)
-        self._data_format = data_format
+        self.set_data_type(data_type)
         if vals is not None:
             if not isinstance(vals, np.ndarray):
                 raise Exception("Vals must be ndarray")
@@ -43,10 +43,6 @@ class Vector(sep_python.sep_proto.MemReg, pyvec):
         logger - Set the vector for logger
         """
         self._logger = logger
-
-    def get_data_format(self) -> str:
-        """Return type of data_format"""
-        return self._data_format
 
     def shape(self):
         """Return shape of vector"""
@@ -200,7 +196,8 @@ class RealNumber(NonInteger):
         """Calculate the percentile of a dataset
         pct - Percentile of the dataset
         jsamp - Sub-sampling of dartaset"""
-        if jsamp: pass
+        if jsamp:
+            pass
         return np.percentile(self.arr, pct)
 
     def calc_histo(self, nelem, min_val, max_val):
