@@ -1,14 +1,19 @@
-
-#Coppied from https://cloud.google.com/community/tutorials/cloud-storage-infinite-compose
-from typing import List,Any,Iterable
-from google.cloud import storage 
-from  concurrent.futures import *
+# Coppied from https://cloud.google.com/community/tutorials/cloud-storage-infinite-compose
+from typing import List, Any, Iterable
+from google.cloud import storage
+from concurrent.futures import *
 from itertools import count
 import time
 import logging
 
-def compose(object_path: str, slices: List[storage.Blob],
-            client: storage.Client, executor: Executor, log:logging.Logger ) -> storage.Blob:
+
+def compose(
+    object_path: str,
+    slices: List[storage.Blob],
+    client: storage.Client,
+    executor: Executor,
+    log: logging.Logger,
+) -> storage.Blob:
     """Compose an object from an indefinite number of slices. Composition is
     performed concurrently using a tree of accumulators. Cleanup is
     performed concurrently using the provided executor.
@@ -34,11 +39,17 @@ def compose(object_path: str, slices: List[storage.Blob],
         for chunk in chunks:
             # make intermediate accumulator
             intermediate_accumulator = storage.Blob.from_string(
-                object_path + next(identifier))
+                object_path + next(identifier)
+            )
             log.info("Intermediate composition: %s", intermediate_accumulator)
-            future_iacc = executor.submit(compose_and_cleanup,
-                                          intermediate_accumulator, chunk,
-                                          client, executor,log)
+            future_iacc = executor.submit(
+                compose_and_cleanup,
+                intermediate_accumulator,
+                chunk,
+                client,
+                executor,
+                log,
+            )
             # store reference for next iteration
             next_chunks.append(future_iacc)
         # go again with intermediate accumulators
@@ -48,34 +59,39 @@ def compose(object_path: str, slices: List[storage.Blob],
     final_blob = storage.Blob.from_string(object_path)
     # chunks is a list of lists, so flatten it
     final_chunk = [blob for sublist in chunks for blob in sublist]
-    compose_and_cleanup(final_blob, final_chunk, client, executor,log)
+    compose_and_cleanup(final_blob, final_chunk, client, executor, log)
 
     log.info("Composition complete")
 
     return final_blob
 
 
-def compose_and_cleanup(blob: storage.Blob, chunk: List[storage.Blob],
-                      client: storage.Client, executor: Executor,log:logging.Logger):
-  """Compose a blob and clean up its components. Cleanup tasks are
-  scheduled in the provided executor and the composed blob immediately
-  returned.
+def compose_and_cleanup(
+    blob: storage.Blob,
+    chunk: List[storage.Blob],
+    client: storage.Client,
+    executor: Executor,
+    log: logging.Logger,
+):
+    """Compose a blob and clean up its components. Cleanup tasks are
+    scheduled in the provided executor and the composed blob immediately
+    returned.
 
-  Args:
-      blob (storage.Blob): The blob to be composed.
-      chunk (List[storage.Blob]): The component blobs.
-      client (storage.Client): A Cloud Storage client.
-      executor (Executor): An executor in which to schedule cleanup tasks.
+    Args:
+        blob (storage.Blob): The blob to be composed.
+        chunk (List[storage.Blob]): The component blobs.
+        client (storage.Client): A Cloud Storage client.
+        executor (Executor): An executor in which to schedule cleanup tasks.
 
-  Returns:
-      storage.Blob: The composed blob.
-  """
-  # wait on results if the chunk has any futures
-  chunk = ensure_results(chunk)
-  blob.compose(chunk, client=client)
-  # clean up components, no longer need them
-  delete_objects_concurrent(chunk, executor, client,log)
-  return blob
+    Returns:
+        storage.Blob: The composed blob.
+    """
+    # wait on results if the chunk has any futures
+    chunk = ensure_results(chunk)
+    blob.compose(chunk, client=client)
+    # clean up components, no longer need them
+    delete_objects_concurrent(chunk, executor, client, log)
+    return blob
 
 
 def ensure_results(maybe_futures: List[Any]) -> List[Any]:
@@ -108,8 +124,7 @@ def generate_hex_sequence() -> Iterable[str]:
         yield hex(i)[2:]
 
 
-def generate_composition_chunks(slices: List,
-                                chunk_size: int = 31) -> Iterable[List]:
+def generate_composition_chunks(slices: List, chunk_size: int = 31) -> Iterable[List]:
     """Given an indefinitely long list of blobs, return the list in 31-item chunks.
 
     Arguments:
@@ -126,7 +141,8 @@ def generate_composition_chunks(slices: List,
         yield chunk
         slices = slices[chunk_size:]
 
-def delete_objects_concurrent(blobs, executor, client,log:logging.Logger) -> None:
+
+def delete_objects_concurrent(blobs, executor, client, log: logging.Logger) -> None:
     """Delete Cloud Storage objects concurrently.
 
     Args:
@@ -137,4 +153,4 @@ def delete_objects_concurrent(blobs, executor, client,log:logging.Logger) -> Non
     for blob in blobs:
         log.debug("Deleting slice {}".format(blob.name))
         executor.submit(blob.delete, client=client)
-        time.sleep(.005)  # quick and dirty ramp-up (Sorry, Dijkstra.)
+        time.sleep(0.005)  # quick and dirty ramp-up (Sorry, Dijkstra.)

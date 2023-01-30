@@ -7,902 +7,968 @@ import socket
 import copy
 import time
 import types
-import re
 import numpy as np
 import logging
 import binascii
 import io
-import re
-from  concurrent import futures 
+from concurrent import futures
 from typing import List
-from sep_python.hypercube import  Hypercube,Axis
+from sep_python.hypercube import Hypercube, Axis
 import sep_python.io_base
 import sep_python.sep_converter
 import sep_python.sep_proto
-from google.cloud import storage 
-import re
+from google.cloud import storage
 import sep_python.gcp_helper
 
 
-
-from math import *
 __author__ = "Robert G. Clapp"
 __email__ = "bob@sep.stanford.edu"
 __version = "2022.12.13"
 
+
 class InOut(sep_python.io_base.InOut):
-
-    def __init__(self,create_mem,**kw):
+    def __init__(self, create_mem, **kw):
         """
-          SEPlib IO 
+        SEPlib IO
 
-          create_mem - Function to create memory
+        create_mem - Function to create memory
 
-          Optional:
+        Optional:
 
-            logger - Logger to use for IO
+          logger - Logger to use for IO
 
         """
         super().__init__(create_mem)
 
-
         if "logger" in kw:
             self.setLogging(kw["logger"])
 
-    def get_reg_storage(self,**kw):
+    def get_reg_storage(self, **kw):
         """
-            Return a regular sampled object pointer 
+        Return a regular sampled object pointer
         """
         if "path" not in kw:
             self._logger.fatal("path must be specified")
             raise Exception("")
-        
-        path=kw["path"]
+
+        path = kw["path"]
         if "//" not in path:
-            stor=SEPFile(**kw)
-        elif path[:5]=="gs://":
-            stor=SEPGcsObj(**kw)
-        self.add_storage(path,stor)
+            stor = SEPFile(**kw)
+        elif path[:5] == "gs://":
+            stor = SEPGcsObj(**kw)
+        self.add_storage(path, stor)
         return stor
-        
-converter=sep_python.sep_converter.converter
 
 
-def database_from_str(strIn:str,dataB:dict):
-    lines=strIn.split("\n")
-    parq1=re.compile(r'([^\s]+)="(.+)"')
-    parq2=re.compile(r"(\S+)='(.+)'")
-    parS=re.compile(r'(\S+)=(\S+)')
-    commaS=re.compile(',')
+converter = sep_python.sep_converter.converter
+
+
+def database_from_str(strIn: str, dataB: dict):
+    lines = strIn.split("\n")
+    parq1 = re.compile(r'([^\s]+)="(.+)"')
+    parq2 = re.compile(r"(\S+)='(.+)'")
+    parS = re.compile(r"(\S+)=(\S+)")
+    commaS = re.compile(",")
     for line in lines:
-        args=line.split()
-        comment=0
+        args = line.split()
+        comment = 0
         for arg in args:
-            if arg[0]=="#": comment=1
-            res=None
-            if comment!=1:
-              q=0
-              res=parq1.search(arg)
-              if res: 
-                q=1
-                meth=0
-              else:
-                res=parq2.search(arg)
-                if res: 
-                  q=1
-                  meth=1
+            if arg[0] == "#":
+                comment = 1
+            res = None
+            if comment != 1:
+                q = 0
+                res = parq1.search(arg)
+                if res:
+                    q = 1
+                    meth = 0
                 else:
-                  res=parS.search(arg)
-                  meth=2
+                    res = parq2.search(arg)
+                    if res:
+                        q = 1
+                        meth = 1
+                    else:
+                        res = parS.search(arg)
+                        meth = 2
             if res:
-              if res.group(1)=="par":
-                try:
-                  f2=open(res.group(2))
-                except:
-                  logging.getLogger(None).fatal(f"Trouble opening {res.group(2)}")
-                  raise Exception("") 
-                database_from_str(f2.read(),dataB)
-                f2.close()
-              else:
-                val=res.group(2)
-                if isinstance(val,str): 
-                  if commaS.search(val): val=val.split(",")
-                dataB[f"{str(res.group(1))}"]=val
+                if res.group(1) == "par":
+                    try:
+                        f2 = open(res.group(2))
+                    except:
+                        logging.getLogger(None).fatal(
+                            "Trouble opening %s", res.group(2)
+                        )
+                        raise Exception("")
+                    database_from_str(f2.read(), dataB)
+                    f2.close()
+                else:
+                    val = res.group(2)
+                    if isinstance(val, str):
+                        if commaS.search(val):
+                            val = val.split(",")
+                    dataB[f"{str(res.group(1))}"] = val
     return dataB
 
-def check_valid(kw:dict,args:dict):
-  """Check to make sure keyword is of the correct type
-   
-   kw - dictionary of kw
-   args - Dictionary of argument names and required types
-   """
-  for arg,typ in args.items():
-    if arg in kw:
-      if not isinstance(kw[arg],typ):
-        logging.getLogger().fatal(f"Expecting {arg} to be of type {typ} but is type {type(arg)}")
-        raise Exception("")
+
+def check_valid(kw: dict, args: dict):
+    """Check to make sure keyword is of the correct type
+
+    kw - dictionary of kw
+    args - Dictionary of argument names and required types
+    """
+    for arg, typ in args.items():
+        if arg in kw:
+            if not isinstance(kw[arg], typ):
+                logging.getLogger().fatal(
+                    "Expecting  %sto be of type %s but is type %s", arg, typ, type(arg)
+                )
+                raise Exception("")
+
 
 class reg(sep_python.io_base.RegFile):
-  """A class to """
-  def __init__(self,**kw):
+    """A class to"""
 
-    check_valid(kw,{"hyper":Hypercube,"path":str,"vec":sep_python.sep_proto.MemReg,
-      "array":np.ndarray,"os":list,"ds":list,"labels":list,
-      "units":list,"logger":logging.Logger})
+    def __init__(self, **kw):
 
-    super().__init__()
+        check_valid(
+            kw,
+            {
+                "hyper": Hypercube,
+                "path": str,
+                "vec": sep_python.sep_proto.MemReg,
+                "array": np.ndarray,
+                "os": list,
+                "ds": list,
+                "labels": list,
+                "units": list,
+                "logger": logging.Logger,
+            },
+        )
 
-    self._xdr=False
-    self._parPut=[]
-    self._firstWrite=True
-    self._wrote_history=False
-    self._head=0 
-    self._esize=None
-    self._dataOut=False
-    self._ioType="SEP"
-    self._intent="OUTPUT"
-    self._closed=False
-    if "logger" in kw:
-      self.set_logger(kw["logger"])
-    else:
-      self.set_logger(logging.getLogger(None))
-    
-    if "array" in kw or "vec" in kw:
-      
-      if "array" in kw:
-        array=kw["array"]
-        if "hyper" in kw:
-          self._hyper=copy.deepcopy(kw["hyper"])
+        super().__init__()
+
+        self._xdr = False
+        self._parPut = []
+        self._firstWrite = True
+        self._wrote_history = False
+        self._head = 0
+        self._esize = None
+        self._dataOut = False
+        self._ioType = "SEP"
+        self._intent = "OUTPUT"
+        self._closed = False
+        if "logger" in kw:
+            self.set_logger(kw["logger"])
         else:
-          ns=list(array.shape)[::-1]
-          os=[0.] * len(ns)
-          ds=[1.] * len(ns)
-          labels=[""] * len(ns)
-          units=[""] * len(ns)
-          if "os" in kw: os=kw["os"]
-          if "ds" in kw: ds=kw["ds"]
-          if "labels" in kw: labels=kw["labels"]
-          if "units" in kw: units=kw["units"]
-          if "hyper" in kw:
-            if str(ns)!=str(kw["hyper"].getNs()):
-              self._logger.fatal("Shape of hypercube and array are different")
-              raise Exception("")
-          else:
-            self._hyper=Hypercube(ns=ns,os=os,ds=ds,labels=labels,units=units)
-      elif "vec" in kw:
-        array=kw["vec"].get_nd_array()
-        self._hyper=kw["vec"].get_hyper()
-      self.set_data_type(str(array.dtype))
-      self._esize=converter.get_esize(str(array.dtype))
-      self._params=self.build_params_from_hyper(self._hyper)
+            self.set_logger(logging.getLogger(None))
 
-      if "path" not in kw: 
-        self._logger.fatal("Must specify path")
-        raise Exception("")
-      self._path=kw["path"]
-      self.set_binary_path(datafile(self._path))
+        if "array" in kw or "vec" in kw:
 
-    elif "hyper" in kw:
-      self._params=self.build_params_from_hyper(kw["hyper"])
-      if "path" not in kw: 
-        self._logger.fatal("Must specify path in creation")
-        raise Exception("")
-      self._path=kw["path"]
-      self.set_binary_path(datafile(self._path))
-      if "type" not in kw: 
-        self._logger.fatal("Musty specify type when creating from hypercube")
-        raise Exception("")
-      self.set_data_type(converter.get_numpy(kw["type"]))
-    elif "path" in kw:
-      if not isinstance(kw["path"],str):
-        self._logger.fatal("path must be a string")
-        raise Exception("")
-      self._params=self.build_params_from_path(kw["path"],**kw)
-      self._path=kw["path"]
-      self._intent="INPUT"
-    else:
-      self._logger.fatal("Did not provide a valid way to create a dataset")
-      raise Exception("")
-    
-  def build_params_from_hyper(self,hyper:Hypercube):
-    """Build parameters from hypercube"""
-    pars={}
-    self._history="";
+            if "array" in kw:
+                array = kw["array"]
+                if "hyper" in kw:
+                    self._hyper = copy.deepcopy(kw["hyper"])
+                else:
+                    n_s = list(array.shape)[::-1]
+                    o_s = [0.0] * len(n_s)
+                    d_s = [1.0] * len(n_s)
+                    labels = [""] * len(n_s)
+                    units = [""] * len(n_s)
+                    if "os" in kw:
+                        o_s = kw["os"]
+                    if "ds" in kw:
+                        d_s = kw["ds"]
+                    if "labels" in kw:
+                        labels = kw["labels"]
+                    if "units" in kw:
+                        units = kw["units"]
+                    if "hyper" in kw:
+                        if str(n_s) != str(kw["hyper"].getNs()):
+                            self._logger.fatal(
+                                "Shape of hypercube and array are different"
+                            )
+                            raise Exception("")
+                    else:
+                        self._hyper = Hypercube.set_with_ns(
+                            n_s, os=o_s, ds=d_s, labels=labels, units=units
+                        )
+            elif "vec" in kw:
+                array = kw["vec"].get_nd_array()
+                self._hyper = kw["vec"].get_hyper()
+            self.set_data_type(str(array.dtype))
+            self._esize = converter.get_esize(str(array.dtype))
+            self._params = self.build_params_from_hyper(self._hyper)
 
-    for i,ax in enumerate(hyper.axes):
-      pars[f"n{i+1}"]=ax.n
-      pars[f"o{i+1}"]=ax.o
-      pars[f"d{i+1}"]=ax.d
-      pars[f"label{i+1}"]=ax.label
-      pars[f"unit{i+1}"]=ax.unit
-    self._hyper=copy.deepcopy(hyper)
-    
-    return pars
+            if "path" not in kw:
+                self._logger.fatal("Must specify path")
+                raise Exception("")
+            self._path = kw["path"]
+            self.set_binary_path(datafile(self._path))
 
-  def build_params_from_path(self,fle:str,**kw):
-    """Build parameters from Path"""
+        elif "hyper" in kw:
+            self._params = self.build_params_from_hyper(kw["hyper"])
+            if "path" not in kw:
+                self._logger.fatal("Must specify path in creation")
+                raise Exception("")
+            self._path = kw["path"]
+            self.set_binary_path(datafile(self._path))
+            if "type" not in kw:
+                self._logger.fatal("Musty specify type when creating from hypercube")
+                raise Exception("")
+            self.set_data_type(converter.get_numpy(kw["type"]))
+        elif "path" in kw:
+            if not isinstance(kw["path"], str):
+                self._logger.fatal("path must be a string")
+                raise Exception("")
+            self._params = self.build_params_from_path(kw["path"], **kw)
+            self._path = kw["path"]
+            self._intent = "INPUT"
+        else:
+            self._logger.fatal("Did not provide a valid way to create a dataset")
+            raise Exception("")
 
-    pars=self.get_history_dict(fle)
+    def build_params_from_hyper(self, hyper: Hypercube):
+        """Build parameters from hypercube"""
+        pars = {}
+        self._history = ""
 
-    ndim=1
-    found=False
-    axes=[]
-    skip_1=True
-    if "ignore_1" in kw:
-      skip_1=kw["ignore_1"]
-    while not found: 
-      if not f"n{ndim}" in pars:
-        found=True
-      else:
-        n=int(pars[f"n{ndim}"])
-      if f"o{ndim}" in pars:
-        o=pars[f"o{ndim}"]
-      else:
-        o=0
-      if f"d{ndim}" in pars:
-        d=pars[f"d{ndim}"]
-      else:
-        d=1
-      if f"label{ndim}" in pars:
-        label=pars[f"label{ndim}"]
-      else:
-        label=""
-      if f"unit{ndim}" in pars:
-        unit=pars[f"unit{ndim}"]
-      else:
-        unit=""
-      ndim+=1
-      if not found:
-        axes.append(Axis(n=n,o=o,d=d,label=label,unit=unit))
-      if "ndims" in kw:
-        if kw["ndims"] > len(axes):
-          axes.append(n=1)
-    if skip_1:
-      ngreater1=len(axes)
-      print(len(axes))
-      for i in range(len(axes)-1,1,-1):
-        print(i,axes[i])
-        if axes[i].n==1:
-          ngreater1=i
-      axes=axes[:ngreater1]
-    self._hyper=Hypercube(axes=axes)
-    
-    if "in" in pars:
-        self.set_binary_path(pars["in"])
+        for i, ax in enumerate(hyper.axes):
+            pars[f"n{i+1}"] = ax.n
+            pars[f"o{i+1}"] = ax.o
+            pars[f"d{i+1}"] = ax.d
+            pars[f"label{i+1}"] = ax.label
+            pars[f"unit{i+1}"] = ax.unit
+        self._hyper = copy.deepcopy(hyper)
 
-    if "data_format" in pars:
-      if pars["data_format"][:3]=="xdr":
-        self._xdr=True
-        pars["data_format"]="native"+pars["data_format"][3:]
-      self.set_data_type(converter.sep_name_to_numpy(pars["data_format"]))
-      self._esize=converter.get_esize(converter.from_SEP_name(pars["data_format"]))
-      if "esize" in pars:
-        if int(pars["esize"])==8:
-          if pars["data_format"]=="native_float" or pars["data_format"]=="xdr_float":
-            self._esize=8
-            self.set_data_type("complex64")
-    elif "esize" in pars:
-      self._esize=int(pars["esize"])
-      if self._esize==1:
-        self.set_data_type(np.uint8)
-      elif self._esize==8:
-        self.set_data_type(np.complex64)
-      elif self._esize==4:
-        self.set_data_type(np.float32)
-    else:
-      self._esize=4
-      self.set_data_type(np.float32)
+        return pars
 
+    def get_history_dict(self, fle):
+        """Given a path return the history file associated with it"""
+        raise Exception("Must override")
 
-    return pars
+    def write_description(self):
+        """Write description file"""
+        raise Exception("Must override")
 
-  def get_par(self,param:str,default=None):
-    """Return parameter of any type
-       param - Parameter to retrieve
-       default - Default value 
-    """
-    if param in self._params:
-      return self._params[param]
-    if default != None:
-      return default
-    self._logger.fatal(f"Can't find {param}")
-  
-  def get_int(self,param:str,default=None)->int:
-    """Return parameter of int
-       param - Parameter to retrieve
-       default - Default value 
-    """
-    v=self.get_par(param,default)
-    try:
-      return int(v) 
-    except ValueError:
-      self._logger.fatal(f"Can convert {param}={v} to int")
-      raise Exception("")
+    def build_params_from_path(self, fle: str, **kw):
+        """Build parameters from Path"""
 
-  def get_float(self,param:str,default=None)->float:
-    """Return parameter of type float
-       param - Parameter to retrieve
-       default - Default value 
-    """
-    v=self.get_par(param,default)
-    try:
-      return float(v) 
-    except ValueError:
-      self._logger(f"Can convert {param}={v} to float")
-      raise Exception("")
+        pars = self.get_history_dict(fle)
 
-  def get_string(self,param:str,default=None)->str:
-    """Return parameter of type string
-       param - Parameter to retrieve
-       default - Default value 
-    """
-    return self.get_par(param,default)
+        ndim = 1
+        found = False
+        axes = []
+        skip_1 = True
+        if "ignore_1" in kw:
+            skip_1 = kw["ignore_1"]
+        while not found:
+            if not f"n{ndim}" in pars:
+                found = True
+            else:
+                n = int(pars[f"n{ndim}"])
+            if f"o{ndim}" in pars:
+                o = pars[f"o{ndim}"]
+            else:
+                o = 0
+            if f"d{ndim}" in pars:
+                d = pars[f"d{ndim}"]
+            else:
+                d = 1
+            if f"label{ndim}" in pars:
+                label = pars[f"label{ndim}"]
+            else:
+                label = ""
+            if f"unit{ndim}" in pars:
+                unit = pars[f"unit{ndim}"]
+            else:
+                unit = ""
+            ndim += 1
+            if not found:
+                axes.append(Axis(n=n, o=o, d=d, label=label, unit=unit))
+            if "ndims" in kw:
+                if kw["ndims"] > len(axes):
+                    axes.append(n=1)
+        if skip_1:
+            ngreater1 = len(axes)
+            print(len(axes))
+            for i in range(len(axes) - 1, 1, -1):
+                print(i, axes[i])
+                if axes[i].n == 1:
+                    ngreater1 = i
+            axes = axes[:ngreater1]
+        self._hyper = Hypercube(axes=axes)
 
-  def get_ints(self,param:str,default=None)->list:
-    """Return parameter of type int arrau
-       param - Parameter to retrieve
-       default - Default value 
-    """
-    v=self.get_par(param,default)
-    vs=v.split(",")
-    vout=[]
-    for v in vs:
-      try:
-        vout.append(int(v))
-      except:
-        self._logger.fatal(f"Can not convert {param}={v} to ints")   
-        raise Exception("")
-  
-  def get_floats(self,param:str,default=None)->float:
-    """Return parameter of float arry
-       param - Parameter to retrieve
-       default - Default value 
-    """
-    v=self.get_par(param,default)
-    vs=v.split(",")
-    vout=[]
-    for v in vs:
-      try:
-        vout.append(float(v))
-      except:
-        self._logger.fatal(f"Can not convert {param}={v} to floats")
-        raise Exception("")
+        if "in" in pars:
+            self.set_binary_path(pars["in"])
 
-  def put_par(self,param:str,val):
-    """Store a parameter
+        if "data_format" in pars:
+            if pars["data_format"][:3] == "xdr":
+                self._xdr = True
+                pars["data_format"] = "native" + pars["data_format"][3:]
+            self.set_data_type(converter.sep_name_to_numpy(pars["data_format"]))
+            self._esize = converter.get_esize(
+                converter.from_SEP_name(pars["data_format"])
+            )
+            if "esize" in pars:
+                if int(pars["esize"]) == 8:
+                    if (
+                        pars["data_format"] == "native_float"
+                        or pars["data_format"] == "xdr_float"
+                    ):
+                        self._esize = 8
+                        self.set_data_type("complex64")
+        elif "esize" in pars:
+            self._esize = int(pars["esize"])
+            if self._esize == 1:
+                self.set_data_type(np.uint8)
+            elif self._esize == 8:
+                self.set_data_type(np.complex64)
+            elif self._esize == 4:
+                self.set_data_type(np.float32)
+        else:
+            self._esize = 4
+            self.set_data_type(np.float32)
 
-      param - Parameter to store
-      val  - Value"""
-    
-    if not isinstance(val,list):
-      try: 
-        pout=str(val[0])
-      except:
-        self._logger.fatal(f"trouble converting {val} to a string")
-        raise Exception("")
-      for v in val[1:]:
+        return pars
+
+    def get_par(self, param: str, default=None):
+        """Return parameter of any type
+        param - Parameter to retrieve
+        default - Default value
+        """
+        if param in self._params:
+            return self._params[param]
+        if default != None:
+            return default
+        self._logger.fatal("Can't find %s", param)
+
+    def get_int(self, param: str, default=None) -> int:
+        """Return parameter of int
+        param - Parameter to retrieve
+        default - Default value
+        """
+        v = self.get_par(param, default)
         try:
-          pout+=","+str(v)
-        except:
-          self._logger.fatal(f"Trouble converting {v} to a string")
-          raise Exception("")
-    else:
-      try:
-        pout=str(val[0])
-      except:
-        self._logger.fatal(f"Trouble converting {v} to a string")
-        raise Exception("")
-    self._parPut.append(param)
-    self._params[param]=pout
+            return int(v)
+        except ValueError as v_error:
+            self._logger.fatal("Can convert %s=%s to int", param, v)
+            raise Exception("") from v_error
 
-  def get_prog_name(self)->str:
-    """
-    Return get program name
-    """
-    return self._prog_name
+    def get_float(self, param: str, default=None) -> float:
+        """Return parameter of type float
+        param - Parameter to retrieve
+        default - Default value
+        """
+        v = self.get_par(param, default)
+        try:
+            return float(v)
+        except ValueError as v_error:
+            self._logger(f"Can convert {param}={v} to float")
+            raise Exception("") from v_error
 
-  def close(self):
-    """
-    Delete function. Write descrption if data has been written
-    """
-    if not self._wrote_history and self._intent=="OUTPUT":
-      self.write_description()
-     
+    def get_string(self, param: str, default=None) -> str:
+        """Return parameter of type string
+        param - Parameter to retrieve
+        default - Default value
+        """
+        return self.get_par(param, default)
+
+    def get_ints(self, param: str, default=None) -> list:
+        """Return parameter of type int arrau
+        param - Parameter to retrieve
+        default - Default value
+        """
+        val = self.get_par(param, default)
+        vals = val.split(",")
+        vout = []
+        for value in vals:
+            try:
+                vout.append(int(value))
+            except ValueError as v_error:
+                self._logger.fatal("Can not convert %s=%s to ints", param, value)
+                raise Exception("") from v_error
+
+    def get_floats(self, param: str, default=None) -> float:
+        """Return parameter of float arry
+        param - Parameter to retrieve
+        default - Default value
+        """
+        val = self.get_par(param, default)
+        vals = val.split(",")
+        vout = []
+        for value in vals:
+            try:
+                vout.append(float(value))
+            except ValueError as v_error:
+                self._logger.fatal("Can not convert %s=%s to floats", param, value)
+                raise Exception("") from v_error
+
+    def put_par(self, param: str, val):
+        """Store a parameter
+
+        param - Parameter to store
+        val  - Value"""
+
+        if not isinstance(val, list):
+            try:
+                pout = str(val[0])
+            except ValueError as v_error:
+                self._logger.fatal("trouble converting %s to a string", val)
+                raise Exception("") from v_error
+            for value in val[1:]:
+                try:
+                    pout += "," + str(value)
+                except ValueError as v_error:
+                    self._logger.fatal("Trouble converting %s to a string", value)
+                    raise Exception("") from v_error
+        else:
+            try:
+                pout = str(val)
+            except ValueError as v_error:
+                self._logger.fatal(f"Trouble converting %s to a string", val)
+                raise Exception("") from v_error
+        self._parPut.append(param)
+        self._params[param] = pout
+
+    def get_prog_name(self) -> str:
+        """
+        Return get program name
+        """
+        return self._prog_name
+
+    def close(self):
+        """
+        Delete function. Write descrption if data has been written
+        """
+        if not self._wrote_history and self._intent == "OUTPUT":
+            self.write_description()
+
 
 class SEPFile(reg):
-  """Class when SEP data is stored in a file"""
+    """Class when SEP data is stored in a file"""
 
-  def __init__(self,**kw):
+    def __init__(self, **kw):
 
-    """"Initialize a sepFile object
-    
-       Optional:
+        """ "Initialize a sepFile object
 
-         logger-logger object 
-       
+        Optional:
+
+          logger-logger object
+
+         Method 1:
+          hyper - Hypercube
+          path  (str) - path for Path
+          type (str) - SEP Data type
+
+
+         Method 2:
+          Path  - Path to file
+
+          Optional:
+           ndims - Minimum dimensions for the data
+           ignore_1 [True] Ignore axes that are 1 in length
+
+         Method 3:
+           path (str) - path for history file
+           array (np.ndarray) - Array or memReg storage
+              or
+           vec ()
+
+           Optional:
+              hyper - Hypercube describing data
+              os,ds,labels,units - Lists describing array
+
+        """
+        if "logger" in kw:
+            self.set_logger(kw["logger"])
+        else:
+            self.set_logger(logging.getLogger(None))
+        if "path" not in kw:
+            self._logger.fatal("Must specify path")
+            raise Exception("")
+        if "//" in kw["path"]:
+            self._logger.fatal(
+                "When creating a file object path must not have a web address %s",
+                kw["path"],
+            )
+            raise Exception("")
+        super().__init__(**kw)
+
+        if self._intent == "INPUT":
+            if "in" in self._params:
+                self.set_binary_path = self._params["in"]
+
+        if self.get_binary_path() == None:
+            self._logger.fatal("Binary path is not")
+
+    def get_history_dict(self, path):
+        """Build parameters from Path"""
+        try:
+            fl = open(path, "rb")
+        except:
+            self._logger.fatal("Trouble opening %s", path)
+            raise Exception("")
+
+        mystr = fl.read(1024 * 1024)
+        fl.close()
+        ic = mystr.find(4)
+        fl = open(path, "r")
+        if ic == -1:
+            self._head = 0
+            # self._history=str(mystr)
+            self._history = fl.read()
+        else:
+            self._head = ic + 1
+            input = io.BytesIO(mystr[: self._head])
+            wrapper = io.TextIOWrapper(input, encoding="utf-8")
+
+            self._history = wrapper.read()
+        fl.close()
+        # self._history=self._history.replace("\\n","\n").replace("\\t","\t")
+
+        pars = {}
+        pars = database_from_str(self._history, pars)
+        return pars
+
+    def read(self, mem, **kw):
+        """
+        read a block of data
+
+        mem - Array to be read into
+
+        Optional
+        nw,fw,jw - Standard window parameters
+
+        """
+        if isinstance(mem, sep_python.sep_proto.MemReg):
+            array = mem.get_nd_array()
+        elif isinstance(mem, np.ndarray):
+            array = mem
+        else:
+            self._logger.fatal(f"Do not how to read into type {type(mem)}")
+            raise Exception("")
+
+        seeks, blk, many, contin = self.loop_it(
+            *self.condense(*self.get_hyper().get_window_params(**kw))
+        )
+        arUse = array.ravel()
+        if self.get_binary_path() == "stdin" or self.get_binary_path() == "follow_hdr":
+            fl = open(self._path, "rb")
+        else:
+            fl = open(self.get_binary_path(), "rb")
+        old = 0
+        new = old + many
+        for sk in seeks:
+            fl.seek(sk)
+            bytes = fl.read(blk)
+            if len(bytes) != blk:
+                self._logger.fatal(f"Only read  {len(bytes)} of {blk} starting at {sk}")
+                raise Exception(f"Only read  {len(bytes)} of {blk} starting at {sk}")
+            if self._xdr:
+                if self._esize == 8:
+                    tmp = np.frombuffer(bytes, dtype=np.float32)
+                    tmo = tmp.byteswap()
+                    tmo = np.frombuffer(tmo.tobytes(), arUse.dtype)
+                else:
+                    tmp = np.frombuffer(bytes, dtype=arUse.dtype)
+                    tmo = tmp.byteswap()
+                arUse[old:new] = tmo.copy()
+            else:
+                arUse[old:new] = np.frombuffer(bytes, dtype=arUse.dtype).copy()
+            old = new
+            new = new + many
+        fl.close()
+
+    def write(self, mem, **kw):
+        """
+        write a block of data
+
+        mem - Array to be read into
+
+        Optional
+        nw,fw,jw - Standard window parameters
+
+        """
+        if isinstance(mem, sep_python.sep_proto.MemReg):
+            array = mem.get_nd_array()
+        elif isinstance(mem, np.ndarray):
+            array = mem
+        else:
+            self._logger.fatal(f"Do not how to read into type {type(mem)}")
+            raise Exception("")
+        seeks, blk, many, contin = self.loop_it(
+            *self.condense(*self.get_hyper().get_window_params(**kw))
+        )
+        arUse = array.ravel()
+        self._dataOut = True
+        fl = open(self.get_binary_path(), "wb+")
+        old = 0
+        new = old + many
+        for sk in seeks:
+            fl.seek(sk)
+            fl.write(arUse[old:new].tobytes())
+            old = new
+            new = new + many
+        fl.close()
+
+    def write_description(self):
+        """Write description to path"""
+
+        fl = open(self._path, "w")
+        fl.write(f"{self._history}\n{self.get_prog_name()}\n")
+        for par in self._parPut:
+            fl.write(f"{par}={self._params[par]}")
+        fl.write("\n" + self.hyper_to_str())
+        self.set_binary_path(datafile(self._path))
+        fl.write(f"in={self.get_binary_path()}\n")
+        fl.write(
+            f"esize={self._esize} data_format={converter.get_SEP_name(self.get_data_type())}\n\n"
+        )
+        self._write_history = True
+
+        fl.close()
+
+    def remove(self, error_if_not_exists=True):
+        """Remove data
+
+        errorIfNotExist- Return an error if file does not exist
+
+        """
+        if os.path.isfile(self._path):
+            os.remove(self._path)
+            if self._binary_path != "stdin":
+                if os.path.isfile(self._binary_path):
+                    os.remove(self._binary_path)
+        elif error_if_not_exists:
+            self._logger.fatal(f"Tried to remove file {self._path}")
+            raise Exception("")
+
+
+class SEPGcsObj(reg):
+    """Class when SEP data is stored in an object"""
+
+    def __init__(self, **kw):
+        """ "Initialize a sepFile object
+
+
+        Optional
+
+          logger - Logger for object
+
         Method 1:
-         hyper - Hypercube 
-         path  (str) - path for Path
-         type (str) - SEP Data type 
+        hyper - Hypercube
+        path  (str) - path for Path
+        type (str) - SEP Data type
 
 
         Method 2:
-         Path  - Path to file
+        Path  - Path to file
 
-         Optional:
-          ndims - Minimum dimensions for the data
-          ignore_1 [True] Ignore axes that are 1 in length
+        Optional:
+        ndims - Minimum dimensions for the data
+        ignore_1 [True] Ignore axes that are 1 in length
 
         Method 3:
-          path (str) - path for history file
-          array (np.ndarray) - Array or memReg storage
-             or
-          vec ()
-          
-          Optional:
-             hyper - Hypercube describing data
-             os,ds,labels,units - Lists describing array
-         
-    """
-    if "logger" in kw:
-      self.set_logger(kw["logger"])
-    else:
-      self.set_logger(logging.getLogger(None))
-    if "path" not in kw:
-      self._logger.fatal("Must specify path")
-      raise Exception("")
-    if "//"  in kw["path"]:
-      self._logger.fatal(f"When creating a file object path must not have a web address {kw['path']}")
-      raise Exception("")
-    super().__init__(**kw)
-    
-    if self._intent=="INPUT":
-      if "in" in self._params:
-        self.set_binary_path=self._params["in"]
-    
-    if self.get_binary_path() ==None:
-       self._logger.fatal("Binary path is not")
+        path (str) - path for history file
+        array (np.ndarray) - Array or memReg storage
+            or
+        vec ()
 
-  def get_history_dict(self,path):
-    """Build parameters from Path"""
-    try:
-      fl=open(path,"rb")
-    except:
-      self._logger.fatal(f"Trouble opening {path}")
-      raise Exception("")
+        Optional:
+            hyper - Hypercube describing data
+            os,ds,labels,units - Lists describing array
 
+        """
 
-    mystr=fl.read(1024*1024)
-    fl.close()
-    ic=mystr.find(4)
-    fl=open(path,"r")
-    if ic==-1:
-      self._head=0
-      #self._history=str(mystr)
-      self._history=fl.read()
-    else:
-      self._head=ic+1
-      input = io.BytesIO(mystr[:self._head])
-      wrapper = io.TextIOWrapper(input, encoding='utf-8')
-
-      self._history=wrapper.read()
-    fl.close()
-    #self._history=self._history.replace("\\n","\n").replace("\\t","\t")
-
-    pars={}
-    pars=database_from_str(self._history,pars)
-    return pars
-    
-  def read(self,mem,**kw):
-    """
-      read a block of data
-
-      mem - Array to be read into
-
-      Optional
-      nw,fw,jw - Standard window parameters
-
-    """
-    if isinstance(mem,sep_python.sep_proto.MemReg):
-      array=mem.get_nd_array()
-    elif isinstance(mem,np.ndarray):
-      array=mem
-    else:
-      self._logger.fatal(f"Do not how to read into type {type(mem)}")
-      raise Exception("")
-
-    seeks,blk,many,contin=self.loop_it(*self.condense(*self.get_hyper().get_window_params(**kw)))
-    arUse=array.ravel()
-    if self.get_binary_path()=="stdin" or self.get_binary_path()=="follow_hdr":
-      fl=open(self._path,"rb")
-    else:
-      fl=open(self.get_binary_path(),"rb")
-    old=0
-    new=old+many
-    for sk in seeks:
-      fl.seek(sk)
-      bytes=fl.read(blk)
-      if len(bytes) != blk:
-        self._logger.fatal(f"Only read  {len(bytes)} of {blk} starting at {sk}")
-        raise Exception(f"Only read  {len(bytes)} of {blk} starting at {sk}")      
-      if self._xdr:
-        if self._esize==8:
-          tmp=np.frombuffer(bytes, dtype=np.float32)
-          tmo=tmp.byteswap()
-          tmo=np.frombuffer(tmo.tobytes(),arUse.dtype)
+        if "logger" in kw:
+            self.set_logger(kw["logger"])
         else:
-          tmp=np.frombuffer(bytes, dtype=arUse.dtype)
-          tmo=tmp.byteswap()
-        arUse[old:new]=tmo.copy()
-      else:
-        arUse[old:new]=np.frombuffer(bytes, dtype=arUse.dtype).copy()
-      old=new
-      new=new+many
-    fl.close()
-  
-  def write(self,mem,**kw):
-    """
-      write a block of data
+            self.set_logger(logging.getLogger(None))
 
-      mem - Array to be read into
+        if "path" not in kw:
+            self._logger.fatal("path must be specified when creating object")
+            raise Exception("")
 
-      Optional
-      nw,fw,jw - Standard window parameters
+        reS = re.compile(r"gs://(\S+)\/(.+)")
+        x = reS.search(kw["path"])
 
-    """
-    if isinstance(mem,sep_python.sep_proto.MemReg):
-      array=mem.get_nd_array()
-    elif isinstance(mem,np.ndarray):
-      array=mem
-    else:
-      self._logger.fatal(f"Do not how to read into type {type(mem)}")    
-      raise Exception("")
-    seeks,blk,many,contin=self.loop_it(*self.condense(*self.get_hyper().get_window_params(**kw)))
-    arUse=array.ravel()
-    self._dataOut=True
-    fl=open(self.get_binary_path(),"wb+")
-    old=0
-    new=old+many
-    for sk in seeks:
-      fl.seek(sk)
-      fl.write(arUse[old:new].tobytes())
-      old=new
-      new=new+many
-    fl.close()
+        self._blobs = []
+        if x:
+            self._bucket = x.group(1)
+            self._object = x.group(2)
+        else:
+            self._logger.fatal(f"Invalid path for google storage object {kw['path']}")
+            raise Exception("")
+        super().__init__(**kw)
 
-  def write_description(self):
-    """Write description to path"""
+    def get_history_dict(self, path):
+        client = storage.Client()
+        bucket = client.bucket(self._bucket)
+        if not bucket.exists():
+            self._logger.fatal(f"bucket {self._bucket} does not exist")
+            raise Exception("")
 
+        blob = bucket.get_blob(self._object)
+        if not blob.exists():
+            self._logger.fatal(
+                f"blob {self._object} does not exist in bucket {self._bucket}"
+            )
+            raise Exception("")
 
-    fl=open(self._path,"w")
-    fl.write(f"{self._history}\n{self.get_prog_name()}\n")
-    for par in self._parPut:
-      fl.write(f"{par}={self._params[par]}")
-    fl.write("\n"+self.hyper_to_str())
-    self.set_binary_path(datafile(self._path))
-    fl.write(f"in={self.get_binary_path()}\n")
-    fl.write(f"esize={self._esize} data_format={converter.get_SEP_name(self.get_data_type())}\n\n")
-    self._write_history=True
-  
-    fl.close()
+        pars = blob.metadata
+        newS = ""
+        for k, v in pars.items():
+            newS += f"{k}={v}"
+        if "history" in pars:
+            pars = database_from_str(pars["history"], pars)
+            self._history = pars["history"]
+            if "progName" in pars:
+                self._history += f"\n{pars['progName']}\n"
+                del pars["history"]
+        self._history += f"\n{newS}"
+        return pars
 
-  def remove(self,error_if_not_exists=True):
-    """Remove data 
-    
-      errorIfNotExist- Return an error if file does not exist
-    
-    """
-    if os.path.isfile(self._path):
-      os.remove(self._path)
-      if self._binary_path!="stdin":
-        if os.path.isfile(self._binary_path):
-          os.remove(self._binary_path)
-    elif error_if_not_exists:
-      self._logger.fatal(f"Tried to remove file {self._path}")
-      raise Exception("")
+    def write_description(self):
+        """Write description to path"""
+        pass
 
-class SEPGcsObj(reg):
-  """Class when SEP data is stored in an object"""
-
-  def __init__(self,**kw):
-      """"Initialize a sepFile object
-
-      
-      Optional
-
-        logger - Logger for object
-
-      Method 1:
-      hyper - Hypercube 
-      path  (str) - path for Path
-      type (str) - SEP Data type 
-
-
-      Method 2:
-      Path  - Path to file
-
-      Optional:
-      ndims - Minimum dimensions for the data
-      ignore_1 [True] Ignore axes that are 1 in length
-
-      Method 3:
-      path (str) - path for history file
-      array (np.ndarray) - Array or memReg storage
-          or
-      vec ()
-      
-      Optional:
-          hyper - Hypercube describing data
-          os,ds,labels,units - Lists describing array
-      
-      """
-
-      if "logger" in kw:
-        self.set_logger(kw["logger"])
-      else:
-        self.set_logger(logging.getLogger(None))
-
-      if "path" not in kw:
-          self._logger.fatal("path must be specified when creating object")
-          raise Exception("")
-
-      reS=re.compile(r"gs://(\S+)\/(.+)")
-      x=reS.search(kw["path"])
-
-      self._blobs=[]
-      if x:
-          self._bucket=x.group(1)
-          self._object=x.group(2)
-      else:
-          self._logger.fatal(f"Invalid path for google storage object {kw['path']}")
-          raise Exception("")
-      super().__init__(**kw)
-
-  def get_history_dict(self,path):
-      client = storage.Client()
-      bucket = client.bucket(self._bucket)
-      if not bucket.exists():
-          self._logger.fatal(f"bucket {self._bucket} does not exist")
-          raise Exception("")
-
-      blob = bucket.get_blob(self._object)
-      if not blob.exists():
-          self._logger.fatal(f"blob {self._blob} does not exist in bucket {self._bucket}")
-          raise Exception("")
-
-      pars = blob.metadata
-      newS=""
-      for k,v in pars.items():
-          newS+=f"{k}={v}"
-      if "history" in pars:
-          pars=database_from_str(pars["history"],pars)
-          self._history=pars["history"]
-          if "progName" in pars:
-              self._history+=f"\n{pars['progName']}\n"
-              del pars["history"]
-      self._history+=f"\n{newS}"
-      return pars
-
-  def write_description(self):
-      """Write description to path"""
-      pass;
-
-  def write_description_final(self):
-      """
+    def write_description_final(self):
+        """
         Write description when closing file
 
         blob - Blob to set metadata (history)
 
-      """
-      tmp=copy.deepcopy(self._params)
-      tmp["history"]=self._history
-      tmp["progName"]=self.get_prog_name()
-      tmp["esize"]=self._esize 
-      tmp["data_format"]=converter.get_SEP_name(self.get_data_type())
+        """
+        tmp = copy.deepcopy(self._params)
+        tmp["history"] = self._history
+        tmp["progName"] = self.get_prog_name()
+        tmp["esize"] = self._esize
+        tmp["data_format"] = converter.get_SEP_name(self.get_data_type())
 
-      self.hyperToDict(tmp)
-      storage_client = storage.Client()
-      bucket = storage_client.bucket(self._bucket)
-      blob = bucket.blob(self._object)
-      blob.metadata = tmp
-      blob.patch()
-  
-  def close(self):
-    """Close (and) pottentially combine GCS objects"""
+        self.hyper_to_dict(tmp)
+        storage_client = storage.Client()
+        bucket = storage_client.bucket(self._bucket)
+        blob = bucket.blob(self._object)
+        blob.metadata = tmp
+        blob.patch()
 
-    if self._closed==True:
-      self._logger.info(f"Closed called multiple times {self._object}")
+    def close(self):
+        """Close (and) pottentially combine GCS objects"""
 
-    elif self._intent=="OUTPUT":
-      self._closed=True
-      found=False
-      sleep=.2
-      itry=0
-      while not found and itry <5:
-        try:
-          storage_client = storage.Client()
-          bucket = storage_client.bucket(self._bucket)
-          if len(self._blobs)==0:
-            blob = bucket.blob(self._object)
-            blob.upload_from_string('', content_type='application/x-www-form-urlencoded;charset=UTF-8')
-          elif len(self._blobs)==1:
-              self._logger.info(f"Renaming {self._blobs[0].name} to {self._object}")
-              new_blob = bucket.rename_blob(self._blobs[0], self._object)
-          else:
-            with futures.ThreadPoolExecutor(max_workers=60) as executor:
-              destination=sep_python.gcp_helper.compose(f"gs://{self._bucket}/{self._object}",self._blobs,storage_client,executor,
-              self._logger)
-          self.write_description_final()
-          found=True
-          #for a in self._blobs:
-          #   a.delete()
-        except:
-          itry+=1
-          time.sleep(sleep)
-          sleep=sleep*2
-          if itry==5:
-            self._logger.fatal("Trouble obtaining client")
-            raise Exception("trouble obtaining client")
-     
-  def __del__(self):
-    """Delete object"""
-    if not self._closed and self._intent=="OUTPUT":
-      self._logger.fatal("Must close gcs object before the delete is called")
-      raise Exception("Must close gcs object before the delete is called")
-  
-  def remove(self,error_if_not_exists:bool=True):
-      """Remove data 
-       
-         errorIfNotExists - Return an error if blob does not exist
-      
-      """
-      storage_client = storage.Client()
-      bucket = storage_client.bucket(self._bucket)
-      blob = bucket.get_blob(self._object)
-      if blob.exists():
-        blob.delete()
-      elif error_if_not_exists:
-        self._logger.fatal(f"Attempted to remove blob={self._object} which does not exist")
-        raise Exception("")
-  
-  def read(self,mem,**kw):
-      """
-          read a block of data
+        if self._closed == True:
+            self._logger.info(f"Closed called multiple times {self._object}")
 
-          mem - Array to be read into
+        elif self._intent == "OUTPUT":
+            self._closed = True
+            found = False
+            sleep = 0.2
+            itry = 0
+            while not found and itry < 5:
+                try:
+                    storage_client = storage.Client()
+                    bucket = storage_client.bucket(self._bucket)
+                    if len(self._blobs) == 0:
+                        blob = bucket.blob(self._object)
+                        blob.upload_from_string(
+                            "",
+                            content_type="application/x-www-form-urlencoded;charset=UTF-8",
+                        )
+                    elif len(self._blobs) == 1:
+                        self._logger.info(
+                            f"Renaming {self._blobs[0].name} to {self._object}"
+                        )
+                        new_blob = bucket.rename_blob(self._blobs[0], self._object)
+                    else:
+                        with futures.ThreadPoolExecutor(max_workers=60) as executor:
+                            destination = sep_python.gcp_helper.compose(
+                                f"gs://{self._bucket}/{self._object}",
+                                self._blobs,
+                                storage_client,
+                                executor,
+                                self._logger,
+                            )
+                    self.write_description_final()
+                    found = True
+                    # for a in self._blobs:
+                    #   a.delete()
+                except:
+                    itry += 1
+                    time.sleep(sleep)
+                    sleep = sleep * 2
+                    if itry == 5:
+                        self._logger.fatal("Trouble obtaining client")
+                        raise Exception("trouble obtaining client")
 
-          Optional
-          nw,fw,jw - Standard window parameters
+    def __del__(self):
+        """Delete object"""
+        if not self._closed and self._intent == "OUTPUT":
+            self._logger.fatal("Must close gcs object before the delete is called")
+            raise Exception("Must close gcs object before the delete is called")
 
-      """
+    def remove(self, error_if_not_exists: bool = True):
+        """Remove data
 
-      if isinstance(mem,sep_python.sep_proto.MemReg):
-        array=mem.getNdArray()
-      elif isinstance(mem,np.ndarray):
-        array=mem
-      else:
-        self._logger.fatal(f"Do not how to read into type {type(mem)}")
-        raise Exception("")
-      seeks,blk,many,contin=self.loop_it(*self.condense(*self.get_hyper().get_window_params(**kw)))
-      arUse=array.ravel()
+        errorIfNotExists - Return an error if blob does not exist
 
-      storage_client = storage.Client()
-      bucket = storage_client.bucket(self._bucket)
-      blob = bucket.get_blob(self._object)
+        """
+        storage_client = storage.Client()
+        bucket = storage_client.bucket(self._bucket)
+        blob = bucket.get_blob(self._object)
+        if blob.exists():
+            blob.delete()
+        elif error_if_not_exists:
+            self._logger.fatal(
+                f"Attempted to remove blob={self._object} which does not exist"
+            )
+            raise Exception("")
 
-      with blob.open("rb") as fl:
-          old=0
-          new=old+many
-          for sk in seeks:
-              fl.seek(sk+self._head)
-              bytes=fl.read(blk)
-              if self._xdr:
-                  bytes=bytearray(bytes).reverse()
-              arUse[old:new]=np.frombuffer(bytes, dtype=arUse.dtype).copy()
-              old=new
-              new=new+many
-  def write(self,mem,**kw):
-      """
-          write a block of data
+    def read(self, mem, **kw):
+        """
+        read a block of data
 
-          mem - Array to be read into
+        mem - Array to be read into
 
-          Optional
-          nw,fw,jw - Standard window parameters
+        Optional
+        nw,fw,jw - Standard window parameters
 
-      """
+        """
+
+        if isinstance(mem, sep_python.sep_proto.MemReg):
+            array = mem.getNdArray()
+        elif isinstance(mem, np.ndarray):
+            array = mem
+        else:
+            self._logger.fatal(f"Do not how to read into type {type(mem)}")
+            raise Exception("")
+        seeks, blk, many, contin = self.loop_it(
+            *self.condense(*self.get_hyper().get_window_params(**kw))
+        )
+        arUse = array.ravel()
+
+        storage_client = storage.Client()
+        bucket = storage_client.bucket(self._bucket)
+        blob = bucket.get_blob(self._object)
+
+        with blob.open("rb") as fl:
+            old = 0
+            new = old + many
+            for sk in seeks:
+                fl.seek(sk + self._head)
+                bytes = fl.read(blk)
+                if self._xdr:
+                    bytes = bytearray(bytes).reverse()
+                arUse[old:new] = np.frombuffer(bytes, dtype=arUse.dtype).copy()
+                old = new
+                new = new + many
+
+    def write(self, mem, **kw):
+        """
+        write a block of data
+
+        mem - Array to be read into
+
+        Optional
+        nw,fw,jw - Standard window parameters
+
+        """
+
+        if isinstance(mem, sep_python.sep_proto.MemReg):
+            array = mem.get_nd_array()
+        elif isinstance(mem, np.ndarray):
+            array = mem
+        else:
+            self._logger.fatal(f"Do not how to read into type {type(mem)}")
+            raise Exception("")
+
+        seeks, blk, many, contin = self.loop_it(
+            *self.condense(*self.get_hyper().get_window_params(**kw))
+        )
+
+        if not contin:
+            self._logger("Can only write continuously to GCS storage")
+            raise Exception("")
+        arUse = array.ravel()
+        self._dataOut = True
+
+        storage_client = storage.Client()
+        bucket = storage_client.bucket(self._bucket)
+        blob = bucket.blob(f"{self._object}{len(self._blobs)}")
+        self._blobs.append(blob)
+        with blob.open("wb") as fl:
+            old = 0
+            new = old + many
+            for sk in seeks:
+                fl.wrie(arUse[old:new].tobytes())
+                old = new
+                new = new + many
 
 
-      if isinstance(mem,sep_python.sep_proto.MemReg):
-        array=mem.get_nd_array()
-      elif isinstance(mem,np.ndarray):
-        array=mem
-      else:
-        self._logger.fatal(f"Do not how to read into type {type(mem)}")
-        raise Exception("")
-      
-      seeks,blk,many,contin=self.loop_it(*self.condense(*self.get_hyper().get_window_params(**kw)))
-
-      if not contin:
-        self._logger("Can only write continuously to GCS storage")
-        raise Exception("")
-      arUse=array.ravel()
-      self._dataOut=True
-
-      storage_client = storage.Client()
-      bucket = storage_client.bucket(self._bucket)
-      blob = bucket.blob(f"{self._object}{len(self._blobs)}")
-      self._blobs.append(blob)
-      with blob.open("wb") as fl:
-        old=0
-        new=old+many
-        for sk in seeks:
-            fl.wrie(arUse[old:new].tobytes())
-            old=new
-            new=new+many
-
-def datapath(host=None,all=None):
+def datapath(host=None, all=None):
     """Return the datapath
 
-        If host is not specified  defaults to the local machine
-        If all is specifed returns the list of a ; list of directories
+    If host is not specified  defaults to the local machine
+    If all is specifed returns the list of a ; list of directories
 
-    """    
+    """
 
-    if host == None: hst=os.uname()[1]
-    else: hst=host
+    if host == None:
+        hst = os.uname()[1]
+    else:
+        hst = host
 
-    path = os.environ.get('DATAPATH')
+    path = os.environ.get("DATAPATH")
     if not path:
         try:
-            file = open('.datapath','r')
+            file = open(".datapath", "r")
         except:
             try:
-                file = open(os.path.join(os.environ.get('HOME'),'.datapath'),'r')
+                file = open(os.path.join(os.environ.get("HOME"), ".datapath"), "r")
             except:
                 file = None
     if file:
         for line in file.readlines():
-            check = re.match(r"(?:%s\s+)?datapath=(\S+)" % hst,line)
+            check = re.match(r"(?:%s\s+)?datapath=(\S+)" % hst, line)
             if check:
                 path = check.group(1)
             else:
-                check = re.match(r"datapath=(\S+)",line)
+                check = re.match(r"datapath=(\S+)", line)
                 if check:
                     path = check.group(1)
         file.close()
     if not path:
         path = "/tmp/"
-    if  all:  return path.split(":")
+    if all:
+        return path.split(":")
     return path
 
-def datafile(name,host=None,all=None,nfiles=1):
-  """ Returns the datafile name(s) using SEP datafile conventions
 
-      if host is not specified defaults to local machine
-      if all is specified and datapath is a ; seperated 
-          list returns list of paths
-      if nfiles is specified returns multi-file names
+def datafile(name, host=None, all=None, nfiles=1):
+    """Returns the datafile name(s) using SEP datafile conventions
 
-   """
+    if host is not specified defaults to local machine
+    if all is specified and datapath is a ; seperated
+        list returns list of paths
+    if nfiles is specified returns multi-file names
 
-  f=datapath(host,all)
-  if all:
-    list=[]
-    for i in range(nfiles):
-      for dir in f:
-         if i ==0: end="@"
-         else: end="@"+str(i)
-         list.append(dir+os.path.basename(name)+end)
-    return list
-  else:
-    return f+ os.path.basename(name)+"@"
-  return f
-  
-  
-  def remove(self):
-    """Remove data """
-    os.remove(self._path)
-    if self._binary_path!="stdin":
-        os.remove(self._binary_path)
+    """
 
+    f = datapath(host, all)
+    if all:
+        list = []
+        for i in range(nfiles):
+            for dir in f:
+                if i == 0:
+                    end = "@"
+                else:
+                    end = "@" + str(i)
+                list.append(dir + os.path.basename(name) + end)
+        return list
+    else:
+        return f + os.path.basename(name) + "@"
+    return f
+
+    def remove(self):
+        """Remove data"""
+        os.remove(self._path)
+        if self._binary_path != "stdin":
+            os.remove(self._binary_path)

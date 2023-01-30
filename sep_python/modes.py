@@ -11,12 +11,12 @@ import sep_python.sep_vector
 
 class Modes:
     """Class for selecting modes"""
+
     def __init__(self):
-        self._modes={}
-        self._logger=logging.getLogger(None)
+        self._modes = {}
+        self._logger = logging.getLogger(None)
 
-
-    def set_logger(self,logger:logging.Logger):
+    def set_logger(self, logger: logging.Logger):
         """
 
         Set the logger for mode
@@ -26,8 +26,7 @@ class Modes:
         """
         self._logger(logger)
 
-
-    def add_mode(self,name,io_pointer,mem_creator):
+    def add_mode(self, name, io_pointer, mem_creator):
         """
         Add a new mode
 
@@ -35,12 +34,12 @@ class Modes:
         io_pointer -  Pointer to the IO Class
         mem_creator - Pointer on how to create memory
         """
-        self._modes[name]=io_pointer(mem_creator)
+        self._modes[name] = io_pointer(mem_creator)
 
-    def get_mode(self,typ):
+    def get_mode(self, typ):
         """Get a specific io mode"""
         if typ not in self._modes:
-            self._logger.fatal(f"Unknown mode {typ}")
+            self._logger.fatal("Unknown mode %s", typ)
             raise Exception("")
         return self._modes[typ]
 
@@ -49,7 +48,9 @@ class Modes:
         return self._modes.keys()
 
 
-ioModes=Modes()
+ioModes = Modes()
 
-ioModes.add_mode("sepDefault",sep_python.sep_io.InOut,sep_python.sep_vector.get_sep_vector)
-default_io=ioModes.get_mode("sepDefault")
+ioModes.add_mode(
+    "sepDefault", sep_python.sep_io.InOut, sep_python.sep_vector.get_sep_vector
+)
+default_io = ioModes.get_mode("sepDefault")
