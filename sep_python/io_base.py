@@ -385,7 +385,7 @@ class InOut(ABC):
 
         hyper_out = Hypercube(axes=aout)
 
-        vec = self._mem_create(hyper_out, data_format=path.get_data_type())
+        vec = self._mem_create(hyper_out, data_format=file.get_data_type())
         file.read(vec)
         return vec
 
