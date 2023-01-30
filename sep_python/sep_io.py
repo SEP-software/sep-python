@@ -559,18 +559,13 @@ class SEPFile(reg):
         for sk in seeks:
             fl.seek(sk)
             bytes = fl.read(blk)
-            print(sk, blk)
             if len(bytes) != blk:
                 self._logger.fatal(f"Only read  {len(bytes)} of {blk} starting at {sk}")
                 raise Exception(f"Only read  {len(bytes)} of {blk} starting at {sk}")
             if self._xdr:
-                print("in xdr")
                 if self._esize == 8:
-                    print("esize 8")
                     tmp = np.frombuffer(bytes, dtype=np.float32)
-                    print(tmp.min(), tmp.max(), "before swap")
                     tmo = tmp.byteswap()
-                    print(tmo.min(), tmo.max(), "after swap")
                     tmo = np.frombuffer(tmo.tobytes(), arUse.dtype)
                 else:
                     tmp = np.frombuffer(bytes, dtype=arUse.dtype)

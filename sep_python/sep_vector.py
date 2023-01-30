@@ -174,17 +174,17 @@ class Vector(sep_python.sep_proto.MemReg, pyvec):
 class NonInteger(Vector):
     """A class for non-integers"""
 
-    def __init__(self, hyper: Hypercube, data_format: str, vals=None, space_only=False):
+    def __init__(self, hyper: Hypercube, data_type: str, vals=None, space_only=False):
         """Initialize a non-integer"""
-        super().__init__(hyper, data_format, vals=vals, space_only=space_only)
+        super().__init__(hyper, data_type, vals=vals, space_only=space_only)
 
 
 class RealNumber(NonInteger):
     """A class for real numbers"""
 
-    def __init__(self, hyper: Hypercube, data_format: str, vals=None, space_only=False):
+    def __init__(self, hyper: Hypercube, data_type: str, vals=None, space_only=False):
         """Initialize a real number vector"""
-        super().__init__(hyper, data_format, vals=vals, space_only=space_only)
+        super().__init__(hyper, data_type, vals=vals, space_only=space_only)
 
     def clip(self, bclip, eclip):
         """Clip dataset
@@ -209,7 +209,7 @@ class RealNumber(NonInteger):
         @return Histogram"""
         # ar=self.get_1d_array()
         # CHANGE
-        histo = get_sep_vector(ns=[nelem], data_format="int32")
+        histo = get_sep_vector(ns=[nelem], data_type="int32")
         calc_histo(histo.get_nd_array(), self.get_nd_array(), min_val, max_val)
         return histo
 
@@ -276,7 +276,7 @@ class IntVector(Vector):
     """Generic int vector class"""
 
     def __init__(self, hyper: Hypercube, vals=None, space_only=False):
-        super().__init__(hyper, "dataInt", vals=vals, space_only=space_only)
+        super().__init__(hyper, "int32", vals=vals, space_only=space_only)
         if not space_only:
             self._arr = np.ndarray(tuple(hyper.get_ns()[::-1]), dtype=np.int32)
 
@@ -299,7 +299,7 @@ class ComplexVector(Vector):
     """Generic complex vector class"""
 
     def __init__(self, hyper: Hypercube, vals=None, space_only=False):
-        super().__init__(hyper, "float32", vals=vals, space_only=space_only)
+        super().__init__(hyper, "complex64", vals=vals, space_only=space_only)
         if not space_only:
             self._arr = np.ndarray(tuple(hyper.get_ns()[::-1]), dtype=np.complex64)
 
@@ -359,7 +359,7 @@ class ByteVector(Vector):
     """Generic byte vector class"""
 
     def __init__(self, hyper: Hypercube, vals=None, space_only=False):
-        super().__init__(hyper, "dataByte", vals=vals, space_only=space_only)
+        super().__init__(hyper, "uint8", vals=vals, space_only=space_only)
         if not space_only:
             self._arr = np.ndarray(tuple(hyper.get_ns()[::-1]), dtype=np.uint8)
 
@@ -370,7 +370,7 @@ class ByteVector(Vector):
         nelem - Return number of elements in histogram
 
         @return Histogram"""
-        histo = get_sep_vector(ns=[nelem], data_format="dataInt")
+        histo = get_sep_vector(ns=[nelem], data_type="dataInt")
         calc_histo(histo, self.get_nd_array(), min_val, max_val)
         return histo
 
@@ -403,7 +403,7 @@ def get_sep_vector(
             labels = [] list of labels
             axes = [] list of axes
 
-    data_format = data_formatType(float32[default], float64,double64,
+    data_type = float32[default], float64,double64,
                     int32,complex64,complex128)
 
     Option 4 (numpy)
@@ -422,8 +422,6 @@ def get_sep_vector(
     else:
         logger = logging.getLogger(None)
 
-    if "data_format" in keys:
-        keys["data_format"] = keys["data_format"]
     if len(args) == 1:
         if isinstance(args[0], Hypercube):
             hyper = args[0]
@@ -471,8 +469,8 @@ def get_sep_vector(
         myt = converter.get_name(str(array.dtype))
     else:
         myt = "float32"
-        if "data_format" in keys:
-            myt = converter.get_name(keys["data_format"])
+        if "data_type" in keys:
+            myt = converter.get_name(keys["data_type"])
 
     if myt == "float32":
         out_type = FloatVector(hyper)
