@@ -34,16 +34,16 @@ class Vector(sep_python.sep_proto.MemReg, pyvec):
             if not isinstance(vals, np.ndarray):
                 raise Exception("Vals must be ndarray")
             if vals.size == 0:  # empty array
-                arr = np.ndarray(tuple(reversed(hyper.get_ns())), dtype=data_type)
+                arr = np.zeros(tuple(reversed(hyper.get_ns())), dtype=data_type)
                 pyvec.__init__(self, arr)
             else:
                 pyvec.__init__(self, vals)
                 self.arr = vals
         elif not space_only:
-            arr = np.ndarray(tuple(reversed(hyper.get_ns())), dtype=data_type)
+            arr = np.zeros(tuple(reversed(hyper.get_ns())), dtype=data_type)
             pyvec.__init__(self, arr)
         else:
-            arr = np.ndarray(tuple(reversed(hyper.get_ns())), dtype=data_type)
+            arr = np.zeros(tuple(reversed(hyper.get_ns())), dtype=data_type)
             pyvec.__init__(self, arr)
             self.arr = np.empty(0, dtype=self.getNdArray().dtype)
 
