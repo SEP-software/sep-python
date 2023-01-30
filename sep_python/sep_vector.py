@@ -35,7 +35,8 @@ class Vector(sep_python.sep_proto.MemReg, pyvec):
                 raise Exception("Vals must be ndarray")
             pyvec.__init__(self, vals)
         elif not space_only:
-            pyvec.__init__(self, tuple(hyper.get_ns()))
+            arr = np.ndarray(tuple(reversed(hyper.get_ns())), dtype=data_type)
+            pyvec.__init__(self, arr)
 
     def set_logger(self, logger):
         """Set the logger for the vector
@@ -247,8 +248,6 @@ class Double_Vector(Vector):
 
     def __init__(self, hyper: Hypercube, vals=None, space_only=False):
         super().__init__(hyper, "float64", vals=vals, space_only=space_only)
-        if not space_only:
-            self._arr = np.ndarray(tuple(hyper.get_ns()[::-1]), dtype=np.float64)
 
     def __repr__(self):
         """Override print method"""
@@ -277,8 +276,6 @@ class IntVector(Vector):
 
     def __init__(self, hyper: Hypercube, vals=None, space_only=False):
         super().__init__(hyper, "int32", vals=vals, space_only=space_only)
-        if not space_only:
-            self._arr = np.ndarray(tuple(hyper.get_ns()[::-1]), dtype=np.int32)
 
     def __repr__(self):
         """Override print method"""
@@ -300,8 +297,9 @@ class ComplexVector(Vector):
 
     def __init__(self, hyper: Hypercube, vals=None, space_only=False):
         super().__init__(hyper, "complex64", vals=vals, space_only=space_only)
-        if not space_only:
-            self._arr = np.ndarray(tuple(hyper.get_ns()[::-1]), dtype=np.complex64)
+        print("in complex vector")
+
+        print("in complex", self.get_nd_array().dtype)
 
     def clone_space(self):
         """Funtion tor return the space of a vector"""
@@ -330,8 +328,6 @@ class ComplexDoubleVector(Vector):
 
     def __init__(self, hyper: Hypercube, vals=None, space_only=False):
         super().__init__(hyper, "complex128", vals=vals, space_only=space_only)
-        if not space_only:
-            self._arr = np.ndarray(tuple(hyper.get_ns()[::-1]), dtype=np.complex128)
 
     def clone_space(self):
         """Funtion tor return the space of a vector"""
@@ -360,8 +356,6 @@ class ByteVector(Vector):
 
     def __init__(self, hyper: Hypercube, vals=None, space_only=False):
         super().__init__(hyper, "uint8", vals=vals, space_only=space_only)
-        if not space_only:
-            self._arr = np.ndarray(tuple(hyper.get_ns()[::-1]), dtype=np.uint8)
 
     def calc_histo(self, nelem, min_val, max_val):
         """Calculate histogram
