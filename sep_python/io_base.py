@@ -371,7 +371,7 @@ class InOut(ABC):
 
         n_wind, fwind, jwind = file.get_hyper().get_window_params(**kw)
         aout = []
-        ain = path.get_hyper().axes
+        ain = file.get_hyper().axes
         for i in range(len(n_wind)):
             aout.append(
                 Axis(
@@ -386,7 +386,7 @@ class InOut(ABC):
         hyper_out = Hypercube(axes=aout)
 
         vec = self._mem_create(hyper_out, data_format=path.get_data_type())
-        path.read(vec)
+        file.read(vec)
         return vec
 
     def write_vector(self, path, vec):
