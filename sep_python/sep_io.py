@@ -290,9 +290,7 @@ class reg(sep_python.io_base.RegFile):
                     axes.append(n=1)
         if skip_1:
             ngreater1 = len(axes)
-            print(len(axes))
             for i in range(len(axes) - 1, 1, -1):
-                print(i, axes[i])
                 if axes[i].n == 1:
                     ngreater1 = i
             axes = axes[:ngreater1]
