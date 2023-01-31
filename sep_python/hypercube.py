@@ -104,7 +104,7 @@ class Hypercube:
     def sub_cube(self, nwind, fwind, jwind):
         """Return a sub-cube"""
         axes = []
-        for iaxis, axis in range(len(self.axes)):
+        for iaxis, axis in enumerate(self.axes):
             axes.append(
                 Axis(
                     n=nwind[iaxis],
@@ -237,7 +237,7 @@ class Hypercube:
                 ns.append(int((self.axes[i].n - 1 - fs[i]) / js[i] + 1))
         for i in range(ndim):
             if self.axes[i].n < (1 + fs[i] + js[i] * (ns[i] - 1)):
-                logging.getLogger(None).fatail(
+                logging.getLogger(None).fatal(
                     "Invalid window parameter (outside axis range)"
                     + f"f={fs[i]} j={js[i]} n={ns[i]} iax={i+1} ndata={self.axes[i].n}"
                 )

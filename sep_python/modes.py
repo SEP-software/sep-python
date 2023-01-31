@@ -24,7 +24,7 @@ class Modes:
         logger
 
         """
-        self._logger(logger)
+        self._logger = logger
 
     def add_mode(self, name, io_pointer, mem_creator):
         """
