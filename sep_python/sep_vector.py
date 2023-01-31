@@ -38,7 +38,7 @@ class Vector(sep_python.sep_proto.MemReg, pyvec):
                 pyvec.__init__(self, arr)
             else:
                 pyvec.__init__(self, vals)
-                self.arr = vals
+                self.arr = np.copy(vals)
         elif not space_only:
             arr = np.zeros(tuple(reversed(hyper.get_ns())), dtype=data_type)
             pyvec.__init__(self, arr)
