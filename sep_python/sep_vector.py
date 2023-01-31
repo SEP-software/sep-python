@@ -306,9 +306,6 @@ class ComplexVector(Vector):
 
     def __init__(self, hyper: Hypercube, vals=None, space_only=False):
         super().__init__(hyper, "complex64", vals=vals, space_only=space_only)
-        print("in complex vector")
-
-        print("in complex", self.get_nd_array().dtype)
 
     def clone_space(self):
         """Funtion tor return the space of a vector"""
