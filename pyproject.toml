@@ -1,7 +1,7 @@
 [project]
 
 name='sep_python'
-version='0.9.66'
+version='0.9.67'
 description='A library for basic SEP IO all in python'
 
 authors=[
@@ -14,7 +14,7 @@ maintainesr=[
 ]
 dependencies=[ 'google-cloud-storage>=1.34.0',
                 'numba>=0.53',
-                'genericSolver @ git+http://zapad.stanford.edu/bob/python-solver.git@e0a65dbf98668672cf860f72c4c5c5338375c763'
+                'genericSolver @ git+http://zapad.stanford.edu/bob/python-solver.git@6609a1a5f679302d43338e2970ba139ae7ac0d50'
             ]
 
 
