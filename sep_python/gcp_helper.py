@@ -1,10 +1,13 @@
-# Coppied from https://cloud.google.com/community/tutorials/cloud-storage-infinite-compose
-from typing import List, Any, Iterable
-from google.cloud import storage
-from concurrent.futures import *
-from itertools import count
+"""Helper functions when using gcs storage
+
+ Coppied from https://cloud.google.com/community/tutorials/cloud-storage-infinite-compose
+"""
 import time
 import logging
+from typing import List, Any, Iterable
+from concurrent.futures import Executor, Future
+from itertools import count
+from google.cloud import storage
 
 
 def compose(
@@ -106,11 +109,11 @@ def ensure_results(maybe_futures: List[Any]) -> List[Any]:
         List[Any]: A list with the values passed in, or Future.result() values.
     """
     results = []
-    for mf in maybe_futures:
-        if isinstance(mf, Future):
-            results.append(mf.result())
+    for m_res in maybe_futures:
+        if isinstance(m_res, Future):
+            results.append(m_res.result())
         else:
-            results.append(mf)
+            results.append(m_res)
     return results
 
 
@@ -151,6 +154,6 @@ def delete_objects_concurrent(blobs, executor, client, log: logging.Logger) -> N
         client (storage.Client): Cloud Storage client to use.
     """
     for blob in blobs:
-        log.debug("Deleting slice {}".format(blob.name))
+        log.debug("Deleting slice %s", blob.name)
         executor.submit(blob.delete, client=client)
         time.sleep(0.005)  # quick and dirty ramp-up (Sorry, Dijkstra.)

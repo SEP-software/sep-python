@@ -83,9 +83,9 @@ class Vector(sep_python.sep_proto.MemReg, pyvec):
         axes = self.get_hyper().axes
         n_wind, f_wind, j_wind = fix_window(axes, **kw)
 
-        ns = n_wind
-        fs = f_wind
-        js = j_wind
+        n_s = n_wind
+        f_s = f_wind
+        j_s = j_wind
 
         axis_out = []
         axis_c_out = []
@@ -109,50 +109,50 @@ class Vector(sep_python.sep_proto.MemReg, pyvec):
         in_array = self.get_nd_array()
         ndim = len(axis_out)
         if ndim == 1:
-            out_array = in_array[fs[0] : js[0] * ns[0] : js[0]]
+            out_array = in_array[f_s[0] : j_s[0] * n_s[0] : j_s[0]]
         elif ndim == 2:
             out_array = in_array[
-                fs[1] : js[1] * ns[1] : js[1], fs[0] : js[0] * ns[0] : js[0]
+                f_s[1] : j_s[1] * n_s[1] : j_s[1], f_s[0] : j_s[0] * n_s[0] : j_s[0]
             ]
         elif ndim == 3:
             out_array = in_array[
-                fs[2] : js[2] * ns[2] : js[2],
-                fs[1] : js[1] * ns[1] : js[1],
-                fs[0] : js[0] * ns[0] : js[0],
+                f_s[2] : j_s[2] * n_s[2] : j_s[2],
+                f_s[1] : j_s[1] * n_s[1] : j_s[1],
+                f_s[0] : j_s[0] * n_s[0] : j_s[0],
             ]
         elif ndim == 4:
             out_array = in_array[
-                fs[3] : js[3] * ns[3] : js[3],
-                fs[2] : js[2] * ns[2] : js[2],
-                fs[1] : js[1] * ns[1] : js[1],
-                fs[0] : js[0] * ns[0] : js[0],
+                f_s[3] : j_s[3] * n_s[3] : j_s[3],
+                f_s[2] : j_s[2] * n_s[2] : j_s[2],
+                f_s[1] : j_s[1] * n_s[1] : j_s[1],
+                f_s[0] : j_s[0] * n_s[0] : j_s[0],
             ]
         elif ndim == 5:
             out_array = in_array[
-                fs[4] : js[4] * ns[4] : js[4],
-                fs[3] : js[3] * ns[3] : js[3],
-                fs[2] : js[2] * ns[2] : js[2],
-                fs[1] : js[1] * ns[1] : js[1],
-                fs[0] : js[0] * ns[0] : js[0],
+                f_s[4] : j_s[4] * n_s[4] : j_s[4],
+                f_s[3] : j_s[3] * n_s[3] : j_s[3],
+                f_s[2] : j_s[2] * n_s[2] : j_s[2],
+                f_s[1] : j_s[1] * n_s[1] : j_s[1],
+                f_s[0] : j_s[0] * n_s[0] : j_s[0],
             ]
         elif ndim == 6:
             out_array = in_array[
-                fs[5] : js[5] * ns[5] : js[5],
-                fs[4] : js[4] * ns[4] : js[4],
-                fs[3] : js[3] * ns[3] : js[3],
-                fs[2] : js[2] * ns[2] : js[2],
-                fs[1] : js[1] * ns[1] : js[1],
-                fs[0] : js[0] * ns[0] : js[0],
+                f_s[5] : j_s[5] * n_s[5] : j_s[5],
+                f_s[4] : j_s[4] * n_s[4] : j_s[4],
+                f_s[3] : j_s[3] * n_s[3] : j_s[3],
+                f_s[2] : j_s[2] * n_s[2] : j_s[2],
+                f_s[1] : j_s[1] * n_s[1] : j_s[1],
+                f_s[0] : j_s[0] * n_s[0] : j_s[0],
             ]
         elif ndim == 7:
             out_array = in_array[
-                fs[6] : fs[6] * js[6] : js[6],
-                fs[5] : js[5] * ns[5] : js[5],
-                fs[4] : js[4] * ns[4] : js[4],
-                fs[3] : js[3] * ns[3] : js[3],
-                fs[2] : js[2] * ns[2] : js[2],
-                fs[1] : js[1] * ns[1] : js[1],
-                fs[0] : js[0] * ns[0] : js[0],
+                f_s[6] : f_s[6] * n_s[6] : j_s[6],
+                f_s[5] : j_s[5] * n_s[5] : j_s[5],
+                f_s[4] : j_s[4] * n_s[4] : j_s[4],
+                f_s[3] : j_s[3] * n_s[3] : j_s[3],
+                f_s[2] : j_s[2] * n_s[2] : j_s[2],
+                f_s[1] : j_s[1] * n_s[1] : j_s[1],
+                f_s[0] : j_s[0] * n_s[0] : j_s[0],
             ]
         if not compress:
             return vec
@@ -232,7 +232,7 @@ class FloatVector(Vector):
 
     def __repr__(self):
         """Override print method"""
-        return "FloatVector\n%s" % str(self.get_hyper())
+        return f"FloatVector\n{str(self.get_hyper)}"
 
     def clone(self):
         """Function to clone (deep copy) a vector"""
@@ -252,7 +252,7 @@ class FloatVector(Vector):
         return self.get_hyper().check_same(other.get_hyper())
 
 
-class Double_Vector(Vector):
+class DoubleVector(Vector):
     """Generic double vector class"""
 
     def __init__(self, hyper: Hypercube, vals=None, space_only=False):
@@ -260,19 +260,19 @@ class Double_Vector(Vector):
 
     def __repr__(self):
         """Override print method"""
-        return "Double_Vector\n%s" % str(self.get_hyper())
+        return f"Double_Vector\n{str(self.get_hyper())}"
 
     def clone(self):
         """Function to clone (deep copy) a vector"""
-        return Double_Vector(self.get_hyper(), vals=self.get_nd_array())
+        return DoubleVector(self.get_hyper(), vals=self.get_nd_array())
 
     def clone_space(self):
         """Funtion tor return the space of a vector"""
-        return Double_Vector(self.get_hyper(), space_only=True)
+        return DoubleVector(self.get_hyper(), space_only=True)
 
     def checkSame(self, other):
         """Function to check that two vectors are from same space"""
-        if not isinstance(other, Double_Vector):
+        if not isinstance(other, DoubleVector):
             return False
         return self.get_hyper().check_same(other.get_hyper())
 
@@ -288,7 +288,7 @@ class IntVector(Vector):
 
     def __repr__(self):
         """Override print method"""
-        return "IntVector\n%s" % str(self.get_hyper())
+        return f"IntVector\n{str(self.get_hyper())}"
 
     def clone(self):
         """Function to clone (deep copy) a vector"""
@@ -316,7 +316,7 @@ class ComplexVector(Vector):
 
     def __repr__(self):
         """Override print method"""
-        return "ComplexVector\n%s" % str(self.get_hyper())
+        return f"ComplexVector\n{str(self.get_hyper())}"
 
     def clone(self):
         """clone a vector"""
@@ -344,7 +344,7 @@ class ComplexDoubleVector(Vector):
 
     def __repr__(self):
         """Override print method"""
-        return "ComplexDoubleVector\n%s" % str(self.get_hyper())
+        return f"ComplexDoubleVector\n{str(self.get_hyper())}"
 
     def clone(self):
         """clone a vector"""
@@ -380,7 +380,7 @@ class ByteVector(Vector):
 
     def __repr__(self):
         """Override print method"""
-        return "ByteVector\n%s" % str(self.get_hyper())
+        return f"ByteVector\n{str(self.get_hyper())}"
 
     def checkSame(self, other):
         """Function to check that two vectors are from same space"""
@@ -421,8 +421,9 @@ def get_sep_vector(
         logger = keys["loggger"]
     else:
         logger = logging.getLogger(None)
-
+    print("in one")
     if len(args) == 1:
+        print("in two")
         if isinstance(args[0], Hypercube):
             hyper = args[0]
         elif isinstance(args[0], np.ndarray):
@@ -443,6 +444,13 @@ def get_sep_vector(
                 for i in range(len(nt)):
                     ns.append(nt[len(nt) - 1 - i])
                 hyper = Hypercube.set_with_ns(ns)
+            ns = hyper.get_ns()
+            ns.reverse()
+            print(f"here i am {ns} {array.shape}")
+            if ns != list(array.shape):
+                raise Exception(
+                    f"hypercube shape (reversed) {ns} and array shape {array.shape} don't agree"
+                )
         else:
             logger.fatal("First argument must by a Hypercube or numpy array")
             raise Exception("")
@@ -464,7 +472,7 @@ def get_sep_vector(
 
     if have_numpy:
         if not converter.valid_type(str(array.dtype)):
-            logger.fatal(f"Numpy array type {array.dtype} not supported")
+            logger.fatal("Numpy array type not supported %s", array.dtype)
             raise Exception("")
         myt = converter.get_name(str(array.dtype))
     else:
@@ -479,13 +487,13 @@ def get_sep_vector(
     elif myt == "complex64":
         out_type = ComplexVector(hyper)
     elif myt == "float64":
-        out_type = Double_Vector(hyper)
+        out_type = DoubleVector(hyper)
     elif myt == "int32":
         out_type = IntVector(hyper)
     elif myt == "uint8":
         out_type = ByteVector(hyper)
     else:
-        logger.fatal(f"Unknown type {myt}")
+        logger.fatal("Unknown type %s", myt)
         raise Exception("")
     if have_numpy:
         np.copyto(out_type.get_nd_array(), array)
@@ -493,7 +501,11 @@ def get_sep_vector(
 
 
 def rea_col_textfile(file):
-    f = open(file)
+    """Create an array from a texf file
+
+    file- file name
+    """
+    f = open(file, "r", encoding="utf-8")
     lines = f.readlines()
     array = []
     for line in lines:
@@ -503,7 +515,7 @@ def rea_col_textfile(file):
             try:
                 y = float(x)
                 vec1.append(y)
-            except:
+            except ValueError:
                 y = x
         array.append(vec1)
     array2 = []
@@ -536,46 +548,46 @@ def fix_window(axes, **kw):
         if "n" in kw:
             if isinstance(kw["n"], list):
                 if len(kw["n"]) >= i:
-                    kw["n%d" % i] = kw["n"][i - 1]
+                    kw[f"n{i}"] = kw["n"][i - 1]
         if "f" in kw:
             if isinstance(kw["f"], list):
                 if len(kw["f"]) >= i:
-                    kw["f%d" % i] = kw["f"][i - 1]
+                    kw[f"f{i}"] = kw["f"][i - 1]
         if "j" in kw:
             if isinstance(kw["j"], list):
                 if len(kw["j"]) >= i:
-                    kw["j%d" % i] = kw["j"][i - 1]
-        if "n%d" % i in kw:
+                    kw[f"j{i}"] = kw["j"][i - 1]
+        if f"n{i}" in kw:
             nset = True
-            n = int(kw["n%d" % i])
-        if "f%d" % i in kw:
+            n = int(kw[f"n{i}"])
+        if f"f{i}" in kw:
             fset = True
-            f = int(kw["f%d" % i])
-        if "j%d" % i in kw:
+            f = int(kw[f"f{i}"])
+        if f"j{i}" in kw:
             jset = True
-            j = int(kw["j%d" % i])
+            j = int(kw[f"j{i}"])
         bi_set = False
         ei_set = False
-        if "min%d" % i in kw:
-            bi = int(float(kw["min%d" % i] - axes[i - 1].o) / axes[i - 1].d + 0.5)
+        if f"min{i}" in kw:
+            bi = int(float(kw[f"min{i}"] - axes[i - 1].o) / axes[i - 1].d + 0.5)
             bi_set = True
-        if "max%d" % i in kw:
-            ei = int(float(kw["max%d" % i] - axes[i - 1].o) / axes[i - 1].d + 0.5)
+        if "max{i}" in kw:
+            ei = int(float(kw[f"max{i}"] - axes[i - 1].o) / axes[i - 1].d + 0.5)
             ei_set = True
         if fset:
             if axes[i - 1].n <= f:
                 logging.getLogger().fatal(
-                    "invalid f{i}={f} parameter n{i} of data={axes[i-1].n"
+                    f"invalid f{i}={f} parameter n%d of data={axes[i-1].n}"
                 )
                 raise Exception("")
         if nset:
             if axes[i - 1].n < n:
                 logging.getLogger().fatal(
-                    f"invalid n{i}={n} parameter n{i} of data={axes[i-1].n}"
+                    f"invalid n{i}={n} parameter n%d of data={axes[i-1].n}"
                 )
                 raise Exception("")
         if jset and j <= 0:
-            logging.getLogger().fatal(f"invalid j{i}={j}")
+            logging.getLogger().fatal("invalid j%d,%d", i, j)
             raise Exception("")
         if not jset:
             j = 1
@@ -584,13 +596,13 @@ def fix_window(axes, **kw):
                 if not bi_set:
                     f = 0
                 elif bi < 0 or bi >= axes[i - 1].n:
-                    logging.getLogger().fatal(f"Invalid min{i}={kw['min%d'%i]}")
+                    logging.getLogger().fatal("Invalid min%d=%d", i, kw[f"min{i}"])
                     raise Exception("")
                 else:
                     f = bi
             if ei_set:
                 if ei <= f or ei >= axes[i - 1].n:
-                    logging.getLogger().fatal(f"Invalid max{i}={kw['min%d'%i]}")
+                    logging.getLogger().fatal("Invalid max%d=%d", i, kw[f"min{i}"])
 
                 else:
                     n = (ei - f - 1) / j + 1
@@ -605,7 +617,7 @@ def fix_window(axes, **kw):
             if not bi_set:
                 f = 0
             elif bi < 0 or bi >= axes[i - 1].n:
-                logging.getLogger().fatal(f"Invalid min{i}={kw['min%d'%i]}")
+                logging.getLogger().fatal("Invalid min%d=%d", i, kw[f"min{i}"])
                 raise Exception("")
             else:
                 f = int(bi)
