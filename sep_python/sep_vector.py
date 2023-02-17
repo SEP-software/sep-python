@@ -2,6 +2,7 @@
 import logging
 import numba
 import numpy as np
+import copy
 from genericSolver.pyVector import vectorIC as pyvec
 from sep_python.hypercube import Hypercube, Axis
 import sep_python.sep_converter
@@ -37,8 +38,7 @@ class Vector(sep_python.sep_proto.MemReg, pyvec):
                 arr = np.zeros(tuple(reversed(hyper.get_ns())), dtype=data_type)
                 pyvec.__init__(self, arr)
             else:
-                pyvec.__init__(self, vals)
-                self.arr = np.copy(vals)
+                pyvec.__init__(self, copy.deepcopy(vals))
         elif not space_only:
             arr = np.zeros(tuple(reversed(hyper.get_ns())), dtype=data_type)
             pyvec.__init__(self, arr)
