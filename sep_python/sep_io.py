@@ -595,7 +595,7 @@ class SEPFile(RegFile):
             input_buffer = io.BytesIO(mystr[: self._head])
             if input_buffer:
                 pass
-            wrapper = io.TextIOWrapper(input, encoding="utf-8")
+            wrapper = io.TextIOWrapper(input_buffer, encoding="utf-8")
 
             self._history = wrapper.read()
         file_pointer.close()
