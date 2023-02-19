@@ -623,11 +623,10 @@ class SEPFile(RegFile):
             self._logger.fatal("Do not how to read into type %s ", type(mem))
             raise Exception("")
 
-        xs = self.loop_it(
+        seeks, blk, many = self.loop_it(
             *self.condense(*self.get_hyper().get_window_params(**kw))
         )
-        print(xs)
-        seeks, blk, many=xs
+        
         ar_use = array.ravel()
         if self.get_binary_path() == "stdin" or self.get_binary_path() == "follow_hdr":
             file_pointer = open(self._path, "rb")
@@ -638,7 +637,7 @@ class SEPFile(RegFile):
         for seek in seeks:
             file_pointer.seek(seek)
             bytes_array = file_pointer.read(blk)
-            if len(bytes) != blk:
+            if len(bytes_array) != blk:
                 self._logger.fatal(
                     "Only read  %d of %d starting at %d", len(bytes_array), blk, seek
                 )
@@ -651,11 +650,11 @@ class SEPFile(RegFile):
                     tmo = tmp.byteswap()
                     tmo = np.frombuffer(tmo.tobytes(), ar_use.dtype)
                 else:
-                    tmp = np.frombuffer(bytes, dtype=ar_use.dtype)
+                    tmp = np.frombuffer(bytes_array, dtype=ar_use.dtype)
                     tmo = tmp.byteswap()
                 ar_use[old:new] = tmo.copy()
             else:
-                ar_use[old:new] = np.frombuffer(bytes, dtype=ar_use.dtype).copy()
+                ar_use[old:new] = np.frombuffer(bytes_array, dtype=ar_use.dtype).copy()
             old = new
             new = new + many
         file_pointer.close()
