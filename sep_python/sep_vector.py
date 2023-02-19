@@ -423,7 +423,6 @@ def get_sep_vector(
         logger = logging.getLogger(None)
     print("in one")
     if len(args) == 1:
-        print("in two")
         if isinstance(args[0], Hypercube):
             hyper = args[0]
         elif isinstance(args[0], np.ndarray):
@@ -446,7 +445,6 @@ def get_sep_vector(
                 hyper = Hypercube.set_with_ns(ns)
             ns = hyper.get_ns()
             ns.reverse()
-            print(f"here i am {ns} {array.shape}")
             if ns != list(array.shape):
                 raise Exception(
                     f"hypercube shape (reversed) {ns} and array shape {array.shape} don't agree"

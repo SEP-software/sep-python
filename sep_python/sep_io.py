@@ -919,7 +919,7 @@ class SEPGcsObj(RegFile):
         else:
             self._logger.fatal("Do not how to read into type %s", type(mem))
             raise Exception("")
-        seeks, blk, many, contin = self.loop_it(
+        seeks, blk, many = self.loop_it(
             *self.condense(*self.get_hyper().get_window_params(**kw))
         )
         ar_use = array.ravel()
@@ -959,7 +959,7 @@ class SEPGcsObj(RegFile):
             self._logger.fatal("Do not how to read into type %s", type(mem))
             raise Exception("")
 
-        seeks, blk, many, contin = self.loop_it(
+        seeks, blk, many  = self.loop_it(
             *self.condense(*self.get_hyper().get_window_params(**kw))
         )
 
