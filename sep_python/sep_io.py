@@ -623,9 +623,11 @@ class SEPFile(RegFile):
             self._logger.fatal("Do not how to read into type %s ", type(mem))
             raise Exception("")
 
-        seeks, blk, many = self.loop_it(
+        xs = self.loop_it(
             *self.condense(*self.get_hyper().get_window_params(**kw))
         )
+        print(xs)
+        seeks, blk, many=xs
         ar_use = array.ravel()
         if self.get_binary_path() == "stdin" or self.get_binary_path() == "follow_hdr":
             file_pointer = open(self._path, "rb")
