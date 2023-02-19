@@ -652,6 +652,7 @@ class SEPFile(RegFile):
                 else:
                     tmp = np.frombuffer(bytes_array, dtype=ar_use.dtype)
                     tmo = tmp.byteswap()
+                print("what is the bug now",tmo.shape,old,new,many)
                 ar_use[old:new] = tmo.copy()
             else:
                 ar_use[old:new] = np.frombuffer(bytes_array, dtype=ar_use.dtype).copy()
