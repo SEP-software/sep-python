@@ -698,7 +698,7 @@ class SEPFile(RegFile):
         for par in self._par_put:
             file_pointer.write(f"{par}={self._params[par]}")
         file_pointer.write("\n" + self.hyper_to_str())
-        self.set_binary_path(datafile(self._path))
+        self.set_binary_path(get_datafile(self._path))
         file_pointer.write(f"in={self.get_binary_path()}\n")
         file_pointer.write(
             f"esize={self._esize} data_format={converter.get_SEP_name(self.get_data_type())}\n\n"
