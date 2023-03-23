@@ -232,7 +232,7 @@ class FloatVector(Vector):
 
     def __repr__(self):
         """Override print method"""
-        return f"FloatVector\n{str(self.get_hyper)}"
+        return f"FloatVector\n{str(self.get_hyper())}"
 
     def clone(self):
         """Function to clone (deep copy) a vector"""

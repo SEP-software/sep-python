@@ -308,9 +308,9 @@ class RegFile(ABC):
                                                 + (fwind[0] + jwind[0] * block[0]) * ig0
                                             )
         if jwind[0] == 1:
-            return seeks, esize * n_wind[0], n_wind[0], len(seeks) == 1
+            return seeks, esize * n_wind[0], n_wind[0]
         else:
-            return seeks, esize, False
+            return seeks, esize, 1
 
 
 class InOut(ABC):
