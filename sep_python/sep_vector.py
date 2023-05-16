@@ -63,6 +63,14 @@ class Vector(sep_python.sep_proto.MemReg, pyvec):
         self.get_nd_array().fill(val)
         return self
 
+    def __getitem__(self, key):
+        """Easy access of underlyind nd-array"""
+        return self.get_nd_array()[key]
+
+    def __setitem__(self, key, val):
+        """Easy access of nd-array"""
+        self.get_nd_array()[key] = val
+
     def get_nd_array(self) -> np.ndarray:
         """Return a numpy version of the array (same memory"""
         return self.arr
