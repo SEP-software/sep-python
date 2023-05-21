@@ -9,7 +9,7 @@ from abc import abstractmethod
 from concurrent import futures
 import numpy as np
 from google.cloud import storage
-from sep_python.hypercube import Hypercube, Axis
+from sep_python._hypercube import Hypercube, Axis
 import sep_python._io_base
 import sep_python._sep_converter
 import sep_python._sep_proto
