@@ -1,11 +1,11 @@
 """Abstract classes for IO"""
 import logging
 from abc import ABC, abstractmethod
-import sep_python.sep_converter
-import sep_python.sep_proto
-from sep_python.hypercube import Hypercube, Axis
+import sep_python._sep_converter
+import sep_python._sep_proto
+from sep_python import Hypercube, Axis
 
-converter = sep_python.sep_converter.converter
+converter = sep_python._sep_converter.converter
 
 
 class RegFile(ABC):
@@ -155,7 +155,7 @@ class RegFile(ABC):
         val  - Value"""
 
     @abstractmethod
-    def read(self, mem: sep_python.sep_proto.MemReg, **kw):
+    def read(self, mem: sep_python._sep_proto.MemReg, **kw):
         """
             Read dataset, potentially a window
 
@@ -166,7 +166,7 @@ class RegFile(ABC):
         """
 
     @abstractmethod
-    def write(self, mem: sep_python.sep_proto.MemReg, **kw):
+    def write(self, mem: sep_python._sep_proto.MemReg, **kw):
         """
             Write dataset, potentially a window
 

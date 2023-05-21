@@ -3,12 +3,12 @@ import logging
 import numba
 import numpy as np
 import copy
-from genericSolver.pyVector import vectorIC as pyvec
-from sep_python.hypercube import Hypercube, Axis
-import sep_python.sep_converter
-import sep_python.sep_proto
+from genericSolver import vectorIC as pyvec
+from sep_python import Hypercube, Axis
+import sep_python._sep_converter
+import sep_python._sep_proto
 
-converter = sep_python.sep_converter.converter
+converter = sep_python._sep_converter.converter
 
 
 @numba.njit()
@@ -20,7 +20,7 @@ def calc_histo(out_vec, vec, min_val, max_val):
         out_vec[ind] += 1
 
 
-class Vector(sep_python.sep_proto.MemReg, pyvec):
+class Vector(sep_python._sep_proto.MemReg, pyvec):
     """Generic sepVector class"""
 
     def __init__(self, hyper: Hypercube, data_type: str, vals=None, space_only=False):
@@ -28,7 +28,7 @@ class Vector(sep_python.sep_proto.MemReg, pyvec):
 
         self.arr = None
         self._logger = logging.getLogger(None)
-        sep_python.sep_proto.MemReg.__init__(self)
+        sep_python._sep_proto.MemReg.__init__(self)
         self.set_hyper(hyper)
         self.set_data_type(data_type)
         if vals is not None:

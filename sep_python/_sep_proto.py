@@ -2,10 +2,10 @@
 import logging
 import numpy as np
 
-from sep_python.hypercube import Hypercube
-import sep_python.sep_converter
+from sep_python._hypercube import Hypercube
+import sep_python._sep_converter
 
-converter = sep_python.sep_converter.converter
+converter = sep_python._sep_converter.converter
 
 
 class MemReg:

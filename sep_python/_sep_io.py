@@ -10,10 +10,10 @@ from concurrent import futures
 import numpy as np
 from google.cloud import storage
 from sep_python.hypercube import Hypercube, Axis
-import sep_python.io_base
-import sep_python.sep_converter
-import sep_python.sep_proto
-import sep_python.gcp_helper
+import sep_python._io_base
+import sep_python._sep_converter
+import sep_python._sep_proto
+import sep_python._gcp_helper
 
 
 __author__ = "Robert G. Clapp"
@@ -86,7 +86,7 @@ def get_datafile(name, host=None, all_files=None, nfiles=1):
     return filepaths
 
 
-class InOut(sep_python.io_base.InOut):
+class InOut(sep_python._io_base.InOut):
     """Class for doing IO of SEPlib regular cubes"""
 
     def __init__(self, create_mem, **kw):
@@ -122,7 +122,7 @@ class InOut(sep_python.io_base.InOut):
         return stor
 
 
-converter = sep_python.sep_converter.converter
+converter = sep_python._sep_converter.converter
 
 
 def database_from_str(string_in: str, data_base: dict):
@@ -192,7 +192,7 @@ def check_valid(param_dict: dict, args: dict):
                 raise Exception("")
 
 
-class RegFile(sep_python.io_base.RegFile):
+class RegFile(sep_python._io_base.RegFile):
     """A class to"""
 
     def __init__(self, **kw):
@@ -202,7 +202,7 @@ class RegFile(sep_python.io_base.RegFile):
             {
                 "hyper": Hypercube,
                 "path": str,
-                "vec": sep_python.sep_proto.MemReg,
+                "vec": sep_python._sep_proto.MemReg,
                 "array": np.ndarray,
                 "os": list,
                 "ds": list,
@@ -615,7 +615,7 @@ class SEPFile(RegFile):
         nw,fw,jw - Standard window parameters
 
         """
-        if isinstance(mem, sep_python.sep_proto.MemReg):
+        if isinstance(mem, sep_python._sep_proto.MemReg):
             array = mem.get_nd_array()
         elif isinstance(mem, np.ndarray):
             array = mem
@@ -670,7 +670,7 @@ class SEPFile(RegFile):
         nw,fw,jw - Standard window parameters
 
         """
-        if isinstance(mem, sep_python.sep_proto.MemReg):
+        if isinstance(mem, sep_python._sep_proto.MemReg):
             array = mem.get_nd_array()
         elif isinstance(mem, np.ndarray):
             array = mem
@@ -861,7 +861,7 @@ class SEPGcsObj(RegFile):
                         bucket.rename_blob(self._blobs[0], self._object)
                     else:
                         with futures.ThreadPoolExecutor(max_workers=60) as executor:
-                            sep_python.gcp_helper.compose(
+                            sep_python._gcp_helper.compose(
                                 f"gs://{self._bucket}/{self._object}",
                                 self._blobs,
                                 storage_client,
@@ -914,7 +914,7 @@ class SEPGcsObj(RegFile):
 
         """
 
-        if isinstance(mem, sep_python.sep_proto.MemReg):
+        if isinstance(mem, sep_python._sep_proto.MemReg):
             array = mem.getNdArray()
         elif isinstance(mem, np.ndarray):
             array = mem
@@ -953,7 +953,7 @@ class SEPGcsObj(RegFile):
 
         """
 
-        if isinstance(mem, sep_python.sep_proto.MemReg):
+        if isinstance(mem, sep_python._sep_proto.MemReg):
             array = mem.get_nd_array()
         elif isinstance(mem, np.ndarray):
             array = mem
