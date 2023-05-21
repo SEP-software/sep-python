@@ -3,7 +3,7 @@ import logging
 import numba
 import numpy as np
 import copy
-from generic_solver import vectorIC as pyvec
+from generic_solver import VectorIC as pyvec
 from sep_python import Hypercube, Axis
 import sep_python._sep_converter
 import sep_python._sep_proto
