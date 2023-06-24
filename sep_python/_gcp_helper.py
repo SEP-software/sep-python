@@ -1,6 +1,5 @@
 """Helper functions when using gcs storage
 
- Coppied from https://cloud.google.com/community/tutorials/cloud-storage-infinite-compose
 """
 import time
 import logging
@@ -127,14 +126,18 @@ def generate_hex_sequence() -> Iterable[str]:
         yield hex(i)[2:]
 
 
-def generate_composition_chunks(slices: List, chunk_size: int = 31) -> Iterable[List]:
-    """Given an indefinitely long list of blobs, return the list in 31-item chunks.
+def generate_composition_chunks(slices: List,
+                                chunk_size: int = 31) -> Iterable[List]:
+    """Given an indefinitely long list of blobs,
+        return the list in 31-item chunks.
 
     Arguments:
-        slices {List} -- A list of blobs, which are slices of a desired final blob.
+        slices {List} -- A list of blobs,
+           which are slices of a desired final blob.
 
     Returns:
-        Iterable[List] -- An iteration of 31-item chunks of the input list.
+        Iterable[List] -- An iteration of 31-item
+          chunks of the input list.
 
     Yields:
         Iterable[List] -- A 31-item chunk of the input list.
@@ -145,7 +148,8 @@ def generate_composition_chunks(slices: List, chunk_size: int = 31) -> Iterable[
         slices = slices[chunk_size:]
 
 
-def delete_objects_concurrent(blobs, executor, client, log: logging.Logger) -> None:
+def delete_objects_concurrent(blobs, executor,
+                              client, log: logging.Logger) -> None:
     """Delete Cloud Storage objects concurrently.
 
     Args:

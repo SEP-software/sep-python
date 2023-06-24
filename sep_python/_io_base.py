@@ -98,7 +98,8 @@ class RegFile(ABC):
         """Print information about file"""
         rep = (
             f"Regular file, type={self._io_type}"
-            + f"storage={self.get_data_type()} binary={self.get_binary_path()}\n"
+            + f"storage={self.get_data_type()}"
+            + f"binary={self.get_binary_path()}\n"
         )
         rep += str(self.get_hyper())
         return rep
@@ -199,7 +200,8 @@ class RegFile(ABC):
         for axis in self._hyper.axes:
             out += (
                 f"n{idim}={axis.n} o{idim}={axis.o}"
-                + f'd{idim}={axis.d} label{idim}={axis.label}" unit{idim}={axis.unit}"\n'
+                + f'd{idim}={axis.d} label{idim}={axis.label}"'
+                + f'unit{idim}={axis.unit}"\n'
             )
             idim += 1
         return out
@@ -275,7 +277,8 @@ class RegFile(ABC):
 
         n_grid - Number of elements along each axis
         n_wind,f_wind,j_wind - Standard window parameters
-        block - Blocks assoicated with each axis (e.g. n=10,20,30 blocks=1,10,200,6000)
+        block - Blocks assoicated with each axis
+        (e.g. n=10,20,30 blocks=1,10,200,6000)
 
         Returns
         seeks - List of seeks
@@ -294,18 +297,22 @@ class RegFile(ABC):
                     for ig4 in range(n_grid[4]):
                         pos4 = pos5 + (fwind[4] + jwind[4] * block[4]) * ig4
                         for ig3 in range(n_grid[3]):
-                            pos3 = pos4 + (fwind[3] + jwind[3] * block[3]) * ig3
+                            pos3 = pos4 + (fwind[3] +
+                                           jwind[3] * block[3]) * ig3
                             for ig2 in range(n_grid[2]):
-                                pos2 = pos3 + (fwind[2] + jwind[2] * block[2]) * ig2
+                                pos2 = pos3 + (fwind[2] +
+                                               jwind[2] * block[2]) * ig2
                                 for ig1 in range(n_grid[1]):
-                                    pos1 = pos2 + (fwind[1] + jwind[1] * block[1]) * ig1
+                                    pos1 = pos2 + (fwind[1]
+                                                   + jwind[1] * block[1]) * ig1
                                     if jwind[0] == 1:
                                         seeks.append(pos1)
                                     else:
                                         for ig0 in range(n_grid[0]):
                                             seeks.append(
                                                 pos1
-                                                + (fwind[0] + jwind[0] * block[0]) * ig0
+                                                + (fwind[0]
+                                                   + jwind[0] * block[0]) * ig0
                                             )
         if jwind[0] == 1:
             return seeks, esize * n_wind[0], n_wind[0]
@@ -334,11 +341,10 @@ class InOut(ABC):
         self._logger = log
 
     @abstractmethod
-    def get_reg_storage(self, **kw) -> RegFile:
+    def get_reg_storage(self, path, **kw) -> RegFile:
         """Get object to deal with storage
         Requiered:
                 path - Path to file
-        Optional:
 
         """
 
@@ -446,7 +452,8 @@ class InOut(ABC):
         max_length - Maximum number of appended frames
         flush - How often to flush the files"""
         if path not in self.append_files:
-            self.append_files[path] = AppendFile(self, path, vec, max_length, flush)
+            self.append_files[path] = AppendFile(self,
+                                                 path, vec, max_length, flush)
         if self.append_files[path].add_vector(vec):
             val_list = self.append_files[path].flush_vectors()
             if self.append_files[path].icount > self.append_files[path].nmax:
@@ -458,7 +465,10 @@ class InOut(ABC):
             )
 
     def close_append_file(self, path):
-        """Close an append file and fix the description to the right number of frames"""
+        """
+            Close an append file and fix the description
+                to the right number of frames
+        """
         if path not in self.append_files:
             self._logger.fatal("No record of appended file")
             raise Exception("")

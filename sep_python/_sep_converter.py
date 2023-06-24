@@ -57,11 +57,11 @@ class DtypeConvert:
         elif isinstance(nm, str):
             if nm[:4] == "data":
                 if nm not in self._old_style:
-                    self._logger.fatal(f"Unkwown type %s", nm)
+                    self._logger.fatal("Unkwown type %s", nm)
                     raise Exception("")
                 nm = self._old_style[nm]
             if nm not in self._name_to_esize:
-                self._logger.fatal(f"Unknown name %s", nm)
+                self._logger.fatal("Unknown name %s", nm)
                 raise Exception("")
             return nm
         else:
@@ -71,7 +71,7 @@ class DtypeConvert:
                     self._logger.fatal("Unkown type %s", nm)
                     raise Exception("")
                 return self._numpy_to_name[nm]
-            except:
+            except ValueError:
                 self._logger.fatal(
                     "Do not know how to deal with type=%s val=%s", type(nm), nm
                 )
@@ -132,11 +132,17 @@ class DtypeConvert:
 
 
 converter = DtypeConvert()
-converter.add_data_type("float32", "native_float", "dataFloat", np.float32, 4)
-converter.add_data_type("float64", "native_double", "dataDouble", np.float64, 8)
-converter.add_data_type("int32", "native_int", "dataInt", np.int32, 4)
-converter.add_data_type("uint8", "native_byte", "dataByte", np.uint8, 1)
-converter.add_data_type("complex64", "dataComplex", "native_complex", np.complex64, 8)
+converter.add_data_type("float32", "native_float",
+                        "dataFloat", np.float32, 4)
+converter.add_data_type("float64", "native_double",
+                        "dataDouble", np.float64, 8)
+converter.add_data_type("int32", "native_int",
+                        "dataInt", np.int32, 4)
+converter.add_data_type("uint8", "native_byte",
+                        "dataByte", np.uint8, 1)
+converter.add_data_type("complex64", "dataComplex",
+                        "native_complex", np.complex64, 8)
 converter.add_data_type(
-    "complex128", "dataComplexDouble", "native_complex_double", np.complex128, 16
+    "complex128", "dataComplexDouble",
+    "native_complex_double", np.complex128, 16
 )
