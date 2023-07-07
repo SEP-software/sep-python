@@ -168,7 +168,7 @@ def do_spike(trace_map, ks, mags, vec_2d):
             while valid and index < trace_map.shape[0]:
                 if (
                     ks[isp, index + 1] != -1
-                    or ks[isp, index + 1] != trace_map[itrace, index]
+                    and ks[isp, index + 1] != trace_map[itrace, index]
                 ):
                     valid = False
                 index += 1

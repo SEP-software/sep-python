@@ -64,7 +64,8 @@ class base_prog(ABC):
         self.build_args()
         if command_line is not None:
             args = self._parser.parse_args(command_line)
-        args = self._parser.parse_args()
+        else:
+            args = self._parser.parse_args()
         if args.verbosity is None:
             sep_loggers.set_default_level(logging.ERROR)
         elif args.verbosity == 1:
