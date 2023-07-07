@@ -1,5 +1,8 @@
 """    Module for describing regular spaces """
 import logging
+import math
+import copy
+import numpy as np
 
 
 class Axis:
@@ -34,7 +37,9 @@ class Axis:
     def __repr__(self):
         """Define print method for class"""
         if self.unit != "":
-            return f"n={self.n}\to={self.o}\td={self.d}\tlabel={self.label}\tunit={self.unit}"
+            mystr = f"n={self.n}\to={self.o}\td={self.d}\t"
+            mystr += f"label={self.label}\tunit={self.unit}"
+            return mystr
         elif self.label != "":
             return f"n={self.n}\to={self.o}\td={self.d}\tlabel={self.label}"
         else:
@@ -54,7 +59,7 @@ class Hypercube:
             _type_: Hyperube
         """
 
-        self.axes = axes
+        self.axes = copy.deepcopy(axes)
 
     @classmethod
     def set_with_ns(cls, ns: list, **kw):
@@ -140,7 +145,7 @@ class Hypercube:
 
     def check_same(self, hyper):
         """CHeck to see if hypercube is the same space"""
-        for i in range(len(self.axes), len(hyper.axes)):
+        for i in range(max(len(self.axes), len(hyper.axes))):
             if i < len(self.axes) and i < len(hyper.axes):
                 if self.axes[i].n != hyper.axes[i].n:
                     return False
@@ -178,9 +183,50 @@ class Hypercube:
         """Add an axis to the hypercube"""
         self.axes.append(axis)
 
+    def calc_axis(iax, ax, **kw):
+        """Given  windowing params for axis return n,f,w"""
+        ng = ax.n
+        f, j = 0, 1
+        if f"j{iax+1}" in kw:
+            j = kw[f"{iax+1}"]
+        if "j" in kw:
+            j = kw["j"][iax]
+
+        if f"min{iax+1}" in kw:
+            f = math.floor((kw[f"min{iax+1}"] - ax.o) / ax.d + 0.5)
+            if f < 0 or f > ng - 1:
+                raise Exception(f"Illegal min param axis {iax}")
+        if f"f{iax+1}" in kw:
+            f = kw[f"f{iax+1}"]
+            if f < 0 or f > ng - 1:
+                raise Exception(f"Illegal min param axis {iax}")
+        if "f" in kw:
+            f = kw["f"][iax]
+        n = math.ceil((ng - f) / j)
+        if f"max{iax+1}" in kw:
+            ncalc = int((f"max{iax+1}" - ax.o) / ax.d)
+            if ncalc > ng:
+                raise Exception(f"Illegal max {iax+1}")
+            n = int((ncalc - 1) / j + 1)
+        if f"n{iax+1}" in kw:
+            n = kw[f"n{iax+1}"]
+        if "n" in kw:
+            n = kw["n"][iax]
+        if ng <= f + j * (n - 1):
+            raise ValueError(
+                f"Illegal window options for axis {iax} n={n} f={f} j={j} ng={ng}"
+            )
+        return n, f, j
+
     def get_window_params(self, **kw):
         """Return window parameters
-        must supply n,f,or j"""
+        must supply n=[],f,or j,
+        or f1,f2,f3 j1,j2,j3, n1, n2, n3
+        or min=[], max=[],
+        or min1,min2,min3 or max1, max2, max3
+
+        Overrides: f->f1->min->min1
+        """
         ndim = len(self.axes)
         for par in ["f", "j", "n"]:
             if par in kw:
@@ -198,51 +244,78 @@ class Hypercube:
                     raise Exception(
                         f"Expecting {par} to be a list the dimensions of your Path"
                     )
-        if "j" in kw:
-            js = kw["j"]
-        else:
-            js = [1] * ndim
-        if "f" in kw:
-            fs = kw["f"]
-            for ival, fval in enumerate(fs):
-                if fval >= self.axes[ival].n:
-                    logging.getLogger(None).fatal(
-                        "Invalid f parameter f %d>=ndata(%d) for axis {i+1}",
-                        fval,
-                        self.axes[ival].n,
-                    )
-                    raise Exception(
-                        "Invalid f parameter f"
-                        + f"({fval})>=ndata({self.axes[ival].n}) for axis {ival+1}"
-                    )
-
-        else:
-            fs = [0] * ndim
-        if "n" in kw:
-            ns = kw["n"]
-            for i in range(len(fs)):
-                if ns[i] > self.axes[i].n:
-                    logging.getLogger(None).fatal(
-                        "Invalid n parameter n(%d) > ndata(%d) for axes %d",
-                        ns[i],
-                        self.axes[i].n,
-                        i + 1,
-                    )
-                    raise Exception(
-                        f"Invalid n parameter n({ns[i]}) > ndata({self.axes[i].n}) for axes {i+1}"
-                    )
-        else:
-            ns = []
-            for i in range(ndim):
-                ns.append(int((self.axes[i].n - 1 - fs[i]) / js[i] + 1))
-        for i in range(ndim):
-            if self.axes[i].n < (1 + fs[i] + js[i] * (ns[i] - 1)):
-                logging.getLogger(None).fatal(
-                    "Invalid window parameter (outside axis range)"
-                    + f"f={fs[i]} j={js[i]} n={ns[i]} iax={i+1} ndata={self.axes[i].n}"
-                )
-                raise Exception(
-                    "Invalid window parameter (outside axis range) "
-                    + f"f={fs[i]} j={js[i]} n={ns[i]} iax={i+1} ndata={self.axes[i].n}"
-                )
+        ns, fs, js = [], [], []
+        for iax in range(ndim):
+            n, f, j = Hypercube.calc_axis(iax, self.axes[iax], **kw)
+            ns.append(n)
+            fs.append(f)
+            js.append(j)
         return ns, fs, js
+
+    def calc_sub_window(self, hyper_out):
+        """Calculate the window to transform window in to window out
+
+        hyper_out - Hypercubes describing input/output
+
+        """
+        fs = []
+        js = []
+        ns = []
+        for ax_i, ax_o in zip(self.axes, hyper_out.axes):
+            js.append(int((ax_o.d / ax_i.d) + 0.5))
+            fs.append(int((ax_o.o - ax_i.o) / ax_i.d + 0.5))
+            ns.append(int(ax_o.n))
+        return {"n": ns, "f": fs, "j": js}
+
+    def trace_locations(self, n, f, j):
+        """
+        Calculate the beining location of each trace (2:) described by
+
+            n - number of samples
+            f - first sample along each axis
+            j - sampling along each axis
+        """
+
+        if len(self.axes) == 1:
+            return np.zeros((1, 1))
+        coords = [
+            np.arange(f_i, f_i + n_i * j_i, j_i)
+            for f_i, n_i, j_i in zip(f[1:], n[1:], j[1:])
+        ]
+
+        # Create a grid of indices for multidimensional indexing
+        grid = np.meshgrid(*coords, indexing="ij")
+
+        # Flatten and stack the grid to get a 2D array of indices
+        return np.stack([g.ravel() for g in grid], axis=-1)
+
+    def compact_hyper(
+        self, with_os=True, with_ds=True, with_label=True, with_unit=True
+    ):
+        """Compact a hypercube remove all outer axes that are default values
+
+        with_os - remove if o=0
+        with_ds - remove if d=1
+        with_label - remove if label=""
+        with_unit - remove if unit=""
+        """
+        default_shape = []
+        for ax in self.axes:
+            defs = True
+            if ax.n != 1:
+                defs = False
+            elif ax.o != 0.0 and with_os:
+                defs = False
+            elif ax.d != 1.0 and with_ds:
+                defs = False
+            elif ax.label != "" and with_label:
+                defs = False
+            elif ax.unit != "" and with_unit:
+                defs = False
+            default_shape.append(defs)
+        true_index = default_shape.index(True)
+        if true_index != -1:
+            if true_index == 0:
+                raise Exception("Found no valid axes???")
+            return Hypercube(self.axes[:true_index])
+        return self

@@ -1,0 +1,18 @@
+#!/usr/bin/env python
+from sep_python import default_io, Spike
+
+
+if __name__ == "__main__":
+    cls = Spike()
+    file_out = cls.process_commandline()[1]
+    cls.calc_output_hypercube(None)
+
+    obj_out = default_io.get_reg_storage(
+        file_out, hyper=cls._hyper_out, data_type="float32"
+    )
+
+    hypers_in, hypers_out = cls.block_out(
+        obj_out.get_hyper(), obj_out.get_data_type(), obj_out.get_data_type()
+    )
+
+    cls.pipe_work(None, obj_out, hypers_in, hypers_out)

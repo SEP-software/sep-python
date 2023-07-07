@@ -30,16 +30,16 @@ def get_datapath(host=None, all_paths=None):
                     os.environ.get("HOME"), ".datapath"), "r")
             except IOError:
                 file = None
-    if file:
-        for line in file.readlines():
-            check = re.match(r"(?:%s\s+)?datapath=(\S+)" % hst, line)
-            if check:
-                path = check.group(1)
-            else:
-                check = re.match(r"datapath=(\S+)", line)
+        if file:
+            for line in file.readlines():
+                check = re.match(r"(?:%s\s+)?datapath=(\S+)" % hst, line)
                 if check:
                     path = check.group(1)
-        file.close()
+                else:
+                    check = re.match(r"datapath=(\S+)", line)
+                    if check:
+                        path = check.group(1)
+            file.close()
     if not path:
         path = "/tmp/"
     if all_paths:
@@ -47,26 +47,24 @@ def get_datapath(host=None, all_paths=None):
     return path
 
 
-def get_datafile(name, host=None, all_files=None, nfiles=1):
+def get_datafile(name, host=None, nfiles=1):
     """Returns the datafile name(s) using SEP datafile conventions
 
     if host is not specified defaults to local machine
-    if all_files is specified and datapath is a ; seperated
-        list returns list of paths
+
     if nfiles is specified returns multi-file names
 
     """
 
-    filepaths = get_datapath(host, all_files)
-    if all_files:
+    filepaths = get_datapath(host)
+    if nfiles > 1:
         files_out = []
         for i in range(nfiles):
-            for directory in filepaths:
-                if i == 0:
-                    end = "@"
-                else:
-                    end = "@" + str(i)
-                files_out.append(directory + os.path.basename(name) + end)
+            if i == 0:
+                end = "@"
+            else:
+                end = "@" + str(i)
+            files_out.append(filepaths+name+end)
         return files_out
     else:
         return filepaths + os.path.basename(name) + "@"

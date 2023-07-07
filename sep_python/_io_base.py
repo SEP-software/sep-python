@@ -13,7 +13,6 @@ class RegFile(ABC):
 
     def __init__(self):
         """Default class for a regular file"""
-        self._head = 0
         self._hyper = None
         self._history = ""
         self._data_type = None
@@ -177,43 +176,13 @@ class RegFile(ABC):
             n_wind,fwind,jwind - Windowing parameters
         """
 
-    def hyper_to_dict(self, myd: dict):
-        """Try to create a hypercube from a dictionary of parameters
-
-        myd - Dictionary of params (e.g. {"n1":5})
-
-        """
-        idim = 1
-        for axis in self._hyper.axes:
-            myd[f"n{idim}"] = axis.n
-            myd[f"o{idim}"] = axis.o
-            myd[f"d{idim}"] = axis.d
-            myd[f"label{idim}"] = axis.label
-            myd[f"unit{idim}"] = axis.unit
-            idim += 1
-        return myd
-
-    def hyper_to_str(self):
-        """Return a string descrption of the current hypercube"""
-        idim = 1
-        out = ""
-        for axis in self._hyper.axes:
-            out += (
-                f"n{idim}={axis.n} o{idim}={axis.o}"
-                + f'd{idim}={axis.d} label{idim}={axis.label}"'
-                + f'unit{idim}={axis.unit}"\n'
-            )
-            idim += 1
-        return out
-
     def __del__(self):
         """
         Delete function
         """
-        self.close()
+        pass
 
     def condense(self, nwind_in: list, fwind_in: list, jwind_in: list):
-
         """Figure out the best way to write a given request
 
         nwind_in - list [int] windowing parameters (number of samples)
@@ -289,7 +258,7 @@ class RegFile(ABC):
         esize = converter.get_esize(self.get_data_type())
 
         for ig7 in range(n_grid[7]):
-            pos7 = self._head + (fwind[7] + jwind[7] * block[7]) * ig7
+            pos7 = (fwind[7] + jwind[7] * block[7]) * ig7
             for ig6 in range(n_grid[6]):
                 pos6 = pos7 + (fwind[6] + jwind[6] * block[6]) * ig6
                 for ig5 in range(n_grid[5]):
@@ -297,22 +266,18 @@ class RegFile(ABC):
                     for ig4 in range(n_grid[4]):
                         pos4 = pos5 + (fwind[4] + jwind[4] * block[4]) * ig4
                         for ig3 in range(n_grid[3]):
-                            pos3 = pos4 + (fwind[3] +
-                                           jwind[3] * block[3]) * ig3
+                            pos3 = pos4 + (fwind[3] + jwind[3] * block[3]) * ig3
                             for ig2 in range(n_grid[2]):
-                                pos2 = pos3 + (fwind[2] +
-                                               jwind[2] * block[2]) * ig2
+                                pos2 = pos3 + (fwind[2] + jwind[2] * block[2]) * ig2
                                 for ig1 in range(n_grid[1]):
-                                    pos1 = pos2 + (fwind[1]
-                                                   + jwind[1] * block[1]) * ig1
+                                    pos1 = pos2 + (fwind[1] + jwind[1] * block[1]) * ig1
                                     if jwind[0] == 1:
                                         seeks.append(pos1)
                                     else:
                                         for ig0 in range(n_grid[0]):
                                             seeks.append(
                                                 pos1
-                                                + (fwind[0]
-                                                   + jwind[0] * block[0]) * ig0
+                                                + (fwind[0] + jwind[0] * block[0]) * ig0
                                             )
         if jwind[0] == 1:
             return seeks, esize * n_wind[0], n_wind[0]
@@ -452,8 +417,7 @@ class InOut(ABC):
         max_length - Maximum number of appended frames
         flush - How often to flush the files"""
         if path not in self.append_files:
-            self.append_files[path] = AppendFile(self,
-                                                 path, vec, max_length, flush)
+            self.append_files[path] = AppendFile(self, path, vec, max_length, flush)
         if self.append_files[path].add_vector(vec):
             val_list = self.append_files[path].flush_vectors()
             if self.append_files[path].icount > self.append_files[path].nmax:
@@ -466,8 +430,8 @@ class InOut(ABC):
 
     def close_append_file(self, path):
         """
-            Close an append file and fix the description
-                to the right number of frames
+        Close an append file and fix the description
+            to the right number of frames
         """
         if path not in self.append_files:
             self._logger.fatal("No record of appended file")

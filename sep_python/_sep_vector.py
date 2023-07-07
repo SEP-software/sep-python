@@ -23,8 +23,7 @@ def calc_histo(out_vec, vec, min_val, max_val):
 class Vector(sep_python._sep_proto.MemReg, pyvec):
     """Generic sepVector class"""
 
-    def __init__(self, hyper: Hypercube, data_type: str,
-                 vals=None, space_only=False):
+    def __init__(self, hyper: Hypercube, data_type: str, vals=None, space_only=False):
         """Initialize a vector object"""
 
         self.arr = None
@@ -36,10 +35,15 @@ class Vector(sep_python._sep_proto.MemReg, pyvec):
             if not isinstance(vals, np.ndarray):
                 raise Exception("Vals must be ndarray")
             if vals.size == 0:  # empty array
-                arr = np.zeros(tuple(reversed(hyper.get_ns())),
-                               dtype=data_type)
+                arr = np.zeros(tuple(reversed(hyper.get_ns())), dtype=data_type)
                 pyvec.__init__(self, arr)
             else:
+                if converter.get_numpy(data_type) != vals.dtype:
+                    raise Exception(
+                        "Data types do not match %s %s",
+                        converter.get_numpy(data_type),
+                        vals.dtype,
+                    )
                 pyvec.__init__(self, copy.deepcopy(vals))
         elif not space_only:
             arr = np.zeros(tuple(reversed(hyper.get_ns())), dtype=data_type)
@@ -119,50 +123,50 @@ class Vector(sep_python._sep_proto.MemReg, pyvec):
         in_array = self.get_nd_array()
         ndim = len(axis_out)
         if ndim == 1:
-            out_array = in_array[f_s[0]:j_s[0] * n_s[0]:j_s[0]]
+            out_array = in_array[f_s[0] : j_s[0] * n_s[0] : j_s[0]]
         elif ndim == 2:
             out_array = in_array[
-                f_s[1]:j_s[1] * n_s[1]:j_s[1], f_s[0]:j_s[0]*n_s[0]:j_s[0]
+                f_s[1] : j_s[1] * n_s[1] : j_s[1], f_s[0] : j_s[0] * n_s[0] : j_s[0]
             ]
         elif ndim == 3:
             out_array = in_array[
-                f_s[2]:j_s[2] * n_s[2]:j_s[2],
-                f_s[1]:j_s[1] * n_s[1]:j_s[1],
-                f_s[0]:j_s[0] * n_s[0]:j_s[0],
+                f_s[2] : j_s[2] * n_s[2] : j_s[2],
+                f_s[1] : j_s[1] * n_s[1] : j_s[1],
+                f_s[0] : j_s[0] * n_s[0] : j_s[0],
             ]
         elif ndim == 4:
             out_array = in_array[
-                f_s[3]:j_s[3] * n_s[3]:j_s[3],
-                f_s[2]:j_s[2] * n_s[2]:j_s[2],
-                f_s[1]:j_s[1] * n_s[1]:j_s[1],
-                f_s[0]:j_s[0] * n_s[0]:j_s[0],
+                f_s[3] : j_s[3] * n_s[3] : j_s[3],
+                f_s[2] : j_s[2] * n_s[2] : j_s[2],
+                f_s[1] : j_s[1] * n_s[1] : j_s[1],
+                f_s[0] : j_s[0] * n_s[0] : j_s[0],
             ]
         elif ndim == 5:
             out_array = in_array[
-                f_s[4]:j_s[4] * n_s[4]:j_s[4],
-                f_s[3]:j_s[3] * n_s[3]:j_s[3],
-                f_s[2]:j_s[2] * n_s[2]:j_s[2],
-                f_s[1]:j_s[1] * n_s[1]:j_s[1],
-                f_s[0]:j_s[0] * n_s[0]:j_s[0],
+                f_s[4] : j_s[4] * n_s[4] : j_s[4],
+                f_s[3] : j_s[3] * n_s[3] : j_s[3],
+                f_s[2] : j_s[2] * n_s[2] : j_s[2],
+                f_s[1] : j_s[1] * n_s[1] : j_s[1],
+                f_s[0] : j_s[0] * n_s[0] : j_s[0],
             ]
         elif ndim == 6:
             out_array = in_array[
-                f_s[5]:j_s[5] * n_s[5]:j_s[5],
-                f_s[4]:j_s[4] * n_s[4]:j_s[4],
-                f_s[3]:j_s[3] * n_s[3]:j_s[3],
-                f_s[2]:j_s[2] * n_s[2]:j_s[2],
-                f_s[1]:j_s[1] * n_s[1]:j_s[1],
-                f_s[0]:j_s[0] * n_s[0]:j_s[0],
+                f_s[5] : j_s[5] * n_s[5] : j_s[5],
+                f_s[4] : j_s[4] * n_s[4] : j_s[4],
+                f_s[3] : j_s[3] * n_s[3] : j_s[3],
+                f_s[2] : j_s[2] * n_s[2] : j_s[2],
+                f_s[1] : j_s[1] * n_s[1] : j_s[1],
+                f_s[0] : j_s[0] * n_s[0] : j_s[0],
             ]
         elif ndim == 7:
             out_array = in_array[
-                f_s[6]:f_s[6] * n_s[6]:j_s[6],
-                f_s[5]:j_s[5] * n_s[5]:j_s[5],
-                f_s[4]:j_s[4] * n_s[4]:j_s[4],
-                f_s[3]:j_s[3] * n_s[3]:j_s[3],
-                f_s[2]:j_s[2] * n_s[2]:j_s[2],
-                f_s[1]:j_s[1] * n_s[1]:j_s[1],
-                f_s[0]:j_s[0] * n_s[0]:j_s[0],
+                f_s[6] : f_s[6] * n_s[6] : j_s[6],
+                f_s[5] : j_s[5] * n_s[5] : j_s[5],
+                f_s[4] : j_s[4] * n_s[4] : j_s[4],
+                f_s[3] : j_s[3] * n_s[3] : j_s[3],
+                f_s[2] : j_s[2] * n_s[2] : j_s[2],
+                f_s[1] : j_s[1] * n_s[1] : j_s[1],
+                f_s[0] : j_s[0] * n_s[0] : j_s[0],
             ]
         if not compress:
             return vec
@@ -194,8 +198,7 @@ class Vector(sep_python._sep_proto.MemReg, pyvec):
 class NonInteger(Vector):
     """A class for non-integers"""
 
-    def __init__(self, hyper: Hypercube,
-                 data_type: str, vals=None, space_only=False):
+    def __init__(self, hyper: Hypercube, data_type: str, vals=None, space_only=False):
         """Initialize a non-integer"""
         super().__init__(hyper, data_type, vals=vals, space_only=space_only)
 
@@ -203,8 +206,7 @@ class NonInteger(Vector):
 class RealNumber(NonInteger):
     """A class for real numbers"""
 
-    def __init__(self, hyper: Hypercube, data_type: str,
-                 vals=None, space_only=False):
+    def __init__(self, hyper: Hypercube, data_type: str, vals=None, space_only=False):
         """Initialize a real number vector"""
         super().__init__(hyper, data_type, vals=vals, space_only=space_only)
 
@@ -477,8 +479,7 @@ def get_sep_vector(
             logger.fatal("Must supply Hypercube,vector  or ns/axes")
             raise Exception("")
     else:
-        logger.fatal("Only understand 0 or 1"
-                     + " (Hypercube) non-keyword arguments")
+        logger.fatal("Only understand 0 or 1" + " (Hypercube) non-keyword arguments")
         raise Exception("")
 
     if have_numpy:
@@ -580,12 +581,10 @@ def fix_window(axes, **kw):
         bi_set = False
         ei_set = False
         if f"min{i}" in kw:
-            bi = int(float(kw[f"min{i}"] -
-                           axes[i - 1].o) / axes[i - 1].d + 0.5)
+            bi = int(float(kw[f"min{i}"] - axes[i - 1].o) / axes[i - 1].d + 0.5)
             bi_set = True
         if "max{i}" in kw:
-            ei = int(float(kw[f"max{i}"] -
-                           axes[i - 1].o) / axes[i - 1].d + 0.5)
+            ei = int(float(kw[f"max{i}"] - axes[i - 1].o) / axes[i - 1].d + 0.5)
             ei_set = True
         if fset:
             if axes[i - 1].n <= f:
@@ -609,15 +608,13 @@ def fix_window(axes, **kw):
                 if not bi_set:
                     f = 0
                 elif bi < 0 or bi >= axes[i - 1].n:
-                    logging.getLogger().fatal("Invalid min%d=%d",
-                                              i, kw[f"min{i}"])
+                    logging.getLogger().fatal("Invalid min%d=%d", i, kw[f"min{i}"])
                     raise Exception("")
                 else:
                     f = bi
             if ei_set:
                 if ei <= f or ei >= axes[i - 1].n:
-                    logging.getLogger().fatal("Invalid max%d=%d",
-                                              i, kw[f"min{i}"])
+                    logging.getLogger().fatal("Invalid max%d=%d", i, kw[f"min{i}"])
 
                 else:
                     n = (ei - f - 1) / j + 1

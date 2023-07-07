@@ -1,18 +1,33 @@
 import tempfile
 import copy
 import numpy as np
-from sep_python._data import portion_base, concat
+from sep_python._data import portion_base, concat, data_base
 from sep_python._data import dataset, datasets, inmem_portion
 from google.cloud import storage
 from sep_python._sep_converter import converter
 from sep_python._base_helper import calc_blocks
-from sep_python._sep_description import sep_description_string
 from sep_python._sep_description import sep_description_base
 from sep_python._base_helper import base_class_doc_string
 
 
+def get_datafile(name, nfiles=1):
+    """Creatae the name of data file(s) given the path to the description
+
+    name - Description file name
+    nfiles - Number od files
+
+    """
+    if nfiles == 1:
+        return f"{name}@"
+    name = []
+    for i in range(nfiles):
+        name.append(f"{name}/i")
+    return name
+
+
 class gcs_portion(portion_base):
     """How to do IO on a dataset storead on GCS"""
+
     def __init__(self, path):
         if path[0:5] != "gs://":
             raise Exception("GCS path must begin with gs://")
@@ -65,24 +80,34 @@ class gcs_portion(portion_base):
 
 
 class gcs_dataset(dataset):
-
     def __init__(self, path, intent, **kw):
         """
 
-            path - Path to the binary
-            intent - Intent of the data
+        path - Path to the binary
+        intent - Intent of the data
 
         """
         self._intent = intent
-        super.__init__(gcs_portion(path))
+        super.__init__(gcs_portion(path), **kw)
 
-    def check_valid(path, intent, **kw):
-        """Check to maske we have a valid path"""
-        if path[0:5] != "gs://":
-            raise Exception("Can't initiate file dataset with object")
-        if len(path.split(":") > 1):
-            raise Exception("can't have a : in path name")
-        return True
+    @base_class_doc_string(data_base.__init__)
+    def get_data_path(path, intent, **kw):
+        """Get binary for dataset writen to binary file"""
+        if "description" not in kw:
+            raise Exception("Expecting description")
+        if intent == "INPUT":
+            if "in" not in kw["description"]:
+                raise Exception("Expecting in to be specified")
+            inb = kw["description"]["in"]
+            if len(inb.split(";")) > 1:
+                raise Exception("Expecting a single file")
+            if "replace_path" in kw:
+                inb = "/".join([kw["replace_path"], inb.split("/")[-1]])
+            return inb
+        else:
+            if kw["description"]._meta:
+                return path
+            return kw["description"].get_binary_path_func(path, nfiles=1)
 
     def get_size(self):
         """
@@ -96,57 +121,65 @@ class gcs_dataset(dataset):
 
 
 class gcs_datasets(datasets):
-
     def __init__(self, paths, intent, **kw):
         """
 
-            path - Path to the binary
-            intent - Intent of the data
-            Required if output:
-                blk    -  Approximate blocksize
-                esize  -  Element size
-                ns  -   Number of elements in each dimension
+        path - Path to the binary
+        intent - Intent of the data
+        Required if output:
+            blk    -  Approximate blocksize
+            esize  -  Element size
+            ns  -   Number of elements in each dimension
 
         """
         self._intent = intent
         portions = []
         beg_locs = [0]
         if intent == "INPUT":
-            for pth in paths.split(":"):
+            for pth in paths.split(";"):
                 portions.append(gcs_portion[pth])
-                beg_locs.append(beg_locs[-1]+portions[-1].get_size())
+                beg_locs.append(beg_locs[-1] + portions[-1].get_size())
 
         elif intent == "OUTPUT":
             if "blk" not in kw or "esize" not in kw or "ns" not in kw:
-                raise Exception("When specifying output"
-                                + " must supply esize,ns,blk")
+                raise Exception("When specifying output" + " must supply esize,ns,blk")
             if "description" not in kw:
                 raise Exception("description not specified")
+            blocks = calc_blocks(
+                kw["description"].get_hyper().get_ns(),
+                converter.get_esize(kw["description"].get_data_type()),
+                kw["blk"],
+                **kw,
+            )
+            for pth, element in zip(paths, blocks):
+                portions.append(pth)
+                beg_locs.append(beg_locs[-1] + element)
+
+        super.__init__(portions, beg_locs, **kw)
+
+    @base_class_doc_string(data_base.__init__)
+    def get_data_path(path, intent, **kw):
+        """Get binary for dataset writen to binary files"""
+        if "description" not in kw:
+            raise Exception("Expecting description")
+        if intent == "INPUT":
+            if "in" not in kw["description"]:
+                raise Exception("Expecting in to be specified")
+            inb = kw["description"]["in"]
+            if len(inb.split(";")) == 1:
+                raise Exception("Expecting multiple files")
+            outb = []
+            for fl in inb.split(";"):
+                if "replace_path" in kw:
+                    outb.append("/".join([kw["replace_path"], inb.split("/")[-1]]))
+            return outb
+        else:
             if "blk" not in kw:
-                raise Exception("Must specifty blk")
+                raise Exception("Must specify blk")
             ns = kw["description"].get_hyper().get_ns()
             esize = converter.get_esize(kw["description"].get_data_type())
-            blocks = calc_blocks(ns, esize, kw["blk"])
-            for index, element in enumerate(blocks):
-                portions.append(f"{gcs_portion[pth]}@{index}")
-                beg_locs.append(beg_locs[-1]+element)
-
-            if "blk" not in kw or "esize" not in kw or "ns" not in kw:
-                raise Exception("When specifying output"
-                                + " must supply esize,ns,blk")
-        super.__init__(portions, beg_locs)
-
-    def check_valid(path, intent, **kw):
-        """Check to maske we have a valid path"""
-        if intent == "INPUT":
-            paths = path.split(":")
-            if len(path) == 1:
-                raise Exception("Only specified one path for input")
-            for pth in paths:
-                if pth[0:5] != "gs://":
-                    raise Exception("Can't specify"
-                                    + " object path in file dataset")
-        return True
+            blocks = calc_blocks(ns, esize, kw["blk"], **kw)
+            return kw["description"].get_binary_path_func(path, nfiles=len(blocks))
 
 
 class gcs_text_data(inmem_portion):
@@ -198,12 +231,16 @@ class gcs_text_data(inmem_portion):
             blob.download_to_filename(self._tempfile)
 
             if "skip_lines" in kw:
-                self._ar = np.loadtxt(self._tempfile,
-                                      dtype=kw["data_type"],
-                                      skiprows=kw["skip_lines"])
+                self._ar = np.loadtxt(
+                    self._tempfile, dtype=kw["data_type"], skiprows=kw["skip_lines"]
+                )
             else:
                 self._ar = np.loadtxt(self._filename, dtype=kw["data_type"])
-            super().__init__(byte_array=self._ar.tobytes())
+            super().__init__(byte_array=self._ar.tobytes(), **kw)
+
+    def get_data_path(path, intent, **kw):
+        """Check to maske we have a valid path"""
+        return path
 
     def close(self):
         if self._intent == "OUTPUT":
@@ -215,26 +252,25 @@ class gcs_text_data(inmem_portion):
 
 
 class gcs_follow_hdr(concat):
-
     def __init__(self, path, intent, **kw):
         """
 
-            file_ptr - File pointer to stdin or stdout
-            intent - Intent of the data
+        file_ptr - File pointer to stdin or stdout
+        intent - Intent of the data
 
         """
         self._intent = intent
 
         super.__init__(path, intent, **kw)
 
-    def check_valid(path, intent, **kw):
+    def get_data_path(path, intent, **kw):
         """Check to maske we have a valid path"""
-        return True
+        return "stdin"
 
 
-class gcs_sep_description_object(sep_description_string):
+class gcs_sep_description_object(sep_description_base):
     @base_class_doc_string(sep_description_base.__init__)
-    def __init__(self, path):
+    def __init__(self, path, **kw):
         """Initialie a description using gcs object"""
         super.__init__(path)
         parts = path.split["/"]
@@ -242,6 +278,8 @@ class gcs_sep_description_object(sep_description_string):
             raise Exception("Malformed gcs path must have  bucket and object")
         self._bucket = parts[2]
         self._object = "/".join(parts[3:])
+        self._meta = False
+        self._binary_path_func = get_datafile
 
     def read_description(path):
         bucket = path.split("/")[2]
@@ -271,14 +309,15 @@ class gcs_sep_description_object(sep_description_string):
             blob.delete()
 
 
-class gcs_sep_description_metadata(sep_description_string):
+class gcs_sep_description_metadata(sep_description_base):
     @base_class_doc_string(sep_description_base.__init__)
     def __init__(self, path, intent, **kw):
         """Initialie a description using metadata"""
         super.__init__(path, intent, **kw)
+        self._meta = True
+        self._binary_path_func = get_datafile
 
     def read_description(path):
-
         bucket = path.split("/")[2]
         object = "/".joint(path.split("/"))[3:]
         storage_client = storage.Client()

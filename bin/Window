@@ -1,0 +1,20 @@
+#!/usr/bin/env python
+
+from sep_python import Window, default_io
+
+
+if __name__ == "__main__":
+    cls = Window()
+    file_in, file_out = cls.process_commandline()
+    obj_in = default_io.get_reg_storage(file_in)
+    cls.calc_output_hyper(obj_in.get_hyper())
+    hyper_out = cls.output_from_input(obj_in.get_hyper())
+    obj_out = default_io.get_reg_storage(
+        file_out, hyper=hyper_out, data_type=obj_in.get_data_type()
+    )
+
+    hypers_in, hypers_out = cls.block_out(
+        obj_out.get_hyper(), obj_out.get_data_type(), obj_out.get_data_type()
+    )
+
+    cls.pipe_work(obj_in, obj_out, hypers_in, hypers_out)
