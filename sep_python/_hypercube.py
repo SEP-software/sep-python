@@ -107,7 +107,11 @@ class Hypercube:
         return Hypercube(axes=self.axes)
 
     def sub_cube(self, nwind, fwind, jwind):
-        """Return a sub-cube"""
+        """Return a sub-cube
+        nwind - number of elements
+        fwind - first index along each axis
+        jwind - Number of elements to skip each axis
+        """
         axes = []
         for iaxis, axis in enumerate(self.axes):
             axes.append(
