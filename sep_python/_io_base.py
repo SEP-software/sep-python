@@ -9,7 +9,7 @@ converter = sep_python._sep_converter.converter
 
 
 class RegFile(ABC):
-    """Store on disk a dataset"""
+    """Store regular dataset on disk a dataset"""
 
     def __init__(self):
         """Default class for a regular file"""
