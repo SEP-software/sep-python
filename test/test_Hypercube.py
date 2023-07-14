@@ -3,6 +3,7 @@ from sep_python._hypercube import Axis, Hypercube
 
 
 def test_Axis_default():
+    "Basic test to check initialization of Axis class"
     axis = Axis()
     assert axis.n == 1
     assert axis.o == 0.0
@@ -12,6 +13,7 @@ def test_Axis_default():
 
 
 def test_Axis_set_kw():
+    "Customized initialization"
     axis = Axis(n=2, o=3.0, d=4.0, label="axis_label", unit="axis_unit")
     assert axis.n == 2
     assert axis.o == 3.0
@@ -57,9 +59,12 @@ def test_Hypercube_add_axis():
     hypercube.add_axis(Axis(n=5))
     assert hypercube.get_ndim() == 4
     assert hypercube.get_axis(4).n == 5
+    assert hypercube.get_axis(4).o == 0 
+    assert hypercube.get_axis(4).d == 1
 
 
-def test_Hypercube_get_window_params():
+
+def test_Hypercube_get_window_params_single_params():
     hypercube = Hypercube.set_with_ns([3, 3])
     ns, fs, js = hypercube.get_window_params(n=[1, 1], f=[0, 0], j=[1, 1])
     assert ns == [1, 1]
@@ -70,6 +75,33 @@ def test_Hypercube_get_window_params():
 
     with pytest.raises(Exception):
         hypercube.get_window_params(n=[1, 1], f=[4, 0], j=[1, 1])
+
+def test_get_window_params_min_max():
+    hyper = Hypercube([])
+    params = {
+        "min": [5, 10, 15],
+        "max": [20, 30, 40]
+    }
+    expected_result = ([16, 21, 26], [5, 10, 15], [1, 1, 1])
+    assert hyper.get_window_params(**params) == expected_result
+
+
+def test_get_window_params_multiple_params():
+    hyper = Hypercube([])
+    params = {
+        "f1": 10,
+        "f2": 20,
+        "f3": 30,
+        "j1": 2,
+        "j2": 10,
+        "j3": 7,
+        "n1": 2,
+        "n2": 3,
+        "n3": 4,
+    }
+    expected_result = ([10, 20, 30], [2, 10, 7], [2, 3, 4])
+    assert hyper.get_window_params(**params) == expected_result
+
 
 
 def test_Hypercube_check_same():
@@ -144,3 +176,5 @@ def test_calc_sub_window(hypercube):
         "f": [0, 0, 0],
         "j": [2, 2, 2],
     }  # Adjust according to your expected output
+
+

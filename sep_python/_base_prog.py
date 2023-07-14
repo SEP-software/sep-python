@@ -10,7 +10,7 @@ from sep_python._sep_converter import converter
 from sep_python._sep_logger import sep_loggers
 
 
-class base_prog(ABC):
+class base_prog(ABC): #Abstract Base Class
     """ "Basic program"""
 
     def __init__(self, prog_name, description, input_req, output_req):
@@ -25,8 +25,8 @@ class base_prog(ABC):
         self._description = description
         self._input_req = input_req
         self._output_req = output_req
-        self._hyper_in = None
-        self._hyper_out = None
+        self._hyper_in = None #input hypercube  
+        self._hyper_out = None #output hypercube
 
     def build_args(self):
         """Build command line arguments"""
@@ -50,7 +50,7 @@ class base_prog(ABC):
                 help="Output file (otherwise stdout)",
             )
         self._parser.add_argument(
-            "-mem", type=int, default=4, help="DEfault memory to use in GB"
+            "-mem", type=int, default=4, help="Default memory to use in GB"
         )
         self._parser.add_argument(
             "-v",
@@ -135,7 +135,7 @@ class base_prog(ABC):
     def pipe_work(self, obj_in, obj_out, hypers_in, hypers_out):
         """ "
         obj_in, obj_out - Objects that handle IO
-        hypers_in, hypers_out - Hypercubes that descripbe
+        hypers_in, hypers_out - Hypercubes that describe
           input, output chunks
 
         """
