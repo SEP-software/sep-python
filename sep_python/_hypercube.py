@@ -188,7 +188,7 @@ class Hypercube:
         ng = ax.n
         f, j = 0, 1
         if f"j{iax+1}" in kw:
-            j = kw[f"{iax+1}"]
+            j = kw[f"j{iax+1}"]
         if "j" in kw:
             j = kw["j"][iax]
 
@@ -204,7 +204,7 @@ class Hypercube:
             f = kw["f"][iax]
         n = math.ceil((ng - f) / j)
         if f"max{iax+1}" in kw:
-            ncalc = int((f"max{iax+1}" - ax.o) / ax.d)
+            ncalc = int((kw[f"max{iax+1}"] - ax.o) / ax.d)
             if ncalc > ng:
                 raise Exception(f"Illegal max {iax+1}")
             n = int((ncalc - 1) / j + 1)
@@ -246,6 +246,7 @@ class Hypercube:
                     )
         ns, fs, js = [], [], []
         for iax in range(ndim):
+            print(iax, self.axes[iax], kw)
             n, f, j = Hypercube.calc_axis(iax, self.axes[iax], **kw)
             ns.append(n)
             fs.append(f)
@@ -269,7 +270,7 @@ class Hypercube:
 
     def trace_locations(self, n, f, j):
         """
-        Calculate the beining location of each trace (2:) described by
+        Calculate the beginning location of each trace (2:) described by
 
             n - number of samples
             f - first sample along each axis
@@ -305,6 +306,7 @@ class Hypercube:
             if ax.n != 1:
                 defs = False
             elif ax.o != 0.0 and with_os:
+                print("Hello")
                 defs = False
             elif ax.d != 1.0 and with_ds:
                 defs = False
@@ -313,9 +315,44 @@ class Hypercube:
             elif ax.unit != "" and with_unit:
                 defs = False
             default_shape.append(defs)
+        print(default_shape)
         true_index = default_shape.index(True)
+        print(true_index)
         if true_index != -1:
             if true_index == 0:
                 raise Exception("Found no valid axes???")
             return Hypercube(self.axes[:true_index])
         return self
+    
+    def concatenate_hypercubes(self, other_hyper, axis):
+        """
+        Concatenates two hypercubes along the specified axis.
+
+        Args:
+            other_hyper (Hypercube): The hypercube to be concatenated.
+            axis (int): The axis along which to concatenate the hypercubes.
+
+        Returns:
+            Hypercube: The concatenated hypercube.
+
+        Raises:
+            ValueError: If no axis is specified or if the hypercubes are not compatible for concatenation.
+        """
+
+        if axis is None:
+            raise ValueError("No axis specified for concatenation.")
+
+        if len(self.axes) != len(other_hyper.axes):
+            raise ValueError("Hypercubes must have the same number of axes for concatenation.")
+
+        if axis < 0 or axis >= len(self.axes):
+            raise ValueError("Invalid axis specified for concatenation.")
+
+        for i in range(1, len(self.axes)):
+            if i != axis and self.axes[i] != other_hyper.axes[i]:
+                raise ValueError("Hypercubes must have compatible axes for concatenation.")
+
+        new_axes = self.axes.copy()
+        new_axes[axis].n += other_hyper.axes[axis].n
+
+        return Hypercube(new_axes)
