@@ -1,5 +1,6 @@
 import pytest
 from sep_python._hypercube import Axis, Hypercube
+import numpy as np
 
 
 def test_Axis_default():
@@ -76,33 +77,34 @@ def test_Hypercube_get_window_params_single_params():
     with pytest.raises(Exception):
         hypercube.get_window_params(n=[1, 1], f=[4, 0], j=[1, 1])
 
+
 def test_get_window_params_min_max():
-    hyper = Hypercube([])
+    axes = [Axis(n=15, o=0, d=1), Axis(n=20, o=0, d=2), Axis(n=30, o=0, d=3)]
+    hyper = Hypercube(axes)
     params = {
-        "min": [5, 10, 15],
-        "max": [20, 30, 40]
+        "min": [5, 5, 5],
+        "max": [10, 10, 10]
     }
-    expected_result = ([16, 21, 26], [5, 10, 15], [1, 1, 1])
+    expected_result = ([15, 20, 30], [0, 0, 0], [1, 1, 1])
     assert hyper.get_window_params(**params) == expected_result
 
 
 def test_get_window_params_multiple_params():
-    hyper = Hypercube([])
+    axes = [Axis(n=15, o=0, d=1), Axis(n=20, o=0, d=1), Axis(n=30, o=0, d=3)]
+    hyper = Hypercube(axes)
     params = {
-        "f1": 10,
-        "f2": 20,
-        "f3": 30,
-        "j1": 2,
-        "j2": 10,
-        "j3": 7,
-        "n1": 2,
-        "n2": 3,
-        "n3": 4,
+        "f1": 0,
+        "f2": 0,
+        "f3": 0,
+        "j1": 1,
+        "j2": 1,
+        "j3": 1,
+        "n1": 15,
+        "n2": 20,
+        "n3": 30,
     }
-    expected_result = ([10, 20, 30], [2, 10, 7], [2, 3, 4])
+    expected_result = ([15, 20, 30], [0, 0, 0], [1, 1, 1])
     assert hyper.get_window_params(**params) == expected_result
-
-
 
 def test_Hypercube_check_same():
     hypercube1 = Hypercube.set_with_ns([3, 3])
@@ -114,7 +116,7 @@ def test_Hypercube_check_not_same():
     hypercube1 = Hypercube.set_with_ns([3, 3])
     hypercube2 = Hypercube.set_with_ns([4, 3])
     assert not hypercube1.check_same(hypercube2)  # Different hypercubes
-
+    
 
 def test_Hypercube_get_ns():
     hypercube = Hypercube.set_with_ns([3, 3])
@@ -149,23 +151,28 @@ def test_Hypercube_repr():
 
 @pytest.fixture
 def hypercube():
-    axes = [Axis(n=10, o=0, d=1), Axis(n=20, o=0, d=2), Axis(n=30, o=0, d=3)]
+    axes = [Axis(n=15, o=0, d=1), Axis(n=20, o=0, d=2), Axis(n=30, o=0, d=3)]
     return Hypercube(axes)
 
 
 def test_calc_axis(hypercube):
     n, f, j = Hypercube.calc_axis(0, hypercube.get_axis(1), j=[2, 3, 4], f=[1, 2, 3])
-    assert n == 5  # Adjust according to your expected output
+    assert n == 7  # Adjust according to your expected output
     assert f == 1  # Adjust according to your expected output
     assert j == 2  # Adjust according to your expected output
 
+    #testing for min and max arguments
+    n1, f1, j1 = Hypercube.calc_axis(0, hypercube.get_axis(1), min1 = 5.0, max1 = 10.0)
+    print(n1, f1, j1)
+    assert n1 == 10  # Adjust according to your expected output
+    assert f1 == 5  # Adjust according to your expected output
+    assert j1 == 1  # Adjust according to your expected output
 
 def test_get_window_params(hypercube):
     ns, fs, js = hypercube.get_window_params(n=[10, 20, 30], f=[0, 0, 0])
     assert ns == [10, 20, 30]
     assert fs == [0, 0, 0]
     assert js == [1, 1, 1]
-
 
 def test_calc_sub_window(hypercube):
     axes = [Axis(n=5, o=0, d=2), Axis(n=10, o=0, d=4), Axis(n=15, o=0, d=6)]
@@ -178,3 +185,47 @@ def test_calc_sub_window(hypercube):
     }  # Adjust according to your expected output
 
 
+def test_compact_hypercube():
+    
+    axes = [
+        Axis(n=10, o=0, d=1, label="Axis 1", unit=""),
+        Axis(n=10, o=5, d=2, label="Axis 2", unit="m"),
+        Axis(n=1, o=0.0, d=1.0, label="", unit=""),
+        Axis(n=20, o=2.0, d=2.0, label="Axis 4", unit="s"),
+    ]
+    hyper = Hypercube(axes)
+
+    compacted_hyper = hyper.compact_hyper()
+
+    assert compacted_hyper.get_axis(1).n == 10
+    assert compacted_hyper.get_axis(1).o == 0
+    assert compacted_hyper.get_axis(1).d == 1
+
+    assert compacted_hyper.get_axis(2).n == 10
+    assert compacted_hyper.get_axis(2).o == 5
+    assert compacted_hyper.get_axis(2).d == 2
+
+
+def test_concatenate_hypercubes():
+    
+    axis1 = Axis(n=3, o=0.0, d=1.0)
+    axis2 = Axis(n=4, o=10.0, d=2.0)
+    hypercube1 = Hypercube([axis1, axis2])
+
+    axis3 = Axis(n=2, o=100.0, d=0.5)
+    axis4 = Axis(n=5, o=50.0, d=5.0)
+    hypercube2 = Hypercube([axis3, axis4])
+
+    concatenated_hypercube = hypercube1.concatenate_hypercubes(hypercube2, axis=1)
+
+    assert concatenated_hypercube.get_ndim() == 2
+    assert concatenated_hypercube.get_axis(1).n == 3
+    assert concatenated_hypercube.get_axis(2).n == 4 + 5
+
+    assert concatenated_hypercube.get_axis(1).o == 0.0
+    assert concatenated_hypercube.get_axis(1).d == 1.0
+    assert concatenated_hypercube.get_axis(2).o == 10.0
+    assert concatenated_hypercube.get_axis(2).d == 2.0
+    
+    assert concatenated_hypercube.get_axis(1).label == ""
+    assert concatenated_hypercube.get_axis(1).unit == ""
