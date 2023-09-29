@@ -1,7 +1,7 @@
 [project]
 
 name='sep-python'
-version='0.9.88'
+version='0.9.89'
 description='A library for basic SEP IO all in python'
 
 authors=[
