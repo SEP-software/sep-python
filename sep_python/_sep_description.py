@@ -46,6 +46,7 @@ class sep_description_base(description_base):
         self._xdr = False
         self._binary_path = None
         self._binary_path_func = get_datafile
+        
 
         if intent == "OUTPUT":
             if "array" in kw or "vec" in kw:
@@ -243,7 +244,6 @@ class sep_description_base(description_base):
 
         pars = {}
         pars = database_from_str(description, pars)
-
         return (True, pars, data, file_pointer, end_of_file_marker != -1)
 
     def get_binary_path(self):

@@ -250,11 +250,11 @@ class InOut(sep_python._io_base.InOut):
                 valid,
                 description,
                 binary,
-                offset,
+                file_ptr,
                 eot,
             ) = sep_description_file.read_description(path)
             if valid:
-                return "file", description, None, None, offset, eot
+                return "file", description, binary, file_ptr, 0, eot
         raise Exception("Unable to determine input type")
         return None
 
@@ -413,9 +413,10 @@ class RegFile(sep_python._io_base.RegFile):
         self._binary_obj = binary_obj
         self._intent = intent
         self._wrote_history = False
-        self._xdr = False
+        self._xdr = description_obj.get_xdr()
         self._hyper = self._description_obj.get_hyper()
         self.set_data_type(description_obj.get_data_type())
+        self._esize=converter.get_esize(self.get_data_type())
         self._params = description_obj.get_dictionary()
 
     def read(self, mem, **kw):
@@ -442,7 +443,6 @@ class RegFile(sep_python._io_base.RegFile):
         )[:2]
 
         bytes_array = self._binary_obj.read(seeks, blk)
-
         if self._xdr:
             if self._esize == 8:
                 tmp = np.frombuffer(bytes_array, dtype=np.float32)

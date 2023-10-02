@@ -246,7 +246,6 @@ class Hypercube:
                     )
         ns, fs, js = [], [], []
         for iax in range(ndim):
-            print(iax, self.axes[iax], kw)
             n, f, j = Hypercube.calc_axis(iax, self.axes[iax], **kw)
             ns.append(n)
             fs.append(f)

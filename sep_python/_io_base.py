@@ -367,7 +367,6 @@ class InOut(ABC):
         file = self.get_reg_storage(**kw)
         self.add_storage(path, file)
         self._objs[path] = file
-
         n_wind, fwind, jwind = file.get_hyper().get_window_params(**kw)
         aout = []
         ain = file.get_hyper().axes
@@ -381,9 +380,7 @@ class InOut(ABC):
                     o=ain[i].o + ain[i].d * fwind[i],
                 )
             )
-
         hyper_out = Hypercube(axes=aout)
-
         vec = self._mem_create(hyper_out, data_type=file.get_data_type())
         file.read(vec)
         return vec

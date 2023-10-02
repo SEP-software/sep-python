@@ -337,7 +337,6 @@ class concat(dataset):
 
         self._cur_pos = 0
         self._intent = intent
-
         if intent == "INPUT":
             if "binary" not in kw:
                 raise Exception("binary must be passed when input")
