@@ -3,7 +3,7 @@ import logging
 import numba
 import numpy as np
 import copy
-from generic_solver import VectorIC as pyvec
+from generic_solver import vectorIC as pyvec
 from sep_python import Hypercube, Axis
 import sep_python._sep_converter
 import sep_python._sep_proto
@@ -64,6 +64,15 @@ class Vector(sep_python._sep_proto.MemReg, pyvec):
         """Return shape of vector"""
         return self.get_hyper().get_ns().reverse()
 
+    def __getitem__(self,key):
+        """Set a value"""
+        return self.val[key]
+    
+    def  __setitem__(self, key, newvalue):
+        """Set a value in the array"""
+        self.val[key]=newvalue
+        
+        
     def set(self, val):
         """Function to a vector to a value"""
         self.get_nd_array().fill(val)
@@ -71,11 +80,11 @@ class Vector(sep_python._sep_proto.MemReg, pyvec):
 
     def __getitem__(self, key):
         """Easy access of underlyind nd-array"""
-        return self.get_nd_array()[key]
+        return self.arr[key]
 
     def __setitem__(self, key, val):
         """Easy access of nd-array"""
-        self.get_nd_array()[key] = val
+        self.arr[key] = val
 
     def get_nd_array(self) -> np.ndarray:
         """Return a numpy version of the array (same memory"""
