@@ -355,6 +355,4 @@ class Hypercube:
         new_axes[axis].n += other_hyper.axes[axis].n
 
         return Hypercube(new_axes)
-
-
-jost calendar 
+ 
