@@ -13,9 +13,8 @@ maintainesr=[
     "bob@sep.stanford.edu"
 ]
 dependencies=[ 'google-cloud-storage>=1.34.0',
-                'numba==0.58',
-                'numpy==1.24',
-                'generic-solver @ git+https://github.com/SEP-software/python-solver.git@bd767fe948c1c082b690cadad95341bfd4f4c0b3'
+                'numba>=0.58',
+                'generic-solver @ git+https://github.com/SEP-software/python-solver.git@b08c685385539b92b513df3e2b9d5067a202d38c'
 
             ]
 

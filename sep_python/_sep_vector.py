@@ -259,15 +259,24 @@ class FloatVector(Vector):
 
     def clone(self):
         """Function to clone (deep copy) a vector"""
-        return FloatVector(self.get_hyper(), vals=self.get_nd_array())
-
+        vec= FloatVector(self.get_hyper(), vals=self.get_nd_array())
+        vec._transition=self._transition
+        vec._norm=self._norm
+        return vec
+    
     def cloneSpace(self):
-        return self.clone_space()
-
+        vec= self.clone_space()
+        vec._transition=self._transition
+        vec._norm=self._norm
+        return vec
+    
     def clone_space(self):
         """Funtion tor return the space of a vector"""
-        return FloatVector(self.get_hyper(), space_only=True)
-
+        vec= FloatVector(self.get_hyper(), space_only=True)
+        vec._transition=self._transition
+        vec._norm=self._norm
+        return vec
+    
     def checkSame(self, other):
         """Function to check that two vectors are from same space"""
         if not isinstance(other, FloatVector):
@@ -287,21 +296,32 @@ class DoubleVector(Vector):
 
     def clone(self):
         """Function to clone (deep copy) a vector"""
-        return DoubleVector(self.get_hyper(), vals=self.get_nd_array())
-
+        vec= DoubleVector(self.get_hyper(), vals=self.get_nd_array())
+        vec._transition=self._transition
+        vec._norm=self._norm
+        return vec
+    
     def clone_space(self):
         """Funtion tor return the space of a vector"""
-        return DoubleVector(self.get_hyper(), space_only=True)
-
+        vec=(self.get_hyper(), space_only=True)
+        vec._transition=self._transition
+        vec._norm=self._norm
+        return vec
+    
     def checkSame(self, other):
         """Function to check that two vectors are from same space"""
         if not isinstance(other, DoubleVector):
             return False
-        return self.get_hyper().check_same(other.get_hyper())
-
+        vec= self.get_hyper().check_same(other.get_hyper())
+        vec._transition=self._transition
+        vec._norm=self._norm
+        return vec
+    
     def cloneSpace(self):
-        return self.clone_space()
-
+        vec= self.clone_space()
+        vec._transition=self._transition
+        vec._norm=self._norm
+        return vec
 
 class IntVector(Vector):
     """Generic int vector class"""
@@ -315,14 +335,19 @@ class IntVector(Vector):
 
     def clone(self):
         """Function to clone (deep copy) a vector"""
-        return IntVector(self.get_hyper(), vals=self.get_nd_array())
-
+        vec= IntVector(self.get_hyper(), vals=self.get_nd_array())
+        vec._transition=self._transition
+        vec._norm=self._norm
+        return vec
+    
     def checkSame(self, other):
         """Function to check that two vectors are from same space"""
         if not isinstance(other, IntVector):
             return False
-        return self.get_hyper().check_same(other.get_hyper())
-
+        vec= self.get_hyper().check_same(other.get_hyper())
+        vec._transition=self._transition
+        vec._norm=self._norm
+        return vec
 
 class ComplexVector(Vector):
     """Generic complex vector class"""
@@ -332,19 +357,28 @@ class ComplexVector(Vector):
 
     def clone_space(self):
         """Funtion tor return the space of a vector"""
-        return ComplexVector(self.get_hyper(), space_only=True)
-
+        vec= ComplexVector(self.get_hyper(), space_only=True)
+        vec._transition=self._transition
+        vec._norm=self._norm
+        return vec
+    
     def cloneSpace(self):
-        return self.clone_space()
-
+        vec= self.clone_space()
+        vec._transition=self._transition
+        vec._norm=self._norm
+        return vec
+    
     def __repr__(self):
         """Override print method"""
         return f"ComplexVector\n{str(self.get_hyper())}"
 
     def clone(self):
         """clone a vector"""
-        return ComplexVector(self.get_hyper(), vals=self.get_nd_array())
-
+        vec= ComplexVector(self.get_hyper(), vals=self.get_nd_array())
+        vec._transition=self._transition
+        vec._norm=self._norm
+        return vec
+    
     def checkSame(self, other):
         """Function to check that two vectors are from same space"""
         if not isinstance(other, ComplexVector):
@@ -360,19 +394,28 @@ class ComplexDoubleVector(Vector):
 
     def clone_space(self):
         """Funtion tor return the space of a vector"""
-        return ComplexDoubleVector(self.get_hyper(), space_only=True)
-
+        vec= ComplexDoubleVector(self.get_hyper(), space_only=True)
+        vec._transition=self._transition
+        vec._norm=self._norm
+        return vec
+    
     def cloneSpace(self):
-        return self.clone_space()
-
+        vec= self.clone_space()
+        vec._transition=self._transition
+        vec._norm=self._norm
+        return vec
+    
     def __repr__(self):
         """Override print method"""
         return f"ComplexDoubleVector\n{str(self.get_hyper())}"
 
     def clone(self):
         """clone a vector"""
-        return ComplexDoubleVector(self.get_hyper(), vals=self.get_nd_array())
-
+        vec= ComplexDoubleVector(self.get_hyper(), vals=self.get_nd_array())
+        vec._transition=self._transition
+        vec._norm=self._norm
+        return vec
+    
     def checkSame(self, other):
         """Function to check that two vectors are from same space"""
         if not isinstance(other, ComplexDoubleVector):
@@ -399,8 +442,11 @@ class ByteVector(Vector):
 
     def clone(self):
         """Function to clone (deep copy) a vector"""
-        return ByteVector(self.get_hyper(), vals=self.get_nd_array())
-
+        vec= ByteVector(self.get_hyper(), vals=self.get_nd_array())
+        vec._transition=self._transition
+        vec._norm=self._norm
+        return vec
+    
     def __repr__(self):
         """Override print method"""
         return f"ByteVector\n{str(self.get_hyper())}"
