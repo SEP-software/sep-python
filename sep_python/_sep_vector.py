@@ -303,7 +303,7 @@ class DoubleVector(Vector):
     
     def clone_space(self):
         """Funtion tor return the space of a vector"""
-        vec=(self.get_hyper(), space_only=True)
+        vec=DoubleVector(self.get_hyper(), space_only=True)
         vec._transition=self._transition
         vec._norm=self._norm
         return vec
