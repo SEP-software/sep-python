@@ -289,6 +289,15 @@ class Hypercube:
         # Flatten and stack the grid to get a 2D array of indices
         return np.stack([g.ravel() for g in grid], axis=-1)
 
+    def reverse_hypercube(self):
+        """
+        Reverse hypercube axes (useful to switch between numpy rep and SEPlib style)
+        
+        
+        
+        """
+        return Hypercube(axes=self.axes[::-1])
+
     def compact_hyper(
         self, with_os=True, with_ds=True, with_label=True, with_unit=True
     ):

@@ -64,6 +64,7 @@ class Vector(sep_python._sep_proto.MemReg, pyvec):
         """Return shape of vector"""
         return self.get_hyper().get_ns().reverse()
 
+
     def __getitem__(self,key):
         """Set a value"""
         return self.val[key]
@@ -72,7 +73,10 @@ class Vector(sep_python._sep_proto.MemReg, pyvec):
         """Set a value in the array"""
         self.val[key]=newvalue
         
-        
+    def get_numpy_hyper(self):
+        """Return a reversed hypercube, numpy order"""
+        return self.get_hyper().reverse_hypercube()
+    
     def set(self, val):
         """Function to a vector to a value"""
         self.get_nd_array().fill(val)
