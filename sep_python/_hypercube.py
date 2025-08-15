@@ -34,6 +34,9 @@ class Axis:
             self.label = kw["axis"].label
             self.unit = kw["axis"].unit
 
+    def get_coord_values()
+        """Return coordinates assoicated with axis"""
+        return  inline_ax.o + inline_ax.d * np.arange(inline_ax.n) 
     def __repr__(self):
         """Define print method for class"""
         if self.unit != "":
@@ -314,7 +317,6 @@ class Hypercube:
             if ax.n != 1:
                 defs = False
             elif ax.o != 0.0 and with_os:
-                print("Hello")
                 defs = False
             elif ax.d != 1.0 and with_ds:
                 defs = False
@@ -323,9 +325,7 @@ class Hypercube:
             elif ax.unit != "" and with_unit:
                 defs = False
             default_shape.append(defs)
-        print(default_shape)
         true_index = default_shape.index(True)
-        print(true_index)
         if true_index != -1:
             if true_index == 0:
                 raise Exception("Found no valid axes???")
